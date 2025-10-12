@@ -1,0 +1,55 @@
+@page "/register-supplier"
+
+@inherits RegisterSupplierBase
+
+<h3 class="text-xl font-bold mb-4">Register Supplier</h3>
+
+<EditForm Model="@supplier" OnValidSubmit="RegisterSupplierAsync">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <!-- Supplier Name -->
+    <div class="mb-3">
+        <label class="form-label" for="supplierName">Supplier Name:</label>
+        <InputText id="supplierName" class="form-control" @bind-Value="supplier.Name" />
+        <ValidationMessage For="@(() => supplier.Name)" />
+    </div>
+
+    <!-- VAT Number -->
+    <div class="mb-3">
+        <label class="form-label" for="vatNumber">VAT Number:</label>
+        <InputText id="vatNumber" class="form-control" @bind-Value="supplier.VatNumber" />
+        <ValidationMessage For="@(() => supplier.VatNumber)" />
+    </div>
+
+    <!-- Payment Terms -->
+    <div class="mb-3">
+        <label class="form-label" for="paymentTerms">Payment Terms:</label>
+        <InputSelect id="paymentTerms" class="form-select" @bind-Value="supplier.PaymentTerms">
+            @foreach (var term in Enum.GetValues<PaymentTermsUI>())
+            {
+                <option value="@term">@term</option>
+            }
+        </InputSelect>
+    </div>
+
+    <button type="submit" class="btn btn-primary" disabled="@IsSubmitting">
+        @if (IsSubmitting)
+        {
+            <span>Registering...</span>
+        }
+        else
+        {
+            <span>Register Supplier</span>
+        }
+    </button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(SuccessMessage))
+{
+    <p class="text-success mt-2">@SuccessMessage</p>
+}
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <p class="text-danger mt-2">@ErrorMessage</p>
+}

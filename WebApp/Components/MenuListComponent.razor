@@ -1,0 +1,45 @@
+﻿@using Shared.DTOs.Menus
+@inherits MenuListComponentBase
+
+<h3>MenuListComponent</h3>
+
+@if (Menus is null || !Menus.Any())
+{
+    <p>No menus found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Supplier</th>
+                <th>Date</th>
+                <th>Meals</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var menu in Menus)
+            {
+                <tr>
+                    <td>@menu.SupplierName</td>
+                    <td>@menu.Date.ToShortDateString()</td>
+                    <td>
+                        @if (menu.Meals is not null && menu.Meals.Any())
+                        {
+                            <ul>
+                                @foreach (var meal in menu.Meals)
+                                {
+                                    <li>@meal.Name</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <span>No meals</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

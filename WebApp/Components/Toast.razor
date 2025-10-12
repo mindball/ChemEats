@@ -1,0 +1,50 @@
+﻿<div class="toast-container position-fixed top-50 start-50 translate-middle p-3 text-center"
+     style="z-index: 1100; min-width: 320px;">
+    @foreach (var toast in _toasts)
+    {
+        <div class="toast show border-0 mb-2 shadow-lg fade-in @GetToastColorClass(toast.Type)"
+             role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                <div class="toast-body text-white text-start">
+                    <strong>@toast.Title</strong><br />
+                    @toast.Message
+                </div>
+                <button type="button" class="btn-close btn-close-white ms-2" @onclick="() => RemoveToast(toast)"></button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private record ToastMessage(string Title, string Message, string Type);
+    private readonly List<ToastMessage> _toasts = new();
+
+    public async Task ShowAsync(string title, string message, string type)
+    {
+        var toast = new ToastMessage(title, message, type);
+        _toasts.Add(toast);
+        StateHasChanged();
+
+        // Auto-hide after 4 seconds
+        await Task.Delay(4000);
+        RemoveToast(toast);
+    }
+
+    private void RemoveToast(ToastMessage toast)
+    {
+        if (_toasts.Contains(toast))
+        {
+            _toasts.Remove(toast);
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private static string GetToastColorClass(string type) => type.ToLowerInvariant() switch
+    {
+        "success" => "bg-success",
+        "error" => "bg-danger",
+        "warning" => "bg-warning text-dark",
+        "info" => "bg-primary",
+        _ => "bg-secondary"
+    };
+}

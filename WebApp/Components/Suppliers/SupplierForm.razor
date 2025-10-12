@@ -1,0 +1,88 @@
+@inherits EditSupplierBase
+
+<EditForm Model="@Supplier" OnValidSubmit="@OnValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        <InputText class="form-control" @bind-Value="Supplier.Name" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">VAT Number</label>
+        <InputText class="form-control" @bind-Value="Supplier.VatNumber" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <InputText class="form-control" @bind-Value="Supplier.Email" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Phone</label>
+        <InputText class="form-control" @bind-Value="Supplier.Phone" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Street Address</label>
+        <InputText class="form-control" @bind-Value="Supplier.StreetAddress" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">City</label>
+        <InputText class="form-control" @bind-Value="Supplier.City" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Postal Code</label>
+        <InputText class="form-control" @bind-Value="Supplier.PostalCode" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Country</label>
+        <InputText class="form-control" @bind-Value="Supplier.Country" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Payment Terms</label>
+        <InputSelect class="form-select" @bind-Value="Supplier.PaymentTerms">
+            @foreach (PaymentTermsUI term in Enum.GetValues<PaymentTermsUI>())
+            {
+                <option value="@term">@term</option>
+            }
+        </InputSelect>
+    </div>
+
+    <!-- Optional: Menus editor could go here -->
+
+    <button type="submit" class="btn btn-primary" disabled="@IsSubmitting">
+        @if (IsSubmitting)
+        {
+            <span>@SubmitButtonText</span>
+        }
+        else
+        {
+            <span>@DefaultButtonText</span>
+        }
+    </button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(SuccessMessage))
+{
+    <p class="text-success mt-2">@SuccessMessage</p>
+}
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <p class="text-danger mt-2">@ErrorMessage</p>
+}
+
+@code {
+    [Parameter] public EventCallback OnValidSubmit { get; set; }
+    [Parameter] public bool IsSubmitting { get; set; }
+    [Parameter] public string? SuccessMessage { get; set; }
+    [Parameter] public string? ErrorMessage { get; set; }
+    [Parameter] public string SubmitButtonText { get; set; } = "Save";
+    [Parameter] public string DefaultButtonText { get; set; } = "Save";
+    [Parameter] public UpdateSupplierDto Supplier { get; set; } = new UpdateSupplierDto();
+}
