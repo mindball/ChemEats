@@ -15,7 +15,7 @@ public class SupplierRepository : ISupplierRepository
         _db = db;
     }
 
-    public async Task<Supplier?> GetByIdAsync(SupplierId id, CancellationToken cancellationToken = default)
+    public async Task<Supplier?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _db.Suppliers
             .Include(s => s.Menus)

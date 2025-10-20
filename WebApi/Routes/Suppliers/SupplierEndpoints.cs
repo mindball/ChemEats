@@ -2,6 +2,7 @@
 using Domain.Repositories.Suppliers;
 using MapsterMapper;
 using Shared.DTOs.Suppliers;
+using WebApi.Infrastructure.Filters;
 
 namespace WebApi.Routes.Suppliers;
 
@@ -9,7 +10,8 @@ public static class SupplierEndpoints
 {
     public static void MapSupplierEndpoints(this IEndpointRouteBuilder app)
     {
-        RouteGroupBuilder group = app.MapGroup("/api/suppliers");
+        RouteGroupBuilder group = app.MapGroup("/api/suppliers")
+            .RequireAuthorization();
 
         // GET all
         group.MapGet("/", async (
@@ -29,7 +31,7 @@ public static class SupplierEndpoints
             IMapper mapper,
             CancellationToken cancellationToken) =>
         {
-            Supplier? supplier = await repo.GetByIdAsync(new SupplierId(id), cancellationToken);
+            Supplier? supplier = await repo.GetByIdAsync(id, cancellationToken);
             return supplier is not null
                 ? Results.Ok(mapper.Map<SupplierDto>(supplier))
                 : Results.NotFound();
@@ -44,8 +46,8 @@ public static class SupplierEndpoints
         {
             Supplier entity = mapper.Map<Supplier>(dto);
             await repo.AddAsync(entity, cancellationToken);
-            return Results.Created($"/api/suppliers/{entity.Id.Value}", mapper.Map<SupplierDto>(entity));
-        });
+            return Results.Created($"/api/suppliers/{entity.Id}", mapper.Map<SupplierDto>(entity));
+        }).RequireAuthorization().AddEndpointFilter<AuthorizedRequestLoggingFilter>();
 
         // PUT
         group.MapPut("/{id:guid}", async (
@@ -55,7 +57,7 @@ public static class SupplierEndpoints
             IMapper mapper,
             CancellationToken cancellationToken) =>
         {
-            Supplier? existing = await repo.GetByIdAsync(new SupplierId(id), cancellationToken);
+            Supplier? existing = await repo.GetByIdAsync(id, cancellationToken);
             if (existing is null)
                 return Results.NotFound();
 
@@ -63,7 +65,7 @@ public static class SupplierEndpoints
             await repo.UpdateAsync(existing, cancellationToken);
 
             return Results.Ok(mapper.Map<SupplierDto>(existing));
-        });
+        }).RequireAuthorization().AddEndpointFilter<AuthorizedRequestLoggingFilter>();
 
         // DELETE
         group.MapDelete("/{id:guid}", async (
@@ -71,12 +73,12 @@ public static class SupplierEndpoints
             ISupplierRepository repo,
             CancellationToken cancellationToken) =>
         {
-            Supplier? supplier = await repo.GetByIdAsync(new SupplierId(id), cancellationToken);
+            Supplier? supplier = await repo.GetByIdAsync(id, cancellationToken);
             if (supplier is null)
                 return Results.NotFound();
 
             await repo.DeleteAsync(supplier, cancellationToken);
             return Results.NoContent();
-        });
+        }).RequireAuthorization().AddEndpointFilter<AuthorizedRequestLoggingFilter>();
     }
 }

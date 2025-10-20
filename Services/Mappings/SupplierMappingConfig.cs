@@ -8,14 +8,9 @@ public class SupplierMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<SupplierId, Guid>()
-            .MapWith(src => src.Value);
-
-        config.NewConfig<Guid, SupplierId>()
-            .MapWith(src => new SupplierId(src));
+        
 
         config.NewConfig<CreateSupplierDto, Supplier>()
-            .Map(dest => dest.Id, src => SupplierId.New())
             .Map(dest => dest.Name, src => src.Name)
             .Map(dest => dest.VatNumber, src => src.VatNumber)
             .Map(dest => dest.PaymentTerms, src => src.PaymentTerms.Adapt<PaymentTerms>())
@@ -31,7 +26,6 @@ public class SupplierMappingConfig : IRegister
 
 
         config.NewConfig<SupplierDto, Supplier>()
-            .Map(dest => dest.Id, src => new SupplierId(src.Id))
             .Map(dest => dest.Name, src => src.Name)
             .Map(dest => dest.VatNumber, src => src.VatNumber)
             .Map(dest => dest.PaymentTerms, src => src.PaymentTerms.Adapt<PaymentTerms>())

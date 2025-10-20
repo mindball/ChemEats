@@ -1,5 +1,4 @@
-﻿using Domain.Entities;
-using Domain.Infrastructure.Identity;
+﻿using Domain.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -9,30 +8,16 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
 {
     public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
-        builder.ToTable("AspNetUsers"); // reuse the Identity table
+        builder.ToTable("AspNetUsers");
 
-        builder.HasKey(u => u.Id);
+        builder.Property(u => u.Abbreviation)
+            .HasMaxLength(20); // примерно
 
-        builder.Property(u => u.UserName)
-            .HasMaxLength(50);
+        builder.HasMany(u => u.Orders)
+            .WithOne(o => o.User)
+            .HasForeignKey("UserId") 
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Property(u => u.Email)
-            .HasMaxLength(100);
-
-        builder.Property(u => u.EmployeeId)
-            .HasConversion(
-                id => id.HasValue ? id.Value.Value : (Guid?)null,
-                value => value.HasValue ? new EmployeeId(value.Value) : (EmployeeId?)null
-            )
-            .IsRequired(false);
-
-
-        builder
-            .HasOne(u => u.Employee)
-            .WithOne(e => e.User)
-            .HasForeignKey<ApplicationUser>(u => u.EmployeeId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        builder.HasIndex(u => u.EmployeeId).IsUnique();
     }
 }

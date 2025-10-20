@@ -11,7 +11,6 @@ public class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
         builder.HasKey(s => s.Id);
 
         builder.Property(s => s.Id)
-            .HasConversion(id => id.Value, value => new SupplierId(value))
             .ValueGeneratedNever();
 
         builder.Property(s => s.Name)

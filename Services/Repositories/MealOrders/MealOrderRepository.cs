@@ -5,7 +5,7 @@ namespace Services.Repositories.MealOrders;
 
 public class MealOrderRepository :  IMealOrderRepository
 {
-    public Task<MealOrder?> GetByIdAsync(MealOrderId Id, CancellationToken cancellationToken = default)
+    public Task<MealOrder?> GetByIdAsync(Guid Id, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }

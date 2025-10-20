@@ -15,7 +15,7 @@ public sealed class Price
         yield return Amount;
     }
 
-    public override string ToString() => $"{Amount:F2} лв.";
+    public override string ToString() => $"{Amount:F2} euro.";
 
     // Implicit conversion from decimal to Price
     public static implicit operator Price(decimal amount) => new(amount);

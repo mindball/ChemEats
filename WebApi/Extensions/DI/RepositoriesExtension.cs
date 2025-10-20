@@ -16,11 +16,12 @@ public static class RepositoriesExtension
 {
     internal static IServiceCollection RegisterRepositories(this IServiceCollection services)
     {
-        services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IMealOrderRepository, MealOrderRepository>();
         services.AddScoped<IMealRepository, MealRepository>();
         services.AddScoped<IMenuRepository, MenuRepository>();
         services.AddScoped<ISupplierRepository, SupplierRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
         return services;
     }
 }

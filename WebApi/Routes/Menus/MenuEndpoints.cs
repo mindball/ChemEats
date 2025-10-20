@@ -1,8 +1,9 @@
 ﻿using Domain.Entities;
 using Domain.Repositories.Menus;
+using MapsterMapper; 
 using Microsoft.AspNetCore.Mvc;
 using Shared.DTOs.Menus;
-using MapsterMapper; 
+using WebApi.Infrastructure.Filters;
 
 namespace WebApi.Routes.Menus;
 
@@ -12,7 +13,7 @@ public static class MenuEndpoints
     {
         var group = app.MapGroup("/api/menus");
 
-        group.MapPost("/", async (
+        group.MapPost("", async (
             [FromBody] CreateMenuDto menuDto,
             IMenuRepository menuRepository,
             IMapper mapper, 
@@ -26,8 +27,8 @@ public static class MenuEndpoints
             await menuRepository.AddAsync(menu, cancellationToken);
 
             var createdDto = mapper.Map<MenuDto>(menu);
-            return Results.Created($"/api/menus/{menu.Id.Value}", createdDto);
-        }).RequireAuthorization(); 
+            return Results.Created($"/api/menus/{menu.Id}", createdDto);
+        }).RequireAuthorization().AddEndpointFilter<AuthorizedRequestLoggingFilter>(); 
 
         // Get menus by supplier
         group.MapGet("/supplier/{supplierId:guid}", async (
@@ -40,20 +41,19 @@ public static class MenuEndpoints
             // var dto = mapper.Map<IEnumerable<MenuDto>>(menus);
             // return Results.Ok(dto);
             return Results.Ok();
-        });
+        }).AllowAnonymous(); ;
 
-        // ✅ Get menu by ID
         group.MapGet("/{menuId:guid}", async (
             Guid menuId,
             IMenuRepository menuRepository,
             IMapper mapper,
             CancellationToken cancellationToken) =>
         {
-            Menu? menu = await menuRepository.GetByIdAsync(new MenuId(menuId), cancellationToken);
+            Menu? menu = await menuRepository.GetByIdAsync(menuId, cancellationToken);
             return menu != null
                 ? Results.Ok(mapper.Map<MenuDto>(menu))
                 : Results.NotFound();
-        });
+        }).AllowAnonymous(); ;
 
         // ✅ Delete a menu
         group.MapDelete("/{menuId:guid}", async (
@@ -61,7 +61,7 @@ public static class MenuEndpoints
             IMenuRepository menuRepository,
             CancellationToken cancellationToken) =>
         {
-            Menu? menu = await menuRepository.GetByIdAsync(new MenuId(menuId), cancellationToken);
+            Menu? menu = await menuRepository.GetByIdAsync(menuId, cancellationToken);
             if (menu == null)
                 return Results.NotFound();
 
@@ -69,7 +69,7 @@ public static class MenuEndpoints
             return Results.NoContent();
         }).RequireAuthorization();
 
-        group.MapGet("/", async (
+        group.MapGet("", async (
             IMenuRepository menuRepository,
             IMapper mapper,
             CancellationToken cancellationToken) =>
@@ -78,6 +78,6 @@ public static class MenuEndpoints
             var menus = await menuRepository.GetAllAsync(cancellationToken);
             var dto = menus.Select(menu => mapper.Map<MenuDto>(menu));
             return Results.Ok(dto);
-        });
+        }).AllowAnonymous();
     }
 }

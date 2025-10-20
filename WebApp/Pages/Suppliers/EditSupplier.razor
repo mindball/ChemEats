@@ -1,23 +1,29 @@
 @page "/edit-supplier/{SupplierId:guid}"
 @inherits EditSupplierBase
+<AuthorizeView>
+    <Authorized Context="authContext">
+        <h3 class="text-xl font-bold mb-4">Edit Supplier</h3>
 
-<h3 class="text-xl font-bold mb-4">Edit Supplier</h3>
-
-@if (!string.IsNullOrEmpty(ErrorMessage))
-{
-    <p class="text-danger">@ErrorMessage</p>
-}
-else if (Supplier == null)
-{
-    <p>Loading...</p>
-}
-else
-{
-    <SupplierForm Supplier="@Supplier"
-                  OnValidSubmit="@UpdateSupplierAsync"
-                  IsSubmitting="@IsSubmitting"
-                  SuccessMessage="@SuccessMessage"
-                  ErrorMessage="@ErrorMessage"
-                  SubmitButtonText="Updating..."
-                  DefaultButtonText="Update Supplier" />
-}
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <p class="text-danger">@ErrorMessage</p>
+        }
+        else if (Supplier == null)
+        {
+            <p>Loading...</p>
+        }
+        else
+        {
+            <SupplierForm Supplier="@Supplier"
+                          OnValidSubmit="@UpdateSupplierAsync"
+                          IsSubmitting="@IsSubmitting"
+                          SuccessMessage="@SuccessMessage"
+                          ErrorMessage="@ErrorMessage"
+                          SubmitButtonText="Updating..."
+                          DefaultButtonText="Update Supplier"/>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <RedirectToLogin />
+    </NotAuthorized>
+</AuthorizeView>

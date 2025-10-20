@@ -7,17 +7,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WebApi.Migrations
 {
     /// <inheritdoc />
-    public partial class Identity : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<Guid>(
-                name: "UserId",
-                table: "Employees",
-                type: "CHAR(16) CHARACTER SET OCTETS",
-                nullable: true);
-
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -37,10 +31,10 @@ namespace WebApi.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "VARCHAR(256)", nullable: false),
-                    EmployeeId = table.Column<Guid>(type: "CHAR(16) CHARACTER SET OCTETS", nullable: true),
-                    UserName = table.Column<string>(type: "VARCHAR(50)", maxLength: 50, nullable: true),
+                    Abbreviation = table.Column<string>(type: "VARCHAR(20)", maxLength: 20, nullable: false),
+                    UserName = table.Column<string>(type: "VARCHAR(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "VARCHAR(256)", maxLength: 256, nullable: true),
-                    Email = table.Column<string>(type: "VARCHAR(100)", maxLength: 100, nullable: true),
+                    Email = table.Column<string>(type: "VARCHAR(256)", maxLength: 256, nullable: true),
                     NormalizedEmail = table.Column<string>(type: "VARCHAR(256)", maxLength: 256, nullable: true),
                     EmailConfirmed = table.Column<bool>(type: "BOOLEAN", nullable: false),
                     PasswordHash = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: true),
@@ -56,12 +50,26 @@ namespace WebApi.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AspNetUsers_Employees_Emplo~",
-                        column: x => x.EmployeeId,
-                        principalTable: "Employees",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Suppliers",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "CHAR(16) CHARACTER SET OCTETS", nullable: false),
+                    Name = table.Column<string>(type: "VARCHAR(100)", maxLength: 100, nullable: false),
+                    VatNumber = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: false),
+                    PaymentTerms = table.Column<int>(type: "INTEGER", nullable: false),
+                    Email = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: true),
+                    Phone = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: true),
+                    StreetAddress = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: true),
+                    City = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: true),
+                    PostalCode = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: true),
+                    Country = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Suppliers", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -170,6 +178,71 @@ namespace WebApi.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Menus",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "CHAR(16) CHARACTER SET OCTETS", nullable: false),
+                    SupplierId = table.Column<Guid>(type: "CHAR(16) CHARACTER SET OCTETS", nullable: false),
+                    Date = table.Column<DateTime>(type: "TIMESTAMP", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Menus", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Menus_Suppliers_SupplierId",
+                        column: x => x.SupplierId,
+                        principalTable: "Suppliers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Meals",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "CHAR(16) CHARACTER SET OCTETS", nullable: false),
+                    Name = table.Column<string>(type: "VARCHAR(100)", maxLength: 100, nullable: false),
+                    Price_Amount = table.Column<decimal>(type: "DECIMAL(18,2)", precision: 10, scale: 2, nullable: false),
+                    MenuId = table.Column<Guid>(type: "CHAR(16) CHARACTER SET OCTETS", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Meals", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Meals_Menus_MenuId",
+                        column: x => x.MenuId,
+                        principalTable: "Menus",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MealOrders",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "CHAR(16) CHARACTER SET OCTETS", nullable: false),
+                    UserId = table.Column<string>(type: "VARCHAR(256)", nullable: false),
+                    MealId = table.Column<Guid>(type: "CHAR(16) CHARACTER SET OCTETS", nullable: false),
+                    Date = table.Column<DateTime>(type: "TIMESTAMP", nullable: false),
+                    Status = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MealOrders", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MealOrders_AspNetUsers_User~",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_MealOrders_Meals_MealId",
+                        column: x => x.MealId,
+                        principalTable: "Meals",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -202,16 +275,30 @@ namespace WebApi.Migrations
                 column: "NormalizedEmail");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AspNetUsers_EmployeeId",
-                table: "AspNetUsers",
-                column: "EmployeeId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MealOrders_MealId",
+                table: "MealOrders",
+                column: "MealId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MealOrders_UserId",
+                table: "MealOrders",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Meals_MenuId",
+                table: "Meals",
+                column: "MenuId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Menus_SupplierId",
+                table: "Menus",
+                column: "SupplierId");
         }
 
         /// <inheritdoc />
@@ -233,14 +320,22 @@ namespace WebApi.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "MealOrders");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
 
-            migrationBuilder.DropColumn(
-                name: "UserId",
-                table: "Employees");
+            migrationBuilder.DropTable(
+                name: "Meals");
+
+            migrationBuilder.DropTable(
+                name: "Menus");
+
+            migrationBuilder.DropTable(
+                name: "Suppliers");
         }
     }
 }

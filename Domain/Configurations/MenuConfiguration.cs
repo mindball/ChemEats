@@ -11,11 +11,9 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
         builder.HasKey(m => m.Id);
 
         builder.Property(m => m.Id)
-            .HasConversion(id => id.Value, value => new MenuId(value))
             .ValueGeneratedNever();
 
         builder.Property(m => m.SupplierId)
-            .HasConversion(id => id.Value, value => new SupplierId(value))
             .IsRequired();
 
         builder.Property(m => m.Date)

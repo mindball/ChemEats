@@ -1,111 +1,119 @@
 ﻿@page "/get-suppliers"
 @inherits GetSuppliersBase
 
-<h3>Suppliers List</h3>
+<AuthorizeView>
+    <Authorized>
 
-@if (Suppliers.Count == 0)
-{
-    <p>Loading suppliers...</p>
-}
-else
-{
-    <table class="table table-sm table-striped table-bordered w-full">
-        <colgroup>
-            <col style="width: 25%"/> <!-- Name -->
-            <col style="width: 15%"/> <!-- VAT Number -->
-            <col style="width: 15%"/> <!-- Payment Terms -->
-            <col style="width: 25%"/> <!-- Email -->
-            <col style="width: 20%"/> <!-- Actions -->
-        </colgroup>
+        <h3>Suppliers List</h3>
 
-        <thead class="table-light">
-        <tr class="align-middle text-center">
-            <th>Name</th>
-            <th>VAT Number</th>
-            <th>Payment Terms</th>
-            <th>Email</th>
-            <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach (var supplier in Suppliers)
+        @if (Suppliers.Count == 0)
         {
-            <tr class="align-middle">
-                <td>@supplier.Name</td>
-                <td>@supplier.VatNumber</td>
-                <td>@supplier.PaymentTerms</td>
-                <td>@supplier.Email</td>
-                <td class="text-center">
-                    <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => ViewSupplier(supplier)">
-                        <i class="bi bi-eye-fill"></i>
-                    </button>
-                    <button class="btn btn-outline-warning btn-sm me-1" @onclick="() => UpdateSupplier(supplier)">
-                        <i class="bi bi-pencil-fill"></i>
-                    </button>
-                    <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteSupplierAsync(supplier)">
-                        <i class="bi bi-trash-fill"></i>
-                    </button>
-                </td>
-            </tr>
+            <p>Loading suppliers...</p>
         }
-        </tbody>
-    </table>
+        else
+        {
+            <table class="table table-sm table-striped table-bordered w-full">
+                <colgroup>
+                    <col style="width: 25%"/> <!-- Name -->
+                    <col style="width: 15%"/> <!-- VAT Number -->
+                    <col style="width: 15%"/> <!-- Payment Terms -->
+                    <col style="width: 25%"/> <!-- Email -->
+                    <col style="width: 20%"/> <!-- Actions -->
+                </colgroup>
 
-}
+                <thead class="table-light">
+                <tr class="align-middle text-center">
+                    <th>Name</th>
+                    <th>VAT Number</th>
+                    <th>Payment Terms</th>
+                    <th>Email</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (SupplierDto supplier in Suppliers)
+                {
+                    <tr class="align-middle">
+                        <td>@supplier.Name</td>
+                        <td>@supplier.VatNumber</td>
+                        <td>@supplier.PaymentTerms</td>
+                        <td>@supplier.Email</td>
+                        <td class="text-center">
+                            <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => ViewSupplier(supplier)">
+                                <i class="bi bi-eye-fill"></i>
+                            </button>
+                            <button class="btn btn-outline-warning btn-sm me-1" @onclick="() => UpdateSupplier(supplier)">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteSupplierAsync(supplier)">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
 
-<!-- Quick View Modal -->
-@if (IsViewModalOpen && SelectedSupplier != null)
-{
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5);">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">@SelectedSupplier.Name</h5>
-                    <button type="button" class="btn-close" @onclick="CloseViewModal"></button>
-                </div>
-                <div class="modal-body">
-                    <dl class="row">
-                        <dt class="col-sm-3">VAT Number</dt>
-                        <dd class="col-sm-9">@SelectedSupplier.VatNumber</dd>
+        <!-- Quick View Modal -->
+        @if (IsViewModalOpen && SelectedSupplier != null)
+        {
+            <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5);">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">@SelectedSupplier.Name</h5>
+                            <button type="button" class="btn-close" @onclick="CloseViewModal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <dl class="row">
+                                <dt class="col-sm-3">VAT Number</dt>
+                                <dd class="col-sm-9">@SelectedSupplier.VatNumber</dd>
 
-                        <dt class="col-sm-3">Email</dt>
-                        <dd class="col-sm-9">@SelectedSupplier.Email</dd>
+                                <dt class="col-sm-3">Email</dt>
+                                <dd class="col-sm-9">@SelectedSupplier.Email</dd>
 
-                        <dt class="col-sm-3">Phone</dt>
-                        <dd class="col-sm-9">@SelectedSupplier.Phone</dd>
+                                <dt class="col-sm-3">Phone</dt>
+                                <dd class="col-sm-9">@SelectedSupplier.Phone</dd>
 
-                        <dt class="col-sm-3">Address</dt>
-                        <dd class="col-sm-9">
-                            @SelectedSupplier.StreetAddress <br/>
-                            @SelectedSupplier.City, @SelectedSupplier.PostalCode <br/>
-                            @SelectedSupplier.Country
-                        </dd>
+                                <dt class="col-sm-3">Address</dt>
+                                <dd class="col-sm-9">
+                                    @SelectedSupplier.StreetAddress <br/>
+                                    @SelectedSupplier.City, @SelectedSupplier.PostalCode <br/>
+                                    @SelectedSupplier.Country
+                                </dd>
 
-                        <dt class="col-sm-3">Payment Terms</dt>
-                        <dd class="col-sm-9">@SelectedSupplier.PaymentTerms</dd>
+                                <dt class="col-sm-3">Payment Terms</dt>
+                                <dd class="col-sm-9">@SelectedSupplier.PaymentTerms</dd>
 
-                        <dt class="col-sm-3">Menus</dt>
-                        <dd class="col-sm-9">
-                            @if (SelectedSupplier.Menus?.Any() == true)
-                            {
-                                <ul class="mb-0">
-                                    @foreach (MenuDto menu in SelectedSupplier.Menus)
+                                <dt class="col-sm-3">Menus</dt>
+                                <dd class="col-sm-9">
+                                    @if (SelectedSupplier.Menus?.Any() == true)
                                     {
-                                        <li>@menu.Date.ToShortDateString() - @menu.Meals.Count meals</li>
+                                        <ul class="mb-0">
+                                            @foreach (MenuDto menu in SelectedSupplier.Menus)
+                                            {
+                                                <li>@menu.Date.ToShortDateString() - @menu.Meals.Count meals</li>
+                                            }
+                                        </ul>
                                     }
-                                </ul>
-                            }
-                            else
-                            {
-                                <span>No menus</span>
-                            }
-                        </dd>
-                    </dl>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" @onclick="CloseViewModal">Close</button>
+                                    else
+                                    {
+                                        <span>No menus</span>
+                                    }
+                                </dd>
+                            </dl>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" @onclick="CloseViewModal">Close</button>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-}
+        }
+
+    </Authorized>
+    <NotAuthorized>
+        <RedirectToLogin />
+    </NotAuthorized>
+</AuthorizeView>

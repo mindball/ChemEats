@@ -1,35 +1,34 @@
-﻿using Domain.Entities;
-using StronglyTypedIds;
+﻿using Domain.Infrastructure.Identity;
 
 namespace Domain.Entities;
 
 public enum MealOrderStatus
 {
-    Pending, 
+    Pending,
     Completed,
     Cancelled
 }
 
-[StronglyTypedId]
-public partial struct MealOrderId { }
-
-public class MealOrder : Entity<MealOrderId>
+public class MealOrder
 {
-    private MealOrder() { }
+    private MealOrder()
+    {
+    }
 
-    public MealOrder(MealOrderId id, EmployeeId employeeId, MealId mealId, DateOnly date)
+    public MealOrder(Guid id, ApplicationUser user, Guid mealId, DateOnly date)
     {
         Id = id;
-        EmployeeId = employeeId;
+        User = user;
         MealId = mealId;
         Date = date;
     }
 
-    public EmployeeId EmployeeId { get; private set; }
-    public Employee? Employee { get; private set; } 
+    public Guid Id { get; private set; }
+    public string UserId { get; private set; }
+    public ApplicationUser? User { get; private set; }
 
-    public MealId MealId { get; private set; }
-    public Meal? Meal { get; private set; } 
+    public Guid MealId { get; private set; }
+    public Meal? Meal { get; private set; }
 
     public DateOnly Date { get; private set; }
     public MealOrderStatus Status { get; set; }

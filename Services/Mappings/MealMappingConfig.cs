@@ -8,11 +8,6 @@ public class MealMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<MealId, Guid>()
-            .MapWith(src => src.Value);
-        config.NewConfig<Guid, MealId>()
-            .MapWith(src => new MealId(src));
-
         config.NewConfig<Price, decimal>()
             .MapWith(src => src.Amount);
         config.NewConfig<decimal, Price>()
@@ -24,14 +19,13 @@ public class MealMappingConfig : IRegister
             );
 
         config.NewConfig<Meal, MealDto>()
-            .Map(dest => dest.Id, src => src.Id.Value)
             .Map(dest => dest.Name, src => src.Name)
             .Map(dest => dest.Price, src => src.Price.Amount);
 
         config.NewConfig<MealDto, Meal>()
             .ConstructUsing(src =>
                 new Meal(
-                    new MealId(src.Id),
+                    src.Id,
                     src.Name,
                     new Price(src.Price)
                 )

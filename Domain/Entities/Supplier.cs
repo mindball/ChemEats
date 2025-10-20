@@ -4,16 +4,13 @@ using StronglyTypedIds;
 
 namespace Domain.Entities;
 
-[StronglyTypedId(Template.Guid)]
-public partial struct SupplierId { }
-
-public class Supplier : Entity<SupplierId>
+public class Supplier
 {
     private readonly List<Menu> _menus = new();
 
     private Supplier() { }
 
-    public Supplier(SupplierId id, string name, string vatNumber, PaymentTerms paymentTerms)
+    public Supplier(Guid id, string name, string vatNumber, PaymentTerms paymentTerms)
     {
         Id = id;
         Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -23,7 +20,7 @@ public class Supplier : Entity<SupplierId>
 
     public static Supplier Create(string name, string vatNumber, PaymentTerms paymentTerms, IEnumerable<Menu>? menus = null)
     {
-        var supplier = new Supplier(SupplierId.New(), name, vatNumber, paymentTerms);
+        var supplier = new Supplier(Guid.NewGuid(), name, vatNumber, paymentTerms);
         if (menus != null)
         {
             foreach (var menu in menus)
@@ -32,6 +29,7 @@ public class Supplier : Entity<SupplierId>
         return supplier;
     }
 
+    public Guid Id { get; private set; }
     public string Name { get; private set; }
     public string VatNumber { get; private set; }
     public PaymentTerms PaymentTerms { get; private set; }

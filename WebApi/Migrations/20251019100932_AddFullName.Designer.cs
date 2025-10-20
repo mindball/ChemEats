@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251011095531_Identity")]
-    partial class Identity
+    [Migration("20251019100932_AddFullName")]
+    partial class AddFullName
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -23,29 +23,6 @@ namespace WebApi.Migrations
                 .HasAnnotation("Fb:ValueGenerationStrategy", FbValueGenerationStrategy.IdentityColumn)
                 .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 31);
-
-            modelBuilder.Entity("Domain.Entities.Employee", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("CHAR(16) CHARACTER SET OCTETS");
-
-                    b.Property<string>("Abbreviation")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("VARCHAR(10)");
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("VARCHAR(100)");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("CHAR(16) CHARACTER SET OCTETS");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Employees");
-                });
 
             modelBuilder.Entity("Domain.Entities.Meal", b =>
                 {
@@ -75,21 +52,21 @@ namespace WebApi.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("TIMESTAMP");
 
-                    b.Property<Guid>("EmployeeId")
-                        .HasColumnType("CHAR(16) CHARACTER SET OCTETS");
-
                     b.Property<Guid>("MealId")
                         .HasColumnType("CHAR(16) CHARACTER SET OCTETS");
 
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(256)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("MealId");
 
-                    b.HasIndex("EmployeeId", "MealId", "Date")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("MealOrders");
                 });
@@ -157,6 +134,11 @@ namespace WebApi.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("VARCHAR(256)");
 
+                    b.Property<string>("Abbreviation")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("VARCHAR(20)");
+
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("INTEGER");
 
@@ -165,14 +147,15 @@ namespace WebApi.Migrations
                         .HasColumnType("BLOB SUB_TYPE TEXT");
 
                     b.Property<string>("Email")
-                        .HasMaxLength(100)
-                        .HasColumnType("VARCHAR(100)");
+                        .HasMaxLength(256)
+                        .HasColumnType("VARCHAR(256)");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("BOOLEAN");
 
-                    b.Property<Guid?>("EmployeeId")
-                        .HasColumnType("CHAR(16) CHARACTER SET OCTETS");
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("BLOB SUB_TYPE TEXT");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("BOOLEAN");
@@ -204,13 +187,10 @@ namespace WebApi.Migrations
                         .HasColumnType("BOOLEAN");
 
                     b.Property<string>("UserName")
-                        .HasMaxLength(50)
-                        .HasColumnType("VARCHAR(50)");
+                        .HasMaxLength(256)
+                        .HasColumnType("VARCHAR(256)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("EmployeeId")
-                        .IsUnique();
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -381,21 +361,21 @@ namespace WebApi.Migrations
 
             modelBuilder.Entity("Domain.Entities.MealOrder", b =>
                 {
-                    b.HasOne("Domain.Entities.Employee", "Employee")
-                        .WithMany("Orders")
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Domain.Entities.Meal", "Meal")
                         .WithMany()
                         .HasForeignKey("MealId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Infrastructure.Identity.ApplicationUser", "User")
+                        .WithMany("Orders")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Employee");
-
                     b.Navigation("Meal");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain.Entities.Menu", b =>
@@ -407,16 +387,6 @@ namespace WebApi.Migrations
                         .IsRequired();
 
                     b.Navigation("Supplier");
-                });
-
-            modelBuilder.Entity("Domain.Infrastructure.Identity.ApplicationUser", b =>
-                {
-                    b.HasOne("Domain.Entities.Employee", "Employee")
-                        .WithOne("User")
-                        .HasForeignKey("Domain.Infrastructure.Identity.ApplicationUser", "EmployeeId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Employee");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -470,13 +440,6 @@ namespace WebApi.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Domain.Entities.Employee", b =>
-                {
-                    b.Navigation("Orders");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Domain.Entities.Menu", b =>
                 {
                     b.Navigation("Meals");
@@ -485,6 +448,11 @@ namespace WebApi.Migrations
             modelBuilder.Entity("Domain.Entities.Supplier", b =>
                 {
                     b.Navigation("Menus");
+                });
+
+            modelBuilder.Entity("Domain.Infrastructure.Identity.ApplicationUser", b =>
+                {
+                    b.Navigation("Orders");
                 });
 #pragma warning restore 612, 618
         }

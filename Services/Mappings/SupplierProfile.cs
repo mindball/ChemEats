@@ -42,11 +42,9 @@ public class SupplierProfile : Profile
         //     .ForMember(dest => dest.Menus, opt => opt.Ignore());
 
         CreateMap<Supplier, SupplierDto>()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.Value.ToString()))
             .ForMember(dest => dest.Menus, opt => opt.MapFrom(src => src.Menus));
 
         CreateMap<SupplierDto, Supplier>()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => new SupplierId(src.Id)))
             .ForMember(dest => dest.Menus, opt => opt.MapFrom(src => src.Menus));
 
         // DTO → Domain

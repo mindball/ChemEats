@@ -4,7 +4,7 @@ namespace Domain.Repositories.Suppliers;
 
 public interface ISupplierRepository
 {
-    Task<Supplier?> GetByIdAsync(SupplierId id, CancellationToken cancellationToken = default);
+    Task<Supplier?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Supplier?> DeleteAsync(Supplier supplier, CancellationToken cancellationToken = default);
     Task AddAsync(Supplier supplier, CancellationToken cancellationToken = default);
     Task<IEnumerable<Supplier>> GetAllAsync(CancellationToken cancellationToken = default);

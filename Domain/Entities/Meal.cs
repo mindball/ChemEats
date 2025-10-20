@@ -2,14 +2,11 @@
 
 namespace Domain.Entities;
 
-[StronglyTypedId(Template.Guid)]
-public partial struct MealId {}
-
-public class Meal : Entity<MealId>
+public class Meal 
 {
     private Meal() { } // EF
 
-    public Meal(MealId id, string name, Price price)
+    public Meal(Guid id, string name, Price price)
     {
         Id = id;
         Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -18,9 +15,10 @@ public class Meal : Entity<MealId>
 
     public static Meal Create(string name, Price price)
     {
-        return new Meal(MealId.New(), name, price);
+        return new Meal(Guid.NewGuid(), name, price);
     }
 
+    public Guid Id { get; private set; }
     public string Name { get; private set; }
     public Price Price { get; private set; }
 

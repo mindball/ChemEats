@@ -1,14 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using StronglyTypedIds;
 
 namespace Domain.Entities;
 
-[StronglyTypedId(Template.Guid)]
-public partial struct MenuId
-{
-}
-
-public class Menu : Entity<MenuId>
+public class Menu
 {
     private readonly List<Meal> _meals = [];
 
@@ -16,7 +10,7 @@ public class Menu : Entity<MenuId>
     {
     }
 
-    public Menu(MenuId id, SupplierId supplierId, DateTime date, IEnumerable<Meal> meals)
+    public Menu(Guid id, Guid supplierId, DateTime date, IEnumerable<Meal> meals)
     {
         Id = id;
         SupplierId = supplierId;
@@ -24,7 +18,9 @@ public class Menu : Entity<MenuId>
         _meals = meals.ToList();
     }
 
-    [Required] public SupplierId SupplierId { get; private set; }
+    public Guid Id { get; private set; }
+
+    [Required] public Guid SupplierId { get; private set; }
 
     public Supplier? Supplier { get; private set; }
 
@@ -32,8 +28,8 @@ public class Menu : Entity<MenuId>
 
     public IReadOnlyCollection<Meal> Meals => _meals.AsReadOnly();
 
-    public static Menu Create(SupplierId supplierId, DateTime date, IEnumerable<Meal> meals)
+    public static Menu Create(Guid supplierId, DateTime date, IEnumerable<Meal> meals)
     {
-        return new Menu(MenuId.New(), supplierId, date, meals);
+        return new Menu(Guid.NewGuid(), supplierId, date, meals);
     }
 }

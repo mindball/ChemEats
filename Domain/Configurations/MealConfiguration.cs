@@ -11,14 +11,12 @@ public class MealConfiguration : IEntityTypeConfiguration<Meal>
         builder.HasKey(m => m.Id);
 
         builder.Property(m => m.Id)
-            .HasConversion(id => id.Value, value => new MealId(value))
             .ValueGeneratedNever();
 
         builder.Property(m => m.Name)
             .IsRequired()
             .HasMaxLength(100);
-        
-        
+
 
         builder.OwnsOne(m => m.Price, price =>
         {

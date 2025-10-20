@@ -11,15 +11,9 @@ public class MealOrderConfiguration : IEntityTypeConfiguration<MealOrder>
         builder.HasKey(mo => mo.Id);
 
         builder.Property(mo => mo.Id)
-            .HasConversion(id => id.Value, value => new MealOrderId(value))
             .ValueGeneratedNever();
 
-        builder.Property(mo => mo.EmployeeId)
-            .HasConversion(id => id.Value, value => new EmployeeId(value))
-            .IsRequired();
-
         builder.Property(mo => mo.MealId)
-            .HasConversion(id => id.Value, value => new MealId(value))
             .IsRequired();
 
         builder.Property(mo => mo.Date)
@@ -28,6 +22,17 @@ public class MealOrderConfiguration : IEntityTypeConfiguration<MealOrder>
                 dt => DateOnly.FromDateTime(dt))
             .IsRequired();
 
-        builder.HasIndex(mo => new { mo.EmployeeId, mo.MealId, mo.Date }).IsUnique();
+
+        builder.HasOne(mo => mo.User)
+            .WithMany(u => u.Orders)
+            .HasForeignKey(mo => mo.UserId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(mo => mo.Meal)
+            .WithMany()
+            .HasForeignKey(mo => mo.MealId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

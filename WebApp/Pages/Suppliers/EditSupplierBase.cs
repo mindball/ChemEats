@@ -7,7 +7,7 @@ namespace WebApp.Pages.Suppliers;
 public class EditSupplierBase : ComponentBase
 {
     protected string? ErrorMessage;
-    protected bool IsSubmitting;
+    [Parameter] public bool IsSubmitting { get; set; }
     protected string? SuccessMessage;
 
     protected UpdateSupplierDto Supplier { get; set; } = new();

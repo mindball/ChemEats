@@ -13,7 +13,7 @@ public class MenuRepository : IMenuRepository
     {
         _dbContext = dbContext;
     }
-    public Task<Menu?> GetByIdAsync(MenuId Id, CancellationToken cancellationToken = default)
+    public Task<Menu?> GetByIdAsync(Guid Id, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
