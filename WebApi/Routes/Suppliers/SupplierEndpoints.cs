@@ -28,8 +28,7 @@ public static class SupplierEndpoints
         group.MapGet("/{id:guid}", async (
             Guid id,
             ISupplierRepository repo,
-            IMapper mapper,
-            CancellationToken cancellationToken) =>
+            IMapper mapper,CancellationToken cancellationToken) =>
         {
             Supplier? supplier = await repo.GetByIdAsync(id, cancellationToken);
             return supplier is not null

@@ -33,4 +33,9 @@
     <ProjectReference Include="..\WebApp\WebApp.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Routes\Suppliers\NewFolder1\" />
+    <Folder Include="Routes\Suppliers\NewFolder\" />
+  </ItemGroup>
+
 </Project>

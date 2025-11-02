@@ -1,18 +1,34 @@
-﻿using Domain.Entities;
+﻿using Domain;
+using Domain.Entities;
 using Domain.Repositories.Meals;
+using Microsoft.EntityFrameworkCore;
 
 namespace Services.Repositories.Meals;
 
 public class MealRepository : IMealRepository
 {
-    public Task<Meal?> GetByIdAsync(Guid Id, CancellationToken cancellationToken = default)
+    private readonly AppDbContext _dbContext;
+
+    public MealRepository(AppDbContext dbContext)
     {
-        throw new NotImplementedException();
+        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-    public Task AddAsync(Meal meal, CancellationToken cancellationToken = default)
+    public async Task<Meal?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await _dbContext.Meals
+            .AsNoTracking()
+            .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
+    }
+
+    public async Task AddAsync(Meal meal, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(meal);
+
+        await _dbContext.Meals.AddAsync(meal, cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }
 

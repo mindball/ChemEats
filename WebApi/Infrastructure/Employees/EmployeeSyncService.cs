@@ -44,7 +44,8 @@ public class EmployeeSyncService : IEmployeeSyncService
 
         foreach (UserDto dto in employeesFromApi)
         {
-            ApplicationUser? existingUser = await _userRepository.FindByEmailAsync(dto.Code);
+            ApplicationUser? existingUser = await _employeeCache.GetByAbbreviationAsync(dto.Code);
+            // ApplicationUser? existingUser = await _userRepository.FindByNameAsync(dto.Code);
 
             if (existingUser == null)
             {

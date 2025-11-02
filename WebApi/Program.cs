@@ -12,6 +12,7 @@ using WebApi.Infrastructure.Employees;
 using WebApi.Routes.Emails;
 using WebApi.Routes.Employees;
 using WebApi.Routes.Menus;
+using WebApi.Routes.Orders;
 using WebApi.Routes.Suppliers;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -89,9 +90,10 @@ config.Scan(typeof(SupplierMappingConfig).Assembly);
 builder.Services.AddSingleton(config);
 builder.Services.AddScoped<IMapper, ServiceMapper>();
 
+var employeeAddress = builder.Configuration.GetSection("EmployeesAddress");
 builder.Services.AddHttpClient<IEmployeeExternalService, EmployeeExternalService>(client =>
 {
-    client.BaseAddress = new Uri("http://localhost:8733/Everest/Employees/");
+    client.BaseAddress = new Uri(employeeAddress.Value);
 });
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IEmployeeCacheService, EmployeeCacheService>();
@@ -158,21 +160,22 @@ app
 app.MapMenuEndpoints();
 app.MapSupplierEndpoints();
 app.MapEmployeeEndpoints();
+app.MapMealOrderEndpoints();
 app.EmailEndpoints();
 
-// using (IServiceScope scope = app.Services.CreateScope())
-// {
-//     var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
-//     IEmployeeExternalService externalService = scope.ServiceProvider.GetRequiredService<IEmployeeExternalService>();
-//
-//     //Delete after deployed into production
-//     // await IdentitySeeder.SeedAsync(userRepository, userManager, roleManager, externalService);
-//
-//     IEmployeeCacheService employeeCache = scope.ServiceProvider.GetRequiredService<IEmployeeCacheService>();
-//     await employeeCache.InitializeAsync();
-//     IEmployeeSyncService syncService = scope.ServiceProvider.GetRequiredService<IEmployeeSyncService>();
-//     await syncService.SyncEmployeesAsync();
-// }
+using (IServiceScope scope = app.Services.CreateScope())
+{
+    // var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+    // IEmployeeExternalService externalService = scope.ServiceProvider.GetRequiredService<IEmployeeExternalService>();
+
+    //Delete after deployed into production
+    // await IdentitySeeder.SeedAsync(userRepository, userManager, roleManager, externalService);
+
+    IEmployeeCacheService employeeCache = scope.ServiceProvider.GetRequiredService<IEmployeeCacheService>();
+    await employeeCache.InitializeAsync();
+    // IEmployeeSyncService syncService = scope.ServiceProvider.GetRequiredService<IEmployeeSyncService>();
+    // await syncService.SyncEmployeesAsync();
+}
 
 app.UseAntiforgery();
 app.MapFallbackToFile("index.html");

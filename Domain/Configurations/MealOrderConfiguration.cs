@@ -17,11 +17,7 @@ public class MealOrderConfiguration : IEntityTypeConfiguration<MealOrder>
             .IsRequired();
 
         builder.Property(mo => mo.Date)
-            .HasConversion(
-                d => d.ToDateTime(TimeOnly.MinValue),
-                dt => DateOnly.FromDateTime(dt))
             .IsRequired();
-
 
         builder.HasOne(mo => mo.User)
             .WithMany(u => u.Orders)

@@ -4,8 +4,9 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using System.Globalization;
 using WebApp;
 using WebApp.Services.Menus;
-using WebApp.Services.Suppliers;
+using WebApp.Services.Orders;
 using WebApp.Services.States;
+using WebApp.Services.Suppliers;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -15,6 +16,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 // HttpClients
 builder.Services.AddScoped<ISupplierDataService, SupplierDataService>();
 builder.Services.AddScoped<IMenuDataService, MenuDataService>();
+builder.Services.AddScoped<IOrderDataService, OrderDataService>();
 
 builder.Services.AddScoped((sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) }));
 
@@ -29,8 +31,12 @@ builder.Services.AddScoped<AuthenticationStateProvider>(provider =>
     provider.GetRequiredService<CustomAuthStateProvider>());
 
 // Настройка на култура
-CultureInfo bgCulture = new CultureInfo("bg-BG");
-CultureInfo.DefaultThreadCurrentCulture = bgCulture;
-CultureInfo.DefaultThreadCurrentUICulture = bgCulture;
+var bgCulture = new CultureInfo("bg-BG");
+var bgEuro = (CultureInfo)bgCulture.Clone();
+bgEuro.NumberFormat = (NumberFormatInfo)bgCulture.NumberFormat.Clone();
+bgEuro.NumberFormat.CurrencySymbol = "€";
+
+CultureInfo.DefaultThreadCurrentCulture = bgEuro;
+CultureInfo.DefaultThreadCurrentUICulture = bgEuro;
 
 await builder.Build().RunAsync();

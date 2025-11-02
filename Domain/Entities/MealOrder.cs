@@ -11,18 +11,6 @@ public enum MealOrderStatus
 
 public class MealOrder
 {
-    private MealOrder()
-    {
-    }
-
-    public MealOrder(Guid id, ApplicationUser user, Guid mealId, DateOnly date)
-    {
-        Id = id;
-        User = user;
-        MealId = mealId;
-        Date = date;
-    }
-
     public Guid Id { get; private set; }
     public string UserId { get; private set; }
     public ApplicationUser? User { get; private set; }
@@ -30,6 +18,44 @@ public class MealOrder
     public Guid MealId { get; private set; }
     public Meal? Meal { get; private set; }
 
-    public DateOnly Date { get; private set; }
-    public MealOrderStatus Status { get; set; }
+    public DateTime Date { get; private set; }
+    public MealOrderStatus Status { get; private set; }
+
+    // --- Частни конструктори ---
+    private MealOrder() { } // За EF Core
+
+    private MealOrder(Guid id, string userId, Guid mealId, DateTime date)
+    {
+        Id = id;
+        UserId = userId ?? throw new ArgumentNullException(nameof(userId));
+        MealId = mealId;
+        Date = date;
+        Status = MealOrderStatus.Pending;
+    }
+
+    private MealOrder(Guid id, ApplicationUser user, Guid mealId, DateTime date)
+        : this(id, user?.Id ?? throw new ArgumentNullException(nameof(user)), mealId, date)
+    {
+        User = user;
+    }
+
+    // --- Фабрични методи ---
+    public static MealOrder Create(Guid id, string userId, Guid mealId, DateTime date)
+    {
+        return new MealOrder(id, userId, mealId, date);
+    }
+
+    public static MealOrder Create(Guid id, ApplicationUser user, Guid mealId, DateTime date)
+    {
+        return new MealOrder(id, user, mealId, date);
+    }
+
+    // --- Домейн поведение (пример) ---
+    public void MarkAsCompleted()
+    {
+        if (Status != MealOrderStatus.Pending)
+            throw new InvalidOperationException("Only pending orders can be completed.");
+
+        Status = MealOrderStatus.Completed;
+    }
 }

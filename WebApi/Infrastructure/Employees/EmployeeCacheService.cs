@@ -15,8 +15,8 @@ public class EmployeeCacheService : IEmployeeCacheService
     private readonly IUserRepository _userRepository;
     private readonly ILogger<EmployeeCacheService> _logger;
 
-    private static readonly string[] DefaultRoles = { "Admin", "Employee", "Manager" };
-    private static readonly string[] AdminEmployeeCodes = { "MM", "DM" };
+    private static readonly string[] DefaultRoles = ["Admin", "Employee", "Manager"];
+    private static readonly string[] AdminEmployeeCodes = ["MM", "DM"];
 
     public EmployeeCacheService(
         IEmployeeExternalService externalService,
@@ -106,7 +106,7 @@ public class EmployeeCacheService : IEmployeeCacheService
         _logger.LogInformation("Entered {Service}.{Method}", nameof(IEmployeeCacheService), nameof(GetAll));
 
         if (!_cache.TryGetValue(CacheKey, out List<ApplicationUser>? users))
-            return Array.Empty<ApplicationUser>();
+            return [];
 
         return users ?? [];
     }
@@ -116,7 +116,7 @@ public class EmployeeCacheService : IEmployeeCacheService
         _logger.LogInformation("Entered {Service}.{Method}", nameof(IEmployeeCacheService), nameof(AddOrUpdateAsync));
 
         if (!_cache.TryGetValue(CacheKey, out List<ApplicationUser>? users))
-            users = new List<ApplicationUser>();
+            users = [];
 
         ApplicationUser? existing = users.FirstOrDefault(e => e.Id == employee.Id);
         if (existing != null)

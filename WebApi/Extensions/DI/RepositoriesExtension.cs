@@ -22,6 +22,8 @@ public static class RepositoriesExtension
         services.AddScoped<IMenuRepository, MenuRepository>();
         services.AddScoped<ISupplierRepository, SupplierRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IMealOrderRepository, MealOrderRepository>();
+        services.AddScoped<IMealRepository, MealRepository>();
         return services;
     }
 }

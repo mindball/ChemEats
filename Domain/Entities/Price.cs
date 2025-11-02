@@ -1,4 +1,6 @@
-﻿namespace Domain.Entities;
+﻿using System.Globalization;
+
+namespace Domain.Entities;
 
 public sealed class Price
 {
@@ -15,7 +17,8 @@ public sealed class Price
         yield return Amount;
     }
 
-    public override string ToString() => $"{Amount:F2} euro.";
+    // Use current culture currency formatting (will show € because Program.cs sets it)
+    public override string ToString() => Amount.ToString("C", CultureInfo.CurrentCulture);
 
     // Implicit conversion from decimal to Price
     public static implicit operator Price(decimal amount) => new(amount);
