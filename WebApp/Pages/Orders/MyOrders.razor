@@ -1,0 +1,67 @@
+﻿@page "/orders/my"
+@inherits MyOrdersBase
+
+<h3 class="mb-3"><i class="bi bi-card-list me-2"></i>My Orders</h3>
+
+@if (IsLoading)
+{
+    <p>Loading...</p>
+}
+else if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+else
+{
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label class="form-label">Filter by Date</label>
+            <input type="date" class="form-control" @bind="FilterDate" />
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Supplier</label>
+            <select class="form-select" @bind="SelectedSupplierId">
+                <option value="">All suppliers</option>
+                @foreach (var s in AvailableSuppliers)
+                {
+                    <option value="@s.SupplierId">@s.SupplierName</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-4 d-flex align-items-end">
+            <button class="btn btn-primary ms-auto" @onclick="LoadOrdersAsync">Apply</button>
+        </div>
+    </div>
+
+    @if (Orders is null || !Orders.Any())
+    {
+        <div class="text-muted">No orders found for the selected criteria.</div>
+    }
+    else
+    {
+        decimal total = Orders.Sum(o => o.Price * o.Quantity);
+
+        <ul class="list-group mb-3">
+            @foreach (var item in Orders)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto">
+                        <div class="fw-bold">@item.MealName</div>
+                        <small class="text-muted">@item.SupplierName — @FormatBulgarianDate(item.Date)</small>
+                    </div>
+                    <div class="text-end">
+                        <div>@item.Quantity × @item.Price.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</div>
+                        <div class="fw-bold">@((item.Price * item.Quantity).ToString("C", System.Globalization.CultureInfo.CurrentCulture))</div>
+                    </div>
+                </li>
+            }
+        </ul>
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="fw-bold">Total</div>
+            <div class="fw-bold">@total.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</div>
+        </div>
+    }
+}

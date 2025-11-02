@@ -1,0 +1,95 @@
+﻿using System.Globalization;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using Shared.DTOs.Menus;
+using Shared.DTOs.Orders;
+using WebApp.Services.Menus;
+using WebApp.Services.Orders;
+
+namespace WebApp.Pages.Orders;
+
+public class MyOrdersBase : ComponentBase
+{
+    [Inject] protected IMenuDataService MenuDataService { get; init; } = null!;
+    [Inject] protected IOrderDataService OrderDataService { get; init; } = null!;
+
+    [CascadingParameter] protected Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
+
+    protected IReadOnlyList<MenuDto>? Menus { get; private set; }
+    protected List<UserOrderDto>? Orders { get; private set; }
+
+    protected DateTime? FilterDate { get; set; }
+    protected Guid? SelectedSupplierId { get; set; }
+
+    protected string? ErrorMessage { get; private set; }
+    protected bool IsLoading { get; private set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        IsLoading = true;
+        ErrorMessage = null;
+
+        try
+        {
+            // Ensure user is available via authentication state (page is authorized by server, but keep UI consistent)
+            AuthenticationState auth = await AuthenticationStateTask;
+            ClaimsPrincipal? user = auth.User;
+            if (user?.Identity?.IsAuthenticated != true)
+            {
+                ErrorMessage = "You must be signed in to view your orders.";
+                return;
+            }
+
+            Menus = (await MenuDataService.GetAllMenusAsync()).ToList();
+
+            // Default to today if there are menus for today
+            FilterDate = DateTime.Today;
+            if (Menus!.All(m => m.Date.Date != FilterDate.Value.Date))
+                FilterDate = null;
+
+            await LoadOrdersAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to load orders: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    protected async Task LoadOrdersAsync()
+    {
+        IsLoading = true;
+        ErrorMessage = null;
+
+        try
+        {
+            Orders = await OrderDataService.GetMyOrdersAsync(SelectedSupplierId, FilterDate);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to load orders: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    protected static string FormatBulgarianDate(DateTime date)
+    {
+        CultureInfo bgCulture = new("bg-BG");
+        string dayName = date.ToString("dddd", bgCulture);
+        string capitalizedDay = char.ToUpper(dayName[0], bgCulture) + dayName.Substring(1);
+        return $"{capitalizedDay} {date:dd.MM.yyyy'г.'}";
+    }
+
+    protected IEnumerable<(Guid SupplierId, string SupplierName)> AvailableSuppliers =>
+        Menus?.Select(m => (m.SupplierId, m.SupplierName))
+            .Distinct()
+            .OrderBy(x => x.SupplierName) ?? Enumerable.Empty<(Guid, string)>();
+}

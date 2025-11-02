@@ -84,15 +84,17 @@ public class OrderMenuBase : ComponentBase
         return Selected.ContainsKey(key);
     }
 
+    // Default quantity is now 0 for items not in Selected
     protected int GetQuantity((Guid MealId, DateTime Date) key)
     {
-        return Selected.GetValueOrDefault(key, 1);
+        return Selected.GetValueOrDefault(key, 0);
     }
 
     protected void ToggleSelection((Guid MealId, DateTime Date) key, bool isSelected)
     {
         if (isSelected)
         {
+            // add with a sensible default of 1 when user explicitly selects via checkbox
             Selected.TryAdd(key, 1);
         }
         else
@@ -101,13 +103,21 @@ public class OrderMenuBase : ComponentBase
         }
     }
 
+    // Accept 0 as "remove item" and allow adding/updating quantities > 0
     protected void UpdateQuantity((Guid MealId, DateTime Date) key, string value)
     {
-        if (!int.TryParse(value, out int q) || q < 1)
-            q = 1;
+        if (!int.TryParse(value, out int q) || q < 0)
+            q = 0;
 
-        if (!Selected.TryAdd(key, q))
-            Selected[key] = q;
+        if (q == 0)
+        {
+            Selected.Remove(key);
+        }
+        else
+        {
+            if (!Selected.TryAdd(key, q))
+                Selected[key] = q;
+        }
     }
 
     protected async Task PlaceOrdersAsync()

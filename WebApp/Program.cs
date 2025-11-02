@@ -20,8 +20,6 @@ builder.Services.AddScoped<IOrderDataService, OrderDataService>();
 
 builder.Services.AddScoped((sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) }));
 
-
-
 // Това е нужно за AuthorizeView
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddAuthorizationCore();

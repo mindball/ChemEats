@@ -1,8 +1,8 @@
 ﻿using Domain.Entities;
 using Domain.Infrastructure.Identity;
+using Domain.Models.Orders;
 using Domain.Repositories.MealOrders;
 using Domain.Repositories.Meals;
-using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Shared.DTOs.Orders;
@@ -14,7 +14,6 @@ public static class OrdersEndpoints
 {
     public static void MapMealOrderEndpoints(this IEndpointRouteBuilder app)
     {
-        
         RouteGroupBuilder group = app.MapGroup("/api/mealorders")
             .RequireAuthorization();
 
@@ -79,7 +78,7 @@ public static class OrdersEndpoints
                     order.Id,
                     order.UserId,
                     order.MealId,
-                    Date = order.Date, // DateOnly will be serialized by JSON as date
+                    order.Date, // DateOnly will be serialized by JSON as date
                     Status = order.Status.ToString(),
                     Meal = order.Meal is null
                         ? null
@@ -92,6 +91,30 @@ public static class OrdersEndpoints
                 };
 
                 return Results.Ok(dto);
+            })
+            .RequireAuthorization()
+            .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
+
+        group.MapGet("/me", async (
+                Guid? supplierId,
+                DateTime? date,
+                IMealOrderRepository orderRepository,
+                UserManager<ApplicationUser> userManager,
+                HttpContext httpContext,
+                IMapper mapper,
+                CancellationToken cancellationToken) =>
+            {
+                ApplicationUser? user = await userManager.GetUserAsync(httpContext.User);
+                if (user == null)
+                    return Results.Unauthorized();
+
+                IReadOnlyList<UserOrderSummary> orders =
+                    await orderRepository.GetUserOrdersAsync(user.Id, supplierId, date, cancellationToken);
+
+                // Map domain read-models to shared DTOs for the API boundary
+                var dtos = orders.Select(o => mapper.Map<UserOrderDto>(o)).ToList();
+
+                return Results.Ok(dtos);
             })
             .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
