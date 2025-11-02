@@ -4,7 +4,7 @@ namespace WebApp.Services.Orders;
 
 public interface IOrderDataService
 {
-    Task<PlaceOrdersResponse?> PlaceOrdersAsync(PlaceOrdersRequest request);
+    Task<PlaceOrdersResponse?> PlaceOrdersAsync(PlaceOrdersRequestDto requestDto);
 }
 
 public sealed record PlaceOrdersResponse(int Created, List<Guid> Ids);

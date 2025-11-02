@@ -2,6 +2,8 @@
 using Domain.Infrastructure.Identity;
 using Domain.Repositories.MealOrders;
 using Domain.Repositories.Meals;
+using Mapster;
+using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Shared.DTOs.Orders;
 using WebApi.Infrastructure.Filters;
@@ -12,27 +14,29 @@ public static class OrdersEndpoints
 {
     public static void MapMealOrderEndpoints(this IEndpointRouteBuilder app)
     {
+        
         RouteGroupBuilder group = app.MapGroup("/api/mealorders")
             .RequireAuthorization();
 
         group.MapPost("/", async (
-                PlaceOrdersRequest request,
+                PlaceOrdersRequestDto requestDto,
                 IMealOrderRepository orderRepository,
                 IMealRepository mealRepository,
                 UserManager<ApplicationUser> userManager,
                 HttpContext httpContext,
+                IMapper mapper,
                 CancellationToken cancellationToken) =>
             {
-                if (request?.Items is null || request.Items.Count == 0)
+                if (requestDto?.Items is null || requestDto.Items.Count == 0)
                     return Results.BadRequest("Request must contain at least one item.");
 
                 ApplicationUser? user = await userManager.GetUserAsync(httpContext.User);
                 if (user == null)
                     return Results.Unauthorized();
 
-                List<Guid> createdOrders = [];
+                List<Guid> createdOrders = new();
 
-                foreach (OrderRequestItemDto item in request.Items)
+                foreach (OrderRequestItemDto item in requestDto.Items)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -45,11 +49,9 @@ public static class OrdersEndpoints
 
                     for (int i = 0; i < item.Quantity; i++)
                     {
-                        MealOrder order = MealOrder.Create(
-                            Guid.NewGuid(),
-                            user.Id,
-                            item.MealId,
-                            item.Date);
+                        MealOrder order = mapper.From(item)
+                            .AddParameters("userId", user.Id)
+                            .AdaptToType<MealOrder>();
 
                         await orderRepository.AddAsync(order, cancellationToken);
                         createdOrders.Add(order.Id);
@@ -77,7 +79,7 @@ public static class OrdersEndpoints
                     order.Id,
                     order.UserId,
                     order.MealId,
-                    order.Date,
+                    Date = order.Date, // DateOnly will be serialized by JSON as date
                     Status = order.Status.ToString(),
                     Meal = order.Meal is null
                         ? null

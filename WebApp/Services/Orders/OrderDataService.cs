@@ -13,11 +13,11 @@ public class OrderDataService : IOrderDataService
         _httpClient = httpClient;
     }
 
-    public async Task<PlaceOrdersResponse?> PlaceOrdersAsync(PlaceOrdersRequest request)
+    public async Task<PlaceOrdersResponse?> PlaceOrdersAsync(PlaceOrdersRequestDto requestDto)
     {
-        if (request is null) throw new ArgumentNullException(nameof(request));
+        if (requestDto is null) throw new ArgumentNullException(nameof(requestDto));
 
-        var response = await _httpClient.PostAsJsonAsync("api/mealorders", request);
+        var response = await _httpClient.PostAsJsonAsync("api/mealorders", requestDto);
 
         if (!response.IsSuccessStatusCode)
             return null;

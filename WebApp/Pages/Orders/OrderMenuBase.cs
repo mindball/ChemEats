@@ -126,7 +126,7 @@ public class OrderMenuBase : ComponentBase
                 .Select(kvp => new OrderRequestItemDto(kvp.Key.MealId, kvp.Key.Date, kvp.Value))
                 .ToList();
 
-            var request = new PlaceOrdersRequest(items);
+            var request = new PlaceOrdersRequestDto(items);
 
             // Call the strongly-typed service that posts the shared DTO
             PlaceOrdersResponse? response = await OrderDataService.PlaceOrdersAsync(request);
