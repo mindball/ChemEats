@@ -14,9 +14,14 @@ else if (!string.IsNullOrEmpty(ErrorMessage))
 else
 {
     <div class="row mb-3">
-        <div class="col-md-4">
-            <label class="form-label">Filter by Date</label>
-            <input type="date" class="form-control" @bind="FilterDate" />
+        <div class="col-md-3">
+            <label class="form-label">Start date</label>
+            <input type="date" class="form-control" @bind="StartDate" />
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">End date</label>
+            <input type="date" class="form-control" @bind="EndDate" />
         </div>
 
         <div class="col-md-4">
@@ -30,8 +35,8 @@ else
             </select>
         </div>
 
-        <div class="col-md-4 d-flex align-items-end">
-            <button class="btn btn-primary ms-auto" @onclick="LoadOrdersAsync">Apply</button>
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary w-100" @onclick="LoadOrdersAsync">Apply</button>
         </div>
     </div>
 

@@ -26,13 +26,15 @@ public class OrderDataService : IOrderDataService
         return await response.Content.ReadFromJsonAsync<PlaceOrdersResponse>();
     }
 
-    public async Task<List<UserOrderDto>> GetMyOrdersAsync(Guid? supplierId = null, DateTime? date = null)
+    public async Task<List<UserOrderDto>> GetMyOrdersAsync(Guid? supplierId = null, DateTime? startDate = null, DateTime? endDate = null)
     {
         var query = new List<string>();
         if (supplierId.HasValue)
             query.Add($"supplierId={supplierId.Value}");
-        if (date.HasValue)
-            query.Add($"date={Uri.EscapeDataString(date.Value.ToString("o"))}"); // ISO format
+        if (startDate.HasValue)
+            query.Add($"startDate={Uri.EscapeDataString(startDate.Value.ToString("o"))}");
+        if (endDate.HasValue)
+            query.Add($"endDate={Uri.EscapeDataString(endDate.Value.ToString("o"))}");
 
         var url = "api/mealorders/me" + (query.Count > 0 ? "?" + string.Join("&", query) : string.Empty);
 

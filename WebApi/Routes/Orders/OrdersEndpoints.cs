@@ -97,7 +97,8 @@ public static class OrdersEndpoints
 
         group.MapGet("/me", async (
                 Guid? supplierId,
-                DateTime? date,
+                DateTime? startDate,
+                DateTime? endDate,
                 IMealOrderRepository orderRepository,
                 UserManager<ApplicationUser> userManager,
                 HttpContext httpContext,
@@ -109,9 +110,8 @@ public static class OrdersEndpoints
                     return Results.Unauthorized();
 
                 IReadOnlyList<UserOrderSummary> orders =
-                    await orderRepository.GetUserOrdersAsync(user.Id, supplierId, date, cancellationToken);
+                    await orderRepository.GetUserOrdersAsync(user.Id, supplierId, startDate, endDate, cancellationToken);
 
-                // Map domain read-models to shared DTOs for the API boundary
                 var dtos = orders.Select(o => mapper.Map<UserOrderDto>(o)).ToList();
 
                 return Results.Ok(dtos);

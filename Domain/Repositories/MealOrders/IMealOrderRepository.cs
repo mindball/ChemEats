@@ -10,6 +10,7 @@ public interface IMealOrderRepository
     Task<IReadOnlyList<UserOrderSummary>> GetUserOrdersAsync(
         string userId,
         Guid? supplierId = null,
-        DateTime? date = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
         CancellationToken cancellationToken = default);
 }

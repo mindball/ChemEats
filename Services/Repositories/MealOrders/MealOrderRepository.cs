@@ -50,7 +50,8 @@ public class MealOrderRepository : IMealOrderRepository
     public async Task<IReadOnlyList<UserOrderSummary>> GetUserOrdersAsync(
         string userId,
         Guid? supplierId = null,
-        DateTime? date = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -68,17 +69,20 @@ public class MealOrderRepository : IMealOrderRepository
                 MealName = menuMeal.Name,
                 SupplierId = supplier.Id,
                 SupplierName = supplier.Name,
-                mo.Date,
+                Date = mo.Date,
                 Price = menuMeal.Price.Amount
             };
 
         if (supplierId.HasValue)
             query = query.Where(x => x.SupplierId == supplierId.Value);
 
-        if (date.HasValue)
-            query = query.Where(x => x.Date.Date == date.Value.Date);
+        if (startDate.HasValue)
+            query = query.Where(x => x.Date.Date >= startDate.Value.Date);
 
-        List<UserOrderSummary> grouped = await query
+        if (endDate.HasValue)
+            query = query.Where(x => x.Date.Date <= endDate.Value.Date);
+
+        var grouped = await query
             .GroupBy(x => new { x.MealId, x.MealName, x.SupplierId, x.SupplierName, x.Date, x.Price })
             .Select(g => new UserOrderSummary(
                 g.Key.MealId,
