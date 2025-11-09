@@ -110,13 +110,61 @@ public static class OrdersEndpoints
                     return Results.Unauthorized();
 
                 IReadOnlyList<UserOrderSummary> orders =
-                    await orderRepository.GetUserOrdersAsync(user.Id, supplierId, startDate, endDate, cancellationToken);
+                    await orderRepository.GetUserOrdersAsync(user.Id, supplierId, startDate, endDate,
+                        cancellationToken);
 
-                var dtos = orders.Select(o => mapper.Map<UserOrderDto>(o)).ToList();
+                List<UserOrderDto> dtos = orders.Select(o => mapper.Map<UserOrderDto>(o)).ToList();
 
                 return Results.Ok(dtos);
             })
             .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
+
+        group.MapDelete("/{orderId:guid}", async (
+                Guid orderId,
+                IMealOrderRepository orderRepository,
+                UserManager<ApplicationUser> userManager,
+                HttpContext httpContext,
+                CancellationToken cancellationToken) =>
+            {
+                ApplicationUser? user = await userManager.GetUserAsync(httpContext.User);
+                if (user == null)
+                    return Results.Unauthorized();
+
+                MealOrder? order = await orderRepository.GetByIdAsync(orderId, cancellationToken);
+                if (order is null)
+                    return Results.NotFound();
+
+                if (!string.Equals(order.UserId, user.Id, StringComparison.OrdinalIgnoreCase))
+                    return Results.Forbid();
+
+                await orderRepository.DeleteAsync(orderId, cancellationToken);
+                return Results.NoContent();
+            })
+            .RequireAuthorization()
+            .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
+
+        group.MapGet("/me/items", async (
+                Guid? supplierId,
+                DateTime? startDate,
+                DateTime? endDate,
+                IMealOrderRepository orderRepository,
+                UserManager<ApplicationUser> userManager,
+                HttpContext httpContext,
+                IMapper mapper,
+                CancellationToken cancellationToken) =>
+            {
+                ApplicationUser? user = await userManager.GetUserAsync(httpContext.User);
+                if (user == null)
+                    return Results.Unauthorized();
+
+                var items = await orderRepository.GetUserOrderItemsAsync(user.Id, supplierId, startDate, endDate, cancellationToken);
+                var dtos = items.Select(i => mapper.Map<UserOrderItemDto>(i)).ToList();
+                return Results.Ok(dtos);
+            })
+            .RequireAuthorization()
+            .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
     }
+    
+
 }

@@ -21,8 +21,7 @@ public class MealOrder
     public DateTime Date { get; private set; }
     public MealOrderStatus Status { get; private set; }
 
-    // --- Частни конструктори ---
-    private MealOrder() { } // За EF Core
+    private MealOrder() { } 
 
     private MealOrder(Guid id, string userId, Guid mealId, DateTime date)
     {
@@ -39,7 +38,6 @@ public class MealOrder
         User = user;
     }
 
-    // --- Фабрични методи ---
     public static MealOrder Create(Guid id, string userId, Guid mealId, DateTime date)
     {
         return new MealOrder(id, userId, mealId, date);
@@ -50,7 +48,6 @@ public class MealOrder
         return new MealOrder(id, user, mealId, date);
     }
 
-    // --- Домейн поведение (пример) ---
     public void MarkAsCompleted()
     {
         if (Status != MealOrderStatus.Pending)

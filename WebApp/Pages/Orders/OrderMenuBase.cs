@@ -24,8 +24,8 @@ public class OrderMenuBase : ComponentBase
 
     protected DateTime? FilterDate { get; set; }
 
-    protected string? ErrorMessage { get; private set; }
-    protected string? SuccessMessage { get; private set; }
+    protected string? ErrorMessage { get;  set; }
+    protected string? SuccessMessage { get;  set; }
     protected bool IsLoading { get; private set; }
 
     protected bool IsAuthenticated { get; private set; }
@@ -37,6 +37,9 @@ public class OrderMenuBase : ComponentBase
     protected int SelectedItemsCount => Selected.Values.Sum();
 
     protected bool CanPlaceOrder => IsAuthenticated && SelectedItemsCount > 0;
+
+    // persisted individual order items for current user (one per persisted MealOrder row)
+    protected List<UserOrderItemDto> MyOrders { get; private set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -57,9 +60,12 @@ public class OrderMenuBase : ComponentBase
             FilterDate = DateTime.Today;
             if (Menus!.All(m => m.Date.Date != FilterDate.Value.Date))
             {
-                // if none for today, clear filter
+                // if none for today, clear filter (user can pick date)
                 FilterDate = null;
             }
+
+            // load user's existing items from today and future
+            await LoadMyOrdersAsync();
         }
         catch (Exception ex)
         {
@@ -68,6 +74,24 @@ public class OrderMenuBase : ComponentBase
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    protected async Task LoadMyOrdersAsync()
+    {
+        try
+        {
+            // show only from today and onwards
+            DateTime start = DateTime.Today;
+            MyOrders = (await OrderDataService.GetMyOrderItemsAsync(null, start, null)).ToList();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to load your orders: {ex.Message}";
+        }
+        finally
+        {
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -144,7 +168,11 @@ public class OrderMenuBase : ComponentBase
             if (response is not null && response.Created > 0)
             {
                 SuccessMessage = $"Order placed successfully ({response.Created} items).";
+                // clear selection
                 Selected.Clear();
+
+                // reload user's persisted items from today forward
+                await LoadMyOrdersAsync();
             }
             else
             {
@@ -159,6 +187,38 @@ public class OrderMenuBase : ComponentBase
         {
             IsLoading = false;
             await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    protected async Task<bool> DeleteOrderByIdAsync(Guid orderId)
+    {
+        try
+        {
+            bool ok = await OrderDataService.DeleteOrderAsync(orderId);
+            if (ok)
+                await LoadMyOrdersAsync();
+            return ok;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to delete order: {ex.Message}";
+            return false;
+        }
+    }
+
+    protected async Task<bool> DeleteOrdersForMealAndDateAsync(Guid mealId, DateTime date)
+    {
+        try
+        {
+            bool ok = false;//await OrderDataService.DeleteOrdersForMealAndDateAsync(mealId, date);
+            if (ok)
+                await LoadMyOrdersAsync();
+            return ok;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to delete orders: {ex.Message}";
+            return false;
         }
     }
 }

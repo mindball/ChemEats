@@ -107,6 +107,7 @@ else
                     <strong><i class="bi bi-list-check me-2"></i>Order summary</strong>
                 </div>
                 <div class="card-body">
+                    @* Pending selection summary *@
                     @if (SelectedItemsCount == 0)
                     {
                         <div class="text-muted">No items selected</div>
@@ -156,9 +157,37 @@ else
                             <div class="fw-bold">@totalPrice.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</div>
                         </div>
                     }
+
                     <button class="btn btn-primary w-100" @onclick="PlaceOrdersAsync" disabled="@(!CanPlaceOrder)">
                         <i class="bi bi-send-fill me-2"></i>Place Order
                     </button>
+
+                    @* Persisted individual order items (today + future) *@
+                    @if (MyOrders != null && MyOrders.Any())
+                    {
+                        <hr />
+                        <div class="mt-2 mb-1"><strong>Your persisted orders (today + future)</strong></div>
+                        <ul class="list-group mb-2">
+                            @foreach (var item in MyOrders)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="fw-bold">@item.MealName</div>
+                                        <small class="text-muted">@item.SupplierName — @FormatBulgarianDate(item.Date) • @item.Status</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-bold">@item.Price.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</div>
+                                        <div class="mt-2">
+                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => OnDeleteOrderItem(item)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+
                     @if (!string.IsNullOrEmpty(SuccessMessage))
                     {
                         <div class="alert alert-success mt-3 mb-0">@SuccessMessage</div>
@@ -167,4 +196,22 @@ else
             </div>
         </div>
     </div>
+}
+
+@code {
+    private async Task OnDeleteOrderItem(Shared.DTOs.Orders.UserOrderItemDto item)
+    {
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", $"Delete order '{item.MealName}' on {item.Date:dd.MM.yyyy}?"))
+            return;
+
+        bool ok = await DeleteOrderByIdAsync(item.OrderId);
+        if (!ok)
+        {
+            SuccessMessage = null;
+            ErrorMessage = "Failed to delete order.";
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
 }

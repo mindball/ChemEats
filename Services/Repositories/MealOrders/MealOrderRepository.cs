@@ -19,6 +19,9 @@ public class MealOrderRepository : IMealOrderRepository
     {
         cancellationToken.ThrowIfCancellationRequested();
 
+        var c = _dbContext.MealOrders.FirstOrDefault(x => x.Id == Id);
+
+
         return await _dbContext.MealOrders
             .AsNoTracking()
             .Include(mo => mo.Meal)
@@ -48,13 +51,12 @@ public class MealOrderRepository : IMealOrderRepository
     }
 
     public async Task<IReadOnlyList<UserOrderSummary>> GetUserOrdersAsync(
-        string userId,
-        Guid? supplierId = null,
-        DateTime? startDate = null,
-        DateTime? endDate = null,
-        CancellationToken cancellationToken = default)
+    string userId,
+    Guid? supplierId = null,
+    DateTime? startDate = null,
+    DateTime? endDate = null,
+    CancellationToken cancellationToken = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(userId);
 
         var query =
@@ -65,6 +67,7 @@ public class MealOrderRepository : IMealOrderRepository
             where mo.UserId == userId && menuMeal.Id == mo.MealId
             select new
             {
+                OrderId = mo.Id,
                 MealId = menuMeal.Id,
                 MealName = menuMeal.Name,
                 SupplierId = supplier.Id,
@@ -91,10 +94,77 @@ public class MealOrderRepository : IMealOrderRepository
                 g.Key.SupplierName ?? string.Empty,
                 g.Key.Date,
                 g.Count(),
-                g.Key.Price
+                g.Key.Price,
+                g.Select(x => x.OrderId).ToList() // collect underlying MealOrder ids
             ))
             .ToListAsync(cancellationToken);
 
         return grouped;
+    }
+
+    public async Task DeleteAsync(Guid orderId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var order = await _dbContext.MealOrders.FirstOrDefaultAsync(mo => mo.Id == orderId, cancellationToken);
+        if (order == null)
+            return;
+
+        _dbContext.MealOrders.Remove(order);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<UserOrderItem>> GetUserOrderItemsAsync(
+        string userId,
+        Guid? supplierId = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(userId);
+
+        var query =
+            from mo in _dbContext.MealOrders.AsNoTracking()
+            join menu in _dbContext.Menus.AsNoTracking() on mo.Date.Date equals menu.Date.Date
+            join supplier in _dbContext.Suppliers.AsNoTracking() on menu.SupplierId equals supplier.Id
+            from menuMeal in menu.Meals
+            where mo.UserId == userId && menuMeal.Id == mo.MealId
+            select new
+            {
+                OrderId = mo.Id,
+                UserId = mo.UserId,
+                MealId = menuMeal.Id,
+                MealName = menuMeal.Name,
+                SupplierId = supplier.Id,
+                SupplierName = supplier.Name,
+                Date = mo.Date,
+                Price = menuMeal.Price.Amount,
+                Status = mo.Status.ToString()
+            };
+
+        if (supplierId.HasValue)
+            query = query.Where(x => x.SupplierId == supplierId.Value);
+
+        if (startDate.HasValue)
+            query = query.Where(x => x.Date.Date >= startDate.Value.Date);
+
+        if (endDate.HasValue)
+            query = query.Where(x => x.Date.Date <= endDate.Value.Date);
+
+        var items = await query
+            .Select(x => new UserOrderItem(
+                x.OrderId,
+                x.UserId,
+                x.MealId,
+                x.MealName,
+                x.SupplierId,
+                x.SupplierName ?? string.Empty,
+                x.Date,
+                x.Price,
+                x.Status))
+            .ToListAsync(cancellationToken);
+
+        return items;
     }
 }

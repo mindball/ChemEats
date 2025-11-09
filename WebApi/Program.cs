@@ -90,10 +90,10 @@ config.Scan(typeof(SupplierMappingConfig).Assembly);
 builder.Services.AddSingleton(config);
 builder.Services.AddScoped<IMapper, ServiceMapper>();
 
-var employeeAddress = builder.Configuration.GetSection("EmployeesAddress");
+IConfigurationSection employeeAddress = builder.Configuration.GetSection("EmployeesAddress");
 builder.Services.AddHttpClient<IEmployeeExternalService, EmployeeExternalService>(client =>
 {
-    client.BaseAddress = new Uri(employeeAddress.Value);
+    if (employeeAddress.Value != null) client.BaseAddress = new Uri(employeeAddress.Value);
 });
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IEmployeeCacheService, EmployeeCacheService>();

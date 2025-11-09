@@ -1,12 +1,14 @@
 ﻿namespace Shared.DTOs.Orders;
 
-public sealed record UserOrderDto(
+
+public sealed record UserOrderItemDto(
+    Guid OrderId,
+    string UserId,
     Guid MealId,
     string MealName,
     Guid SupplierId,
     string SupplierName,
     DateTime Date,
-    int Quantity,
     decimal Price,
-    IReadOnlyList<Guid> OrderIds
+    string Status
 );

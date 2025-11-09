@@ -9,5 +9,7 @@ public class UserOrderMappings : IRegister
     public void Register(TypeAdapterConfig config)
     {
         config.NewConfig<UserOrderSummary, UserOrderDto>();
+
+        config.NewConfig<UserOrderItem, UserOrderItemDto>();
     }
 }
