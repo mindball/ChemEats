@@ -18,28 +18,31 @@ public class OrderMenuBase : ComponentBase
 
     protected IReadOnlyList<MenuDto>? Menus { get; private set; }
 
+    // Supplier filter: store selected supplier id (optional) and list of suppliers present in menus
+    protected Guid? SelectedSupplierId { get; set; }
+    protected IReadOnlyList<(Guid Id, string Name)> SuppliersForFilter { get; private set; } = Array.Empty<(Guid, string)>();
+
     protected IEnumerable<MenuDto> FilteredMenus => Menus is null
         ? []
-        : Menus.Where(m => !FilterDate.HasValue || m.Date.Date == FilterDate.Value.Date);
+        : Menus
+            .Where(m => !FilterDate.HasValue || m.Date.Date == FilterDate.Value.Date)
+            .Where(m => !SelectedSupplierId.HasValue || m.SupplierId == SelectedSupplierId.Value);
 
+    // Always default to tomorrow; user can change to any future date
     protected DateTime? FilterDate { get; set; }
 
-    protected string? ErrorMessage { get;  set; }
-    protected string? SuccessMessage { get;  set; }
+    protected string? ErrorMessage { get; set; }
+    protected string? SuccessMessage { get; set; }
     protected bool IsLoading { get; private set; }
 
     protected bool IsAuthenticated { get; private set; }
     protected string? CurrentUserName { get; private set; }
 
-    // key: (mealId, menuDate) -> quantity
     protected readonly Dictionary<(Guid MealId, DateTime Date), int> Selected = new();
-
     protected int SelectedItemsCount => Selected.Values.Sum();
-
     protected bool CanPlaceOrder => IsAuthenticated && SelectedItemsCount > 0;
 
-    // persisted individual order items for current user (one per persisted MealOrder row)
-    protected List<UserOrderItemDto> MyOrders { get; private set; } = new();
+    protected List<UserOrderItemDto> MyOrders { get; private set; } = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -56,15 +59,16 @@ public class OrderMenuBase : ComponentBase
 
             Menus = (await MenuDataService.GetAllMenusAsync()).ToList();
 
-            // Default filter date to today if there are menus that match today
-            FilterDate = DateTime.Today;
-            if (Menus!.All(m => m.Date.Date != FilterDate.Value.Date))
-            {
-                // if none for today, clear filter (user can pick date)
-                FilterDate = null;
-            }
+            // Default filter date to tomorrow
+            FilterDate = DateTime.Today.AddDays(1);
 
-            // load user's existing items from today and future
+            // Build supplier list from menus
+            SuppliersForFilter = Menus
+                .GroupBy(m => (m.SupplierId, m.SupplierName))
+                .Select(g => (g.Key.SupplierId, g.Key.SupplierName))
+                .OrderBy(x => x.SupplierName)
+                .ToList();
+
             await LoadMyOrdersAsync();
         }
         catch (Exception ex)

@@ -33,7 +33,7 @@ public static class OrdersEndpoints
                 if (user == null)
                     return Results.Unauthorized();
 
-                List<Guid> createdOrders = new();
+                List<Guid> createdOrders = [];
 
                 foreach (OrderRequestItemDto item in requestDto.Items)
                 {
@@ -138,7 +138,7 @@ public static class OrdersEndpoints
                 if (!string.Equals(order.UserId, user.Id, StringComparison.OrdinalIgnoreCase))
                     return Results.Forbid();
 
-                await orderRepository.DeleteAsync(orderId, cancellationToken);
+                await orderRepository.SoftDeleteAsync(orderId, cancellationToken);
                 return Results.NoContent();
             })
             .RequireAuthorization()
@@ -158,13 +158,11 @@ public static class OrdersEndpoints
                 if (user == null)
                     return Results.Unauthorized();
 
-                var items = await orderRepository.GetUserOrderItemsAsync(user.Id, supplierId, startDate, endDate, cancellationToken);
-                var dtos = items.Select(i => mapper.Map<UserOrderItemDto>(i)).ToList();
-                return Results.Ok(dtos);
+                IReadOnlyList<UserOrderItem> items = await orderRepository.GetUserOrderItemsAsync(user.Id, supplierId, startDate, endDate, cancellationToken);
+                List<UserOrderItemDto> userOrderItems = items.Select(mapper.Map<UserOrderItemDto>).ToList();
+                return Results.Ok(userOrderItems);
             })
             .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
     }
-    
-
 }

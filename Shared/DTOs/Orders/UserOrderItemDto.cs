@@ -21,5 +21,6 @@ public sealed record UserOrderItemDto(
     string SupplierName,
     DateTime Date,
     decimal Price,
-    string Status
+    string Status,
+    bool IsDeleted
 );

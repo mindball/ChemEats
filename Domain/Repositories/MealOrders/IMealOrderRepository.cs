@@ -15,13 +15,33 @@ public interface IMealOrderRepository
         DateTime? startDate = null,
         DateTime? endDate = null,
         CancellationToken cancellationToken = default);
+
+    Task SoftDeleteAsync(Guid orderId, CancellationToken cancellationToken = default);
+
     
-    Task DeleteAsync(Guid orderId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<UserOrderItem>> GetUserOrderItemsAsync(
+        string userId,
+        Guid? supplierId = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        CancellationToken cancellationToken = default);
+
+    //when create admin panel then admin must see delete orders 
+    Task<IReadOnlyList<UserOrderSummary>> GetUserOrdersAsync(
+        string userId,
+        Guid? supplierId = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        bool includeDeleted = false,
+        bool onlyDeleted = false,
+        CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<UserOrderItem>> GetUserOrderItemsAsync(
         string userId,
         Guid? supplierId = null,
         DateTime? startDate = null,
         DateTime? endDate = null,
+        bool includeDeleted = false,
+        bool onlyDeleted = false,
         CancellationToken cancellationToken = default);
 }

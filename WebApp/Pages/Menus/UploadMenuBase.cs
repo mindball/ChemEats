@@ -29,10 +29,18 @@ public class UploadMenuBase : ComponentBase
 
     protected string? ErrorMessage { get; private set; }
     protected string? SuccessMessage { get; private set; }
+    protected string? MenuDateError { get; private set; }
+    protected bool MenuDateIsValid => MenuDate is not null && MenuDate.Value.Date >= TomorrowDate;
+    protected string MenuDateCss => MenuDateIsValid ? "form-control" : "form-control is-invalid border border-red-500";
+    protected DateTime TomorrowDate => DateTime.Today.AddDays(1);
 
     protected override async Task OnInitializedAsync()
     {
         Suppliers = (await _supplierDataService.GetAllSuppliersAsync()).ToList();
+
+        // Default to tomorrow to guide users and meet the requirement
+        MenuDate ??= TomorrowDate;
+
         await base.OnInitializedAsync();
     }
 
@@ -124,6 +132,17 @@ public class UploadMenuBase : ComponentBase
         }
     }
 
+    // Runs on date change to set error state
+    protected Task ValidateMenuDate()
+    {
+        string tomorrow = TomorrowDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        MenuDateError = MenuDateIsValid
+            ? null
+            : $"Menu date must be tomorrow or greater than tomorrow ({tomorrow}).";
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
     protected async Task SaveMenusAsync()
     {
         if (!SelectedSupplierId.HasValue)
@@ -141,6 +160,13 @@ public class UploadMenuBase : ComponentBase
         if (MenuDate is null)
         {
             await ShowPopupAsync("Error", "Please select a menu date.", "error");
+            return;
+        }
+
+        if (!MenuDateIsValid)
+        {
+            var tomorrow = TomorrowDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            await ShowPopupAsync("Error", $"Menu date must be tomorrow ({tomorrow}).", "error");
             return;
         }
 

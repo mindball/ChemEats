@@ -21,7 +21,10 @@ public class MealOrder
     public DateTime Date { get; private set; }
     public MealOrderStatus Status { get; private set; }
 
-    private MealOrder() { } 
+    // Soft-delete flag
+    public bool IsDeleted { get; private set; }
+
+    private MealOrder() { }
 
     private MealOrder(Guid id, string userId, Guid mealId, DateTime date)
     {
@@ -30,6 +33,7 @@ public class MealOrder
         MealId = mealId;
         Date = date;
         Status = MealOrderStatus.Pending;
+        IsDeleted = false;
     }
 
     private MealOrder(Guid id, ApplicationUser user, Guid mealId, DateTime date)
@@ -54,5 +58,18 @@ public class MealOrder
             throw new InvalidOperationException("Only pending orders can be completed.");
 
         Status = MealOrderStatus.Completed;
+    }
+
+    public void Cancel()
+    {
+        if (Status == MealOrderStatus.Completed)
+            throw new InvalidOperationException("Completed orders cannot be cancelled.");
+
+        Status = MealOrderStatus.Cancelled;
+    }
+
+    public void SoftDelete()
+    {
+        IsDeleted = true;
     }
 }

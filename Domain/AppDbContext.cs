@@ -21,5 +21,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        modelBuilder.Entity<MealOrder>()
+            .HasQueryFilter(m => !m.IsDeleted);
     }
 }

@@ -30,7 +30,17 @@ else
 
         <div class="row mb-4">
             <div class="col-2">
-                <input type="date" class="form-control" @bind="MenuDate" />
+                <input type="date"
+                       class="@MenuDateCss"
+                       @bind="MenuDate"
+                       @bind:format="yyyy-MM-dd"
+                       @bind:after="ValidateMenuDate" />
+                @if (!MenuDateIsValid)
+                {
+                    <div class="invalid-feedback d-block text-red-600 text-sm mt-1">
+                        @MenuDateError
+                    </div>
+                }
             </div>
         </div>
 
@@ -105,11 +115,12 @@ else
     }
 
     @if ((Meals?.Any() == true || (ShowSecondMenu && SecondMeals?.Any() == true))
-         && SelectedSupplierId != Guid.Empty
-         && (!ShowSecondMenu || SecondSelectedSupplierId != Guid.Empty))
+             && SelectedSupplierId != Guid.Empty
+             && (!ShowSecondMenu || SecondSelectedSupplierId != Guid.Empty))
     {
         <button class="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
-                @onclick="SaveMenusAsync">
+                @onclick="SaveMenusAsync"
+                disabled="@(!MenuDateIsValid)">
             Save Menus
         </button>
     }
@@ -143,5 +154,3 @@ else
         }
     }
 }
-
-
