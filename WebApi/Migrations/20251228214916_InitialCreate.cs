@@ -32,6 +32,7 @@ namespace WebApi.Migrations
                 {
                     Id = table.Column<string>(type: "VARCHAR(256)", nullable: false),
                     Abbreviation = table.Column<string>(type: "VARCHAR(20)", maxLength: 20, nullable: false),
+                    FullName = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: false),
                     UserName = table.Column<string>(type: "VARCHAR(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "VARCHAR(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "VARCHAR(256)", maxLength: 256, nullable: true),

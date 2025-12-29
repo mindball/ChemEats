@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using System.Globalization;
 using WebApp;
+using WebApp.Infrastructure.States;
 using WebApp.Services.Menus;
 using WebApp.Services.Orders;
-using WebApp.Services.States;
 using WebApp.Services.Suppliers;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -24,6 +24,7 @@ builder.Services.AddScoped((sp => new HttpClient { BaseAddress = new Uri(builder
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddAuthorizationCore();
 
+builder.Services.AddScoped<SessionStorageService>();
 builder.Services.AddScoped<CustomAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(provider =>
     provider.GetRequiredService<CustomAuthStateProvider>());

@@ -25,7 +25,6 @@ public class AuthorizedRequestLoggingFilter : IEndpointFilter
             return result;
         }
 
-        // Ако не е авторизиран → просто пропускаме без лог
         return await next(context);
     }
 }

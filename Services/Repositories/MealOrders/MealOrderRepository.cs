@@ -15,18 +15,18 @@ public class MealOrderRepository : IMealOrderRepository
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-    public async Task<MealOrder?> GetByIdAsync(Guid Id, CancellationToken cancellationToken = default)
+    public async Task<MealOrder?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var c = _dbContext.MealOrders.FirstOrDefault(x => x.Id == Id);
+        var c = _dbContext.MealOrders.FirstOrDefault(x => x.Id == id);
 
 
         return await _dbContext.MealOrders
             .AsNoTracking()
             .Include(mo => mo.Meal)
             .Include(mo => mo.User)
-            .FirstOrDefaultAsync(mo => mo.Id == Id, cancellationToken);
+            .FirstOrDefaultAsync(mo => mo.Id == id, cancellationToken);
     }
 
     public async Task AddAsync(MealOrder mealOrder, CancellationToken cancellationToken = default)

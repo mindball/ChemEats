@@ -118,11 +118,11 @@ public class EmployeeCacheService : IEmployeeCacheService
         if (!_cache.TryGetValue(CacheKey, out List<ApplicationUser>? users))
             users = [];
 
-        ApplicationUser? existing = users.FirstOrDefault(e => e.Id == employee.Id);
+        ApplicationUser? existing = users?.FirstOrDefault(e => e.Id == employee.Id);
         if (existing != null)
-            users.Remove(existing);
+            users?.Remove(existing);
 
-        users.Add(employee);
+        users?.Add(employee);
         _cache.Set(CacheKey, users, TimeSpan.FromHours(12));
 
         await Task.CompletedTask;

@@ -15,7 +15,6 @@ namespace WebApp.Pages.Menus;
 
 public class UploadMenuBase : ComponentBase
 {
-
     [Inject] private ISupplierDataService _supplierDataService { get; init; }
     [Inject] protected IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] private IMenuDataService _menuDataService { get; init; }

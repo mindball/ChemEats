@@ -14,5 +14,5 @@ public interface IUserRepository
     Task<IdentityResult> CreateAsync(string roleName, CancellationToken cancellationToken = default);
     Task<IdentityResult> AddAsync(ApplicationUser user, string? password = null, string? role = null, CancellationToken cancellationToken = default);
     Task<IdentityResult> AddToRoleAsync(ApplicationUser user, string role, CancellationToken cancellationToken = default);
-
+    Task<IList<string>> GetRolesAsync(ApplicationUser user, CancellationToken cancellationToken = default);
 }

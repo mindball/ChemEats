@@ -56,6 +56,9 @@ public class UserRepository : IUserRepository
 
         cancellationToken.ThrowIfCancellationRequested();
         var normalized = _userManager.NormalizeEmail(email);
+        
+        // if(normalized == null)
+        //     normalized = _userManager.GetUserName()
 
         return await _userManager.Users
             .AsNoTrackingWithIdentityResolution()
@@ -166,6 +169,15 @@ public class UserRepository : IUserRepository
             _logger.LogError("Failed to add user {User} to role {Role}: {Errors}", user.UserName, role, string.Join(", ", addResult.Errors.Select(e => e.Description)));
 
         return addResult;
+    }
+
+    public async Task<IList<string>> GetRolesAsync(ApplicationUser user, CancellationToken cancellationToken = default)
+    {
+        if (user == null)
+            throw new ArgumentNullException(nameof(user));
+
+        // RoleManager и UserManager поддържат асинхронно вземане на роли
+        return await _userManager.GetRolesAsync(user);
     }
 
     public async Task<IdentityResult> AddAsync(ApplicationUser user, string? password, string? role,

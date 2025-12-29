@@ -34,6 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Migrations\" />
     <Folder Include="Routes\Suppliers\NewFolder1\" />
     <Folder Include="Routes\Suppliers\NewFolder\" />
   </ItemGroup>
