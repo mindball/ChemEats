@@ -73,7 +73,12 @@ else
                                 <span class="badge text-bg-info ms-2">Pending</span>
                             }
                         </div>
-                        <small class="text-muted">@item.SupplierName — @FormatBulgarianDate(item.Date) • @item.Status</small>
+                        <small class="text-muted">
+                            @item.SupplierName —
+                            Menu: @FormatBulgarianDate(item.MenuDate) •
+                            Order: @FormatBulgarianDate(item.Date) •
+                            @item.Status
+                        </small>
                     </div>
                     <div class="text-end">
                         <div>@item.Quantity × @item.Price.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</div>

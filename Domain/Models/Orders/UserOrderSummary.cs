@@ -6,6 +6,7 @@ public sealed record UserOrderSummary(
     Guid SupplierId,
     string SupplierName,
     DateTime Date,
+    DateTime MenuDate,
     int Quantity,
     decimal Price,
     IReadOnlyList<Guid> OrderIds,

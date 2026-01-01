@@ -48,6 +48,7 @@ public class MealOrderRepository : IMealOrderRepository
                 SupplierId = supplier.Id,
                 SupplierName = supplier.Name,
                 Date = mo.Date,
+                MenuDate = menu.Date,
                 Price = meal.Price.Amount,
                 Status = mo.Status,
                 IsDeleted = mo.IsDeleted
@@ -140,6 +141,7 @@ public class MealOrderRepository : IMealOrderRepository
                 x.SupplierId,
                 x.SupplierName,
                 x.Date,
+                x.MenuDate,
                 x.Price,
                 x.Status,
                 x.IsDeleted
@@ -150,6 +152,7 @@ public class MealOrderRepository : IMealOrderRepository
                 g.Key.SupplierId,
                 g.Key.SupplierName ?? string.Empty,
                 g.Key.Date,
+                g.Key.MenuDate,
                 g.Count(),
                 g.Key.Price,
                 g.Select(x => x.OrderId).ToList(),
@@ -178,6 +181,7 @@ public class MealOrderRepository : IMealOrderRepository
                 x.SupplierId,
                 x.SupplierName,
                 x.Date,
+                x.MenuDate,
                 x.Price,
                 x.Status,
                 x.IsDeleted
@@ -188,6 +192,7 @@ public class MealOrderRepository : IMealOrderRepository
                 g.Key.SupplierId,
                 g.Key.SupplierName ?? string.Empty,
                 g.Key.Date,
+                g.Key.MenuDate,
                 g.Count(),
                 g.Key.Price,
                 g.Select(x => x.OrderId).ToList(),
@@ -220,6 +225,7 @@ public class MealOrderRepository : IMealOrderRepository
                 x.SupplierId,
                 x.SupplierName ?? string.Empty,
                 x.Date,
+                x.MenuDate,
                 x.Price,
                 x.Status.ToString()))
             .ToListAsync(cancellationToken);
@@ -247,6 +253,7 @@ public class MealOrderRepository : IMealOrderRepository
                 x.SupplierId,
                 x.SupplierName ?? string.Empty,
                 x.Date,
+                x.MenuDate,
                 x.Price,
                 x.Status.ToString()))
             .ToListAsync(cancellationToken);
@@ -266,6 +273,7 @@ internal sealed class OrderJoinRow
     public Guid SupplierId { get; init; }
     public string SupplierName { get; init; } = null!;
     public DateTime Date { get; init; }
+    public DateTime MenuDate { get; init; }
     public decimal Price { get; init; }
     public MealOrderStatus Status { get; init; }
     public bool IsDeleted { get; init; }

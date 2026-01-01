@@ -1,5 +1,5 @@
 ﻿@page "/menus/view"
-@inherits ViewMenuBase
+@inherits ViewMenusBase
 @inject IJSRuntime JSRuntime
 
 <h3>Menus List</h3>
@@ -149,18 +149,7 @@ else
         else
             ErrorMessage = "Failed to update menu date.";
     }
-    //
-    // private async Task DeactivateAsync(Guid id)
-    // {
-    //     if (!await JSRuntime.InvokeAsync<bool>("confirm", "Deactivate this menu and cancel its orders?")) return;
-    //
-    //     bool ok = await MenuDataService.DeactivateMenuAsync(id);
-    //     if (ok)
-    //         await OnSearchClickedAsync();
-    //     else
-    //         ErrorMessage = "Failed to deactivate menu.";
-    // }
-
+   
     private async Task SoftDeleteAsync(Guid id)
     {
         if (!await JSRuntime.InvokeAsync<bool>("confirm", "Soft delete this menu and cancel its orders?")) return;

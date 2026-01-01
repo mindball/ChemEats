@@ -186,6 +186,7 @@ namespace WebApi.Migrations
                     Id = table.Column<string>(type: "VARCHAR(36)", nullable: false),
                     SupplierId = table.Column<string>(type: "VARCHAR(36)", nullable: false),
                     Date = table.Column<DateTime>(type: "TIMESTAMP", nullable: false),
+                    RegisterDate = table.Column<DateTime>(type: "TIMESTAMP", nullable: false),
                     IsDeleted = table.Column<bool>(type: "BOOLEAN", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
@@ -227,6 +228,7 @@ namespace WebApi.Migrations
                     UserId = table.Column<string>(type: "VARCHAR(256)", nullable: false),
                     MealId = table.Column<string>(type: "VARCHAR(36)", nullable: false),
                     Date = table.Column<DateTime>(type: "TIMESTAMP", nullable: false),
+                    RegisterDate = table.Column<DateTime>(type: "TIMESTAMP", nullable: false),
                     Status = table.Column<int>(type: "INTEGER", nullable: false),
                     IsDeleted = table.Column<bool>(type: "BOOLEAN", nullable: false)
                 },

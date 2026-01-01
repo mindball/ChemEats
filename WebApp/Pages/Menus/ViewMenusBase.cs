@@ -7,7 +7,7 @@ using WebApp.Services.Suppliers;
 
 namespace WebApp.Pages.Menus;
 
-public class ViewMenuBase : ComponentBase
+public class ViewMenusBase : ComponentBase
 {
     [Inject] protected IMenuDataService MenuDataService { get; init; } = null!;
     [Inject] protected ISupplierDataService SupplierDataService { get; init; } = null!;

@@ -23,10 +23,9 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
 
         builder.Property(m => m.Date)
             .IsRequired();
-
-        // builder.Property(m => m.IsActive)
-        //     .HasDefaultValue(true)
-        //     .IsRequired();
+      
+        builder.Property(mo => mo.RegisterDate)
+            .IsRequired();
 
         builder.Property(m => m.IsDeleted)
             .HasDefaultValue(false)

@@ -9,6 +9,7 @@ public sealed record UserOrderItem(
     Guid SupplierId,
     string SupplierName,
     DateTime Date,
+    DateTime MenuDate,
     decimal Price,
     string Status
 );

@@ -53,6 +53,21 @@ public class MenuRepository : IMenuRepository
         await _dbContext.SaveChangesAsync(cancellationToken);
         return true;
     }
+    //
+    // public async Task<bool> DeactivateAsync(Guid menuId, CancellationToken cancellationToken = default)
+    // {
+    //     var menu = await _dbContext.Menus.FirstOrDefaultAsync(x => x.Id == menuId, cancellationToken);
+    //     if (menu is null) return false;
+    //
+    //
+    //     // Cancel all MealOrders for this menu’s date
+    //     await _dbContext.MealOrders
+    //         .Where(o => o.Date.Date == menu.Date.Date && !o.IsDeleted)
+    //         .ForEachAsync(o => o.Cancel(), cancellationToken);
+    //
+    //     await _dbContext.SaveChangesAsync(cancellationToken);
+    //     return true;
+    // }
 
     public async Task<bool> SoftDeleteAsync(Guid menuId, CancellationToken cancellationToken = default)
     {

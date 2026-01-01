@@ -20,6 +20,7 @@ public sealed record UserOrderItemDto(
     Guid SupplierId,
     string SupplierName,
     DateTime Date,
+    DateTime MenuDate,
     decimal Price,
     string Status,
     bool IsDeleted

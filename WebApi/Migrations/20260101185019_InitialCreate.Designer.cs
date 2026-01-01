@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260101165036_InitialCreate")]
+    [Migration("20260101185019_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -60,6 +60,9 @@ namespace WebApi.Migrations
                         .IsRequired()
                         .HasColumnType("VARCHAR(36)");
 
+                    b.Property<DateTime>("RegisterDate")
+                        .HasColumnType("TIMESTAMP");
+
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");
 
@@ -87,6 +90,9 @@ namespace WebApi.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("BOOLEAN")
                         .HasDefaultValue(false);
+
+                    b.Property<DateTime>("RegisterDate")
+                        .HasColumnType("TIMESTAMP");
 
                     b.Property<string>("SupplierId")
                         .IsRequired()

@@ -1,4 +1,5 @@
 ﻿using Domain.Infrastructure.Identity;
+using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Entities;
 
@@ -19,6 +20,7 @@ public class MealOrder
     public Meal? Meal { get; private set; }
 
     public DateTime Date { get; private set; }
+    [Required] public DateTime RegisterDate { get; private set; }
     public MealOrderStatus Status { get; private set; }
 
     // Soft-delete flag
@@ -32,6 +34,7 @@ public class MealOrder
         UserId = userId ?? throw new ArgumentNullException(nameof(userId));
         MealId = mealId;
         Date = date;
+        RegisterDate = DateTime.Now;
         Status = MealOrderStatus.Pending;
         IsDeleted = false;
     }

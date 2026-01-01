@@ -15,8 +15,8 @@ public class Menu
         Id = id;
         SupplierId = supplierId;
         Date = date;
+        RegisterDate = DateTime.Now;
         _meals = meals.ToList();
-        // IsActive = true;
         IsDeleted = false;
     }
 
@@ -28,7 +28,8 @@ public class Menu
 
     [Required] public DateTime Date { get; private set; }
 
-    // public bool IsActive { get; private set; }
+    [Required] public DateTime RegisterDate { get; private set; }
+
 
     public bool IsDeleted { get; private set; }
 
@@ -49,16 +50,6 @@ public class Menu
     {
         Date = newDate;
     }
-
-    // public void Deactivate()
-    // {
-    //     IsActive = false;
-    // }
-    //
-    // public void Activate()
-    // {
-    //     IsActive = true;
-    // }
 
     public void SoftDelete()
     {

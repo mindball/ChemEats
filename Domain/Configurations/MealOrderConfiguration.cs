@@ -24,6 +24,9 @@ public class MealOrderConfiguration : IEntityTypeConfiguration<MealOrder>
         builder.Property(mo => mo.Date)
             .IsRequired();
 
+        builder.Property(mo => mo.RegisterDate)
+            .IsRequired();
+
         builder.HasOne(mo => mo.User)
             .WithMany(u => u.Orders)
             .HasForeignKey(mo => mo.UserId)

@@ -57,6 +57,9 @@ namespace WebApi.Migrations
                         .IsRequired()
                         .HasColumnType("VARCHAR(36)");
 
+                    b.Property<DateTime>("RegisterDate")
+                        .HasColumnType("TIMESTAMP");
+
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");
 
@@ -84,6 +87,9 @@ namespace WebApi.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("BOOLEAN")
                         .HasDefaultValue(false);
+
+                    b.Property<DateTime>("RegisterDate")
+                        .HasColumnType("TIMESTAMP");
 
                     b.Property<string>("SupplierId")
                         .IsRequired()
