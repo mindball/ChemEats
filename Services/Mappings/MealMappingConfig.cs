@@ -15,7 +15,7 @@ public class MealMappingConfig : IRegister
 
         config.NewConfig<CreateMealDto, Meal>()
             .ConstructUsing(src =>
-                Meal.Create(src.Name, new Price(src.Price))
+                Meal.Create(Guid.Empty, src.Name, new Price(src.Price))
             );
 
         config.NewConfig<Meal, MealDto>()
@@ -26,6 +26,7 @@ public class MealMappingConfig : IRegister
             .ConstructUsing(src =>
                 new Meal(
                     src.Id,
+                    src.MenuId,
                     src.Name,
                     new Price(src.Price)
                 )

@@ -2,6 +2,7 @@
 
 public record MealDto(
     Guid Id,      
+    Guid MenuId,
     string Name,
     decimal Price
 );

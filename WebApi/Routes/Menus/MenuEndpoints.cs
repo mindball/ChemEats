@@ -11,73 +11,53 @@ public static class MenuEndpoints
 {
     public static void MapMenuEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/menus");
+        RouteGroupBuilder group = app.MapGroup("/api/menus");
 
-        group.MapPost("", async (
-            [FromBody] CreateMenuDto menuDto,
-            IMenuRepository menuRepository,
-            IMapper mapper, 
-            CancellationToken cancellationToken) =>
+        group.MapPost("", async ([FromBody] CreateMenuDto menuDto, IMenuRepository menuRepository, IMapper mapper, CancellationToken cancellationToken) =>
         {
-            if (menuDto == null)
-                return Results.BadRequest("Menu data is required.");
-
-            var menu = mapper.Map<Menu>(menuDto);
-
+            Menu menu = mapper.Map<Menu>(menuDto);
             await menuRepository.AddAsync(menu, cancellationToken);
-
-            var createdDto = mapper.Map<MenuDto>(menu);
+            MenuDto createdDto = mapper.Map<MenuDto>(menu);
             return Results.Created($"/api/menus/{menu.Id}", createdDto);
-        }).RequireAuthorization().AddEndpointFilter<AuthorizedRequestLoggingFilter>(); 
+        }).RequireAuthorization().AddEndpointFilter<AuthorizedRequestLoggingFilter>();
 
-        // Get menus by supplier
-        group.MapGet("/supplier/{supplierId:guid}", async (
-            Guid supplierId,
-            IMenuRepository menuRepository,
-            IMapper mapper,
-            CancellationToken cancellationToken) =>
-        {
-            // var menus = await menuRepository.GetBySupplierIdAsync(new SupplierId(supplierId), cancellationToken);
-            // var dto = mapper.Map<IEnumerable<MenuDto>>(menus);
-            // return Results.Ok(dto);
-            return Results.Ok();
-        }).AllowAnonymous(); ;
-
-        group.MapGet("/{menuId:guid}", async (
-            Guid menuId,
-            IMenuRepository menuRepository,
-            IMapper mapper,
-            CancellationToken cancellationToken) =>
+        group.MapGet("/{menuId:guid}", async (Guid menuId, IMenuRepository menuRepository, IMapper mapper, CancellationToken cancellationToken) =>
         {
             Menu? menu = await menuRepository.GetByIdAsync(menuId, cancellationToken);
             return menu != null
                 ? Results.Ok(mapper.Map<MenuDto>(menu))
                 : Results.NotFound();
-        }).AllowAnonymous(); ;
+        }).AllowAnonymous();
 
-        // ✅ Delete a menu
-        group.MapDelete("/{menuId:guid}", async (
-            Guid menuId,
-            IMenuRepository menuRepository,
-            CancellationToken cancellationToken) =>
+        group.MapGet("", async (IMenuRepository menuRepository, CancellationToken cancellationToken, IMapper mapper, [FromQuery] bool includeDeleted = false) =>
         {
-            Menu? menu = await menuRepository.GetByIdAsync(menuId, cancellationToken);
-            if (menu == null)
-                return Results.NotFound();
-
-            // await menuRepository.DeleteAsync(menu, cancellationToken);
-            return Results.NoContent();
-        }).RequireAuthorization();
-
-        group.MapGet("", async (
-            IMenuRepository menuRepository,
-            IMapper mapper,
-            CancellationToken cancellationToken) =>
-        {
-            // You may need to implement GetAllAsync in your repository
-            var menus = await menuRepository.GetAllAsync(cancellationToken);
-            var dto = menus.Select(menu => mapper.Map<MenuDto>(menu));
+            IEnumerable<Menu> menus = await menuRepository.GetAllAsync(includeDeleted, cancellationToken);
+            IEnumerable<MenuDto> dto = menus.Select(mapper.Map<MenuDto>);
             return Results.Ok(dto);
         }).AllowAnonymous();
+
+        group.MapPut("/{menuId:guid}/date", async (Guid menuId, [FromBody] DateTime newDate, IMenuRepository repo, CancellationToken ct) =>
+        {
+            bool ok = await repo.UpdateDateAsync(menuId, newDate, ct);
+            return ok ? Results.NoContent() : Results.NotFound();
+        }).RequireAuthorization();
+
+        // group.MapPost("/{menuId:guid}/deactivate", async (Guid menuId, IMenuRepository repo, CancellationToken ct) =>
+        // {
+        //     bool ok = await repo.DeactivateAsync(menuId, ct);
+        //     return ok ? Results.NoContent() : Results.NotFound();
+        // }).RequireAuthorization();
+        //
+        // group.MapPost("/{menuId:guid}/activate", async (Guid menuId, IMenuRepository repo, CancellationToken ct) =>
+        // {
+        //     bool ok = await repo.ActivateAsync(menuId, ct);
+        //     return ok ? Results.NoContent() : Results.NotFound();
+        // }).RequireAuthorization();
+
+        group.MapDelete("/{menuId:guid}", async (Guid menuId, IMenuRepository repo, CancellationToken ct) =>
+        {
+            bool ok = await repo.SoftDeleteAsync(menuId, ct);
+            return ok ? Results.NoContent() : Results.NotFound();
+        }).RequireAuthorization();
     }
 }

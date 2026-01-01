@@ -9,8 +9,8 @@ namespace WebApp.Pages.Menus;
 
 public class ViewMenuBase : ComponentBase
 {
-    [Inject] protected IMenuDataService MenuDataService { get; init; } = default!;
-    [Inject] protected ISupplierDataService SupplierDataService { get; init; } = default!;
+    [Inject] protected IMenuDataService MenuDataService { get; init; } = null!;
+    [Inject] protected ISupplierDataService SupplierDataService { get; init; } = null!;
 
     protected IReadOnlyList<MenuDto>? Menus { get; private set; }
     protected List<SupplierDto> Suppliers { get; private set; } = [];
@@ -18,8 +18,9 @@ public class ViewMenuBase : ComponentBase
     protected Guid? SelectedSupplierId { get; set; }
     protected DateTime? StartDate { get; set; }
     protected DateTime? EndDate { get; set; }
+    protected bool IncludeDeleted { get; set; }
 
-    protected string? ErrorMessage { get; private set; }
+    protected string? ErrorMessage { get; set; }
     protected bool IsLoading { get; private set; }
 
     protected int CurrentPage { get; private set; } = 1;
@@ -59,10 +60,10 @@ public class ViewMenuBase : ComponentBase
             IsLoading = true;
             ErrorMessage = null;
 
-            var allMenus = await MenuDataService.GetAllMenusAsync();
+            IEnumerable<MenuDto> allMenus = await MenuDataService.GetAllMenusAsync(IncludeDeleted);
 
             // Apply filters
-            var query = allMenus.AsQueryable();
+            IQueryable<MenuDto> query = allMenus.AsQueryable();
 
             if (SelectedSupplierId.HasValue)
                 query = query.Where(m => m.SupplierId == SelectedSupplierId);
@@ -97,11 +98,11 @@ public class ViewMenuBase : ComponentBase
 
     protected static string FormatBulgarianDate(DateTime date)
     {
-        var bgCulture = new CultureInfo("bg-BG");
+        CultureInfo bgCulture = new CultureInfo("bg-BG");
         string dayName = date.ToString("dddd", bgCulture);
 
         // Capitalize first letter
-        string capitalizedDay = char.ToUpper(dayName[0], bgCulture) + dayName.Substring(1);
+        string capitalizedDay = char.ToUpper(dayName[0], bgCulture) + dayName[1..];
 
         return $"{capitalizedDay} {date:dd.MM.yyyy'г.'}";
     }

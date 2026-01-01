@@ -119,7 +119,7 @@ else
              && (!ShowSecondMenu || SecondSelectedSupplierId != Guid.Empty))
     {
         <button class="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
-                @onclick="SaveMenusAsync"
+                @onclick="ConfirmAndSaveAsync"
                 disabled="@(!MenuDateIsValid)">
             Save Menus
         </button>
@@ -152,5 +152,13 @@ else
         {
             ToastInitialized(ToastRef);
         }
+    }
+
+    private async Task ConfirmAndSaveAsync()
+    {
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", $"Save menu for {MenuDate:yyyy-MM-dd}?"))
+            return;
+
+        await SaveMenusAsync();
     }
 }

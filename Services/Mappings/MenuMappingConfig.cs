@@ -23,12 +23,15 @@ public class MenuMappingConfig : IRegister
         config.NewConfig<Menu, MenuDto>()
             .Map(dest => dest.SupplierName, src => src.Supplier != null ? src.Supplier.Name : string.Empty)
             .Map(dest => dest.Date, src => src.Date)
-            .Map(dest => dest.Meals, src => src.Meals.Adapt<List<MealDto>>());
+            .Map(dest => dest.Meals, src => src.Meals.Adapt<List<MealDto>>())
+            .Map(dest => dest.Id, src => src.Id)
+            // .Map(dest => dest.IsActive, src => src.IsActive)
+            .Map(dest => dest.IsDeleted, src => src.IsDeleted);
 
         config.NewConfig<MenuDto, Menu>()
             .ConstructUsing(src =>
                 new Menu(
-                    src.Id.HasValue ? src.Id.Value : Guid.NewGuid(),
+                    src.Id,
                     src.SupplierId,
                     src.Date,
                     src.Meals.Adapt<List<Meal>>()

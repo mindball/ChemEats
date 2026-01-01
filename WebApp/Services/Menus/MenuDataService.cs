@@ -25,9 +25,10 @@ public class MenuDataService : IMenuDataService
         throw new ApplicationException($"Failed to add menu: {error}");
     }
 
-    public async Task<IEnumerable<MenuDto>> GetAllMenusAsync()
+    public async Task<IEnumerable<MenuDto>> GetAllMenusAsync(bool includeDeleted)
     {
-        HttpResponseMessage response = await _httpClient.GetAsync("api/menus");
+        string url = includeDeleted ? "api/menus?includeDeleted=true" : "api/menus";
+        HttpResponseMessage response = await _httpClient.GetAsync(url);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -39,7 +40,6 @@ public class MenuDataService : IMenuDataService
         return menus ?? [];
     }
 
-    // Optional: fetch menus by supplier
     public async Task<IEnumerable<MenuDto>> GetMenusBySupplierAsync(string supplierId)
     {
         HttpResponseMessage response = await _httpClient.GetAsync($"api/menus/supplier/{supplierId}");
@@ -52,5 +52,29 @@ public class MenuDataService : IMenuDataService
 
         IEnumerable<MenuDto>? menus = await response.Content.ReadFromJsonAsync<IEnumerable<MenuDto>>();
         return menus ?? [];
+    }
+
+    public async Task<bool> UpdateMenuDateAsync(Guid menuId, DateTime newDate)
+    {
+        HttpResponseMessage resp = await _httpClient.PutAsJsonAsync($"api/menus/{menuId}/date", newDate);
+        return resp.IsSuccessStatusCode;
+    }
+
+    // public async Task<bool> DeactivateMenuAsync(Guid menuId)
+    // {
+    //     HttpResponseMessage resp = await _httpClient.PostAsync($"api/menus/{menuId}/deactivate", content: null);
+    //     return resp.IsSuccessStatusCode;
+    // }
+    //
+    // public async Task<bool> ActivateMenuAsync(Guid menuId)
+    // {
+    //     HttpResponseMessage resp = await _httpClient.PostAsync($"api/menus/{menuId}/activate", content: null);
+    //     return resp.IsSuccessStatusCode;
+    // }
+
+    public async Task<bool> SoftDeleteMenuAsync(Guid menuId)
+    {
+        HttpResponseMessage resp = await _httpClient.DeleteAsync($"api/menus/{menuId}");
+        return resp.IsSuccessStatusCode;
     }
 }

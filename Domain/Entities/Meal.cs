@@ -4,23 +4,28 @@ namespace Domain.Entities;
 
 public class Meal 
 {
-    private Meal() { } // EF
+    private Meal() { }
 
-    public Meal(Guid id, string name, Price price)
+    public Meal(Guid id, Guid menuId, string name, Price price)
     {
         Id = id;
-        Name = name ?? throw new ArgumentNullException(nameof(name));
-        Price = price ?? throw new ArgumentNullException(nameof(price));
-    }
-
-    public static Meal Create(string name, Price price)
-    {
-        return new Meal(Guid.NewGuid(), name, price);
+        MenuId = menuId;
+        Name = name;
+        Price = price;
     }
 
     public Guid Id { get; private set; }
+
+    public Guid MenuId { get; private set; }
+    public Menu Menu { get; private set; } = null!;
+
     public string Name { get; private set; }
     public Price Price { get; private set; }
+
+    public static Meal Create(Guid menuId, string name, Price price)
+    {
+        return new Meal(Guid.NewGuid(), menuId, name, price);
+    }
 
     public void ChangePrice(Price newPrice)
     {

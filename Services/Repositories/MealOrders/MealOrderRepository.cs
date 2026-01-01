@@ -15,10 +15,69 @@ public class MealOrderRepository : IMealOrderRepository
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
+    #region Base Query
+
+    private IQueryable<OrderJoinRow> BuildBaseQuery(
+        string userId,
+        bool includeDeleted = false,
+        bool onlyDeleted = false)
+    {
+        IQueryable<MealOrder> moQuery = _dbContext.MealOrders.AsNoTracking();
+
+        if (includeDeleted)
+            moQuery = moQuery.IgnoreQueryFilters();
+
+        if (onlyDeleted)
+            moQuery = moQuery.Where(mo => mo.IsDeleted);
+
+        return
+            from mo in moQuery
+            join meal in _dbContext.Meals.AsNoTracking()
+                on mo.MealId equals meal.Id
+            join menu in _dbContext.Menus.AsNoTracking()
+                on meal.MenuId equals menu.Id
+            join supplier in _dbContext.Suppliers.AsNoTracking()
+                on menu.SupplierId equals supplier.Id
+            where mo.UserId == userId
+            select new OrderJoinRow
+            {
+                OrderId = mo.Id,
+                UserId = mo.UserId,
+                MealId = meal.Id,
+                MealName = meal.Name,
+                SupplierId = supplier.Id,
+                SupplierName = supplier.Name,
+                Date = mo.Date,
+                Price = meal.Price.Amount,
+                Status = mo.Status,
+                IsDeleted = mo.IsDeleted
+            };
+    }
+
+    private static IQueryable<OrderJoinRow> ApplyFilters(
+        IQueryable<OrderJoinRow> query,
+        Guid? supplierId,
+        DateTime? startDate,
+        DateTime? endDate)
+    {
+        if (supplierId.HasValue)
+            query = query.Where(x => x.SupplierId == supplierId.Value);
+
+        if (startDate.HasValue)
+            query = query.Where(x => x.Date >= startDate.Value.Date);
+
+        if (endDate.HasValue)
+            query = query.Where(x => x.Date < endDate.Value.Date.AddDays(1));
+
+        return query;
+    }
+
+    #endregion
+
+    #region CRUD
+
     public async Task<MealOrder?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         return await _dbContext.MealOrders
             .AsNoTracking()
             .Include(mo => mo.Meal)
@@ -29,14 +88,13 @@ public class MealOrderRepository : IMealOrderRepository
     public async Task AddAsync(MealOrder mealOrder, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(mealOrder);
-        cancellationToken.ThrowIfCancellationRequested();
 
         bool mealExists = await _dbContext.Meals
             .AsNoTracking()
             .AnyAsync(m => m.Id == mealOrder.MealId, cancellationToken);
 
         if (!mealExists)
-            throw new ArgumentException($"Meal with id '{mealOrder.MealId}' does not exist.", nameof(mealOrder));
+            throw new ArgumentException($"Meal with id '{mealOrder.MealId}' does not exist.");
 
         if (mealOrder.User != null)
             _dbContext.Attach(mealOrder.User);
@@ -45,64 +103,11 @@ public class MealOrderRepository : IMealOrderRepository
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<UserOrderSummary>> GetUserOrdersAsync(
-        string userId,
-        Guid? supplierId = null,
-        DateTime? startDate = null,
-        DateTime? endDate = null,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(userId);
-
-        var query =
-            from mo in _dbContext.MealOrders.AsNoTracking()
-            join menu in _dbContext.Menus.AsNoTracking() on mo.Date.Date equals menu.Date.Date
-            join supplier in _dbContext.Suppliers.AsNoTracking() on menu.SupplierId equals supplier.Id
-            from menuMeal in menu.Meals
-            where mo.UserId == userId
-                  && !mo.IsDeleted
-                  && menuMeal.Id == mo.MealId
-            select new
-            {
-                OrderId = mo.Id,
-                MealId = menuMeal.Id,
-                MealName = menuMeal.Name,
-                SupplierId = supplier.Id,
-                SupplierName = supplier.Name,
-                Date = mo.Date,
-                Price = menuMeal.Price.Amount
-            };
-
-        if (supplierId.HasValue)
-            query = query.Where(x => x.SupplierId == supplierId.Value);
-
-        if (startDate.HasValue)
-            query = query.Where(x => x.Date.Date >= startDate.Value.Date);
-
-        if (endDate.HasValue)
-            query = query.Where(x => x.Date.Date <= endDate.Value.Date);
-
-        List<UserOrderSummary> grouped = await query
-            .GroupBy(x => new { x.MealId, x.MealName, x.SupplierId, x.SupplierName, x.Date, x.Price })
-            .Select(g => new UserOrderSummary(
-                g.Key.MealId,
-                g.Key.MealName,
-                g.Key.SupplierId,
-                g.Key.SupplierName ?? string.Empty,
-                g.Key.Date,
-                g.Count(),
-                g.Key.Price,
-                g.Select(x => x.OrderId).ToList()))
-            .ToListAsync(cancellationToken);
-
-        return grouped;
-    }
-
     public async Task SoftDeleteAsync(Guid orderId, CancellationToken cancellationToken = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        MealOrder? order = await _dbContext.MealOrders
+            .FirstOrDefaultAsync(mo => mo.Id == orderId, cancellationToken);
 
-        MealOrder? order = await _dbContext.MealOrders.FirstOrDefaultAsync(mo => mo.Id == orderId, cancellationToken);
         if (order is null)
             return;
 
@@ -113,101 +118,32 @@ public class MealOrderRepository : IMealOrderRepository
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<UserOrderItem>> GetUserOrderItemsAsync(
+    #endregion
+
+    #region Queries – Summary
+
+    public async Task<IReadOnlyList<UserOrderSummary>> GetUserOrdersAsync(
         string userId,
         Guid? supplierId = null,
         DateTime? startDate = null,
         DateTime? endDate = null,
         CancellationToken cancellationToken = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        ArgumentNullException.ThrowIfNull(userId);
+        IQueryable<OrderJoinRow> query = BuildBaseQuery(userId);
+        query = ApplyFilters(query, supplierId, startDate, endDate);
 
-        var query =
-            from mo in _dbContext.MealOrders.AsNoTracking()
-            join menu in _dbContext.Menus.AsNoTracking() on mo.Date.Date equals menu.Date.Date
-            join supplier in _dbContext.Suppliers.AsNoTracking() on menu.SupplierId equals supplier.Id
-            from menuMeal in menu.Meals
-            where mo.UserId == userId
-                  && !mo.IsDeleted
-                  && menuMeal.Id == mo.MealId
-            select new
+        return await query
+            .GroupBy(x => new
             {
-                OrderId = mo.Id,
-                UserId = mo.UserId,
-                MealId = menuMeal.Id,
-                MealName = menuMeal.Name,
-                SupplierId = supplier.Id,
-                SupplierName = supplier.Name,
-                Date = mo.Date,
-                Price = menuMeal.Price.Amount,
-                Status = mo.Status.ToString()
-            };
-
-        if (supplierId.HasValue)
-            query = query.Where(x => x.SupplierId == supplierId.Value);
-
-        if (startDate.HasValue)
-            query = query.Where(x => x.Date.Date >= startDate.Value.Date);
-
-        if (endDate.HasValue)
-            query = query.Where(x => x.Date.Date <= endDate.Value.Date);
-
-        List<UserOrderItem> items = await query
-            .Select(x => new UserOrderItem(
-                x.OrderId,
-                x.UserId,
                 x.MealId,
                 x.MealName,
                 x.SupplierId,
-                x.SupplierName ?? string.Empty,
+                x.SupplierName,
                 x.Date,
                 x.Price,
-                x.Status))
-            .ToListAsync(cancellationToken);
-
-        return items;
-    }
-
-    public async Task<IReadOnlyList<UserOrderSummary>> GetUserOrdersAsync(string userId, Guid? supplierId = null, DateTime? startDate = null, DateTime? endDate = null,
-        bool includeDeleted = false, bool onlyDeleted = false, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(userId);
-
-        IQueryable<MealOrder> moQuery = _dbContext.MealOrders.AsNoTracking();
-        if (includeDeleted)
-            moQuery = moQuery.IgnoreQueryFilters();
-        if (onlyDeleted)
-            moQuery = moQuery.Where(mo => mo.IsDeleted);
-
-        var query =
-            from mo in moQuery
-            join menu in _dbContext.Menus.AsNoTracking() on mo.Date.Date equals menu.Date.Date
-            join supplier in _dbContext.Suppliers.AsNoTracking() on menu.SupplierId equals supplier.Id
-            from menuMeal in menu.Meals
-            where mo.UserId == userId && menuMeal.Id == mo.MealId
-            select new
-            {
-                OrderId = mo.Id,
-                MealId = menuMeal.Id,
-                MealName = menuMeal.Name,
-                SupplierId = supplier.Id,
-                SupplierName = supplier.Name,
-                Date = mo.Date,
-                Price = menuMeal.Price.Amount
-            };
-
-        if (supplierId.HasValue)
-            query = query.Where(x => x.SupplierId == supplierId.Value);
-
-        if (startDate.HasValue)
-            query = query.Where(x => x.Date.Date >= startDate.Value.Date);
-
-        if (endDate.HasValue)
-            query = query.Where(x => x.Date.Date <= endDate.Value.Date);
-
-        List<UserOrderSummary> grouped = await query
-            .GroupBy(x => new { x.MealId, x.MealName, x.SupplierId, x.SupplierName, x.Date, x.Price })
+                x.Status,
+                x.IsDeleted
+            })
             .Select(g => new UserOrderSummary(
                 g.Key.MealId,
                 g.Key.MealName,
@@ -216,54 +152,66 @@ public class MealOrderRepository : IMealOrderRepository
                 g.Key.Date,
                 g.Count(),
                 g.Key.Price,
-                g.Select(x => x.OrderId).ToList()))
+                g.Select(x => x.OrderId).ToList(),
+                g.Key.Status.ToString(),
+                g.Key.IsDeleted))
             .ToListAsync(cancellationToken);
-
-        return grouped;
     }
 
-    public async Task<IReadOnlyList<UserOrderItem>> GetUserOrderItemsAsync(string userId, Guid? supplierId = null, DateTime? startDate = null,
-        DateTime? endDate = null, bool includeDeleted = false, bool onlyDeleted = false,
+    public async Task<IReadOnlyList<UserOrderSummary>> GetUserOrdersAsync(
+        string userId,
+        Guid? supplierId,
+        DateTime? startDate,
+        DateTime? endDate,
+        bool includeDeleted,
+        bool onlyDeleted,
         CancellationToken cancellationToken = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        ArgumentNullException.ThrowIfNull(userId);
+        var query = BuildBaseQuery(userId, includeDeleted, onlyDeleted);
+        query = ApplyFilters(query, supplierId, startDate, endDate);
 
-        IQueryable<MealOrder> moQuery = _dbContext.MealOrders.AsNoTracking();
-        if (includeDeleted)
-            moQuery = moQuery.IgnoreQueryFilters();
-        if (onlyDeleted)
-            moQuery = moQuery.Where(mo => mo.IsDeleted);
-
-        var query =
-            from mo in moQuery
-            join menu in _dbContext.Menus.AsNoTracking() on mo.Date.Date equals menu.Date.Date
-            join supplier in _dbContext.Suppliers.AsNoTracking() on menu.SupplierId equals supplier.Id
-            from menuMeal in menu.Meals
-            where mo.UserId == userId && menuMeal.Id == mo.MealId
-            select new
+        return await query
+            .GroupBy(x => new
             {
-                OrderId = mo.Id,
-                UserId = mo.UserId,
-                MealId = menuMeal.Id,
-                MealName = menuMeal.Name,
-                SupplierId = supplier.Id,
-                SupplierName = supplier.Name,
-                Date = mo.Date,
-                Price = menuMeal.Price.Amount,
-                Status = mo.Status.ToString()
-            };
+                x.MealId,
+                x.MealName,
+                x.SupplierId,
+                x.SupplierName,
+                x.Date,
+                x.Price,
+                x.Status,
+                x.IsDeleted
+            })
+            .Select(g => new UserOrderSummary(
+                g.Key.MealId,
+                g.Key.MealName,
+                g.Key.SupplierId,
+                g.Key.SupplierName ?? string.Empty,
+                g.Key.Date,
+                g.Count(),
+                g.Key.Price,
+                g.Select(x => x.OrderId).ToList(),
+                g.Key.Status.ToString(),
+                g.Key.IsDeleted))
+            .ToListAsync(cancellationToken);
+    }
 
-        if (supplierId.HasValue)
-            query = query.Where(x => x.SupplierId == supplierId.Value);
+    #endregion
 
-        if (startDate.HasValue)
-            query = query.Where(x => x.Date.Date >= startDate.Value.Date);
+    #region Queries – Items
 
-        if (endDate.HasValue)
-            query = query.Where(x => x.Date.Date <= endDate.Value.Date);
+    public async Task<IReadOnlyList<UserOrderItem>> GetUserOrderItemsAsync(
+        string userId,
+        Guid? supplierId = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = BuildBaseQuery(userId);
+        query = ApplyFilters(query, supplierId, startDate, endDate);
 
-        List<UserOrderItem> items = await query
+        return await query
+            .OrderBy(x => x.Date)
             .Select(x => new UserOrderItem(
                 x.OrderId,
                 x.UserId,
@@ -273,9 +221,54 @@ public class MealOrderRepository : IMealOrderRepository
                 x.SupplierName ?? string.Empty,
                 x.Date,
                 x.Price,
-                x.Status))
+                x.Status.ToString()))
             .ToListAsync(cancellationToken);
-
-        return items;
     }
+
+    public async Task<IReadOnlyList<UserOrderItem>> GetUserOrderItemsAsync(
+        string userId,
+        Guid? supplierId,
+        DateTime? startDate,
+        DateTime? endDate,
+        bool includeDeleted,
+        bool onlyDeleted,
+        CancellationToken cancellationToken = default)
+    {
+        var query = BuildBaseQuery(userId, includeDeleted, onlyDeleted);
+        query = ApplyFilters(query, supplierId, startDate, endDate);
+
+        return await query
+            .OrderBy(x => x.Date)
+            .Select(x => new UserOrderItem(
+                x.OrderId,
+                x.UserId,
+                x.MealId,
+                x.MealName,
+                x.SupplierId,
+                x.SupplierName ?? string.Empty,
+                x.Date,
+                x.Price,
+                x.Status.ToString()))
+            .ToListAsync(cancellationToken);
+    }
+
+    #endregion
 }
+
+#region Helper DTO (internal)
+
+internal sealed class OrderJoinRow
+{
+    public Guid OrderId { get; init; }
+    public string UserId { get; init; } = null!;
+    public Guid MealId { get; init; }
+    public string MealName { get; init; } = null!;
+    public Guid SupplierId { get; init; }
+    public string SupplierName { get; init; } = null!;
+    public DateTime Date { get; init; }
+    public decimal Price { get; init; }
+    public MealOrderStatus Status { get; init; }
+    public bool IsDeleted { get; init; }
+}
+
+#endregion

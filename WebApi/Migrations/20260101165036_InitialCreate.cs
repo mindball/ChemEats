@@ -31,7 +31,7 @@ namespace WebApi.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "VARCHAR(256)", nullable: false),
-                    Abbreviation = table.Column<string>(type: "VARCHAR(20)", maxLength: 20, nullable: false),
+                    Abbreviation = table.Column<string>(type: "VARCHAR(3)", maxLength: 3, nullable: false),
                     FullName = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: false),
                     UserName = table.Column<string>(type: "VARCHAR(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "VARCHAR(256)", maxLength: 256, nullable: true),
@@ -57,7 +57,7 @@ namespace WebApi.Migrations
                 name: "Suppliers",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "CHAR(16) CHARACTER SET OCTETS", nullable: false),
+                    Id = table.Column<string>(type: "VARCHAR(36)", nullable: false),
                     Name = table.Column<string>(type: "VARCHAR(100)", maxLength: 100, nullable: false),
                     VatNumber = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: false),
                     PaymentTerms = table.Column<int>(type: "INTEGER", nullable: false),
@@ -183,9 +183,10 @@ namespace WebApi.Migrations
                 name: "Menus",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "CHAR(16) CHARACTER SET OCTETS", nullable: false),
-                    SupplierId = table.Column<Guid>(type: "CHAR(16) CHARACTER SET OCTETS", nullable: false),
-                    Date = table.Column<DateTime>(type: "TIMESTAMP", nullable: false)
+                    Id = table.Column<string>(type: "VARCHAR(36)", nullable: false),
+                    SupplierId = table.Column<string>(type: "VARCHAR(36)", nullable: false),
+                    Date = table.Column<DateTime>(type: "TIMESTAMP", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "BOOLEAN", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
@@ -202,10 +203,10 @@ namespace WebApi.Migrations
                 name: "Meals",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "CHAR(16) CHARACTER SET OCTETS", nullable: false),
+                    Id = table.Column<string>(type: "VARCHAR(36)", nullable: false),
+                    MenuId = table.Column<string>(type: "VARCHAR(36)", nullable: false),
                     Name = table.Column<string>(type: "VARCHAR(100)", maxLength: 100, nullable: false),
-                    Price_Amount = table.Column<decimal>(type: "DECIMAL(18,2)", precision: 10, scale: 2, nullable: false),
-                    MenuId = table.Column<Guid>(type: "CHAR(16) CHARACTER SET OCTETS", nullable: true)
+                    Price_Amount = table.Column<decimal>(type: "DECIMAL(18,2)", precision: 10, scale: 2, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -214,18 +215,20 @@ namespace WebApi.Migrations
                         name: "FK_Meals_Menus_MenuId",
                         column: x => x.MenuId,
                         principalTable: "Menus",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
                 name: "MealOrders",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "CHAR(16) CHARACTER SET OCTETS", nullable: false),
+                    Id = table.Column<string>(type: "VARCHAR(36)", nullable: false),
                     UserId = table.Column<string>(type: "VARCHAR(256)", nullable: false),
-                    MealId = table.Column<Guid>(type: "CHAR(16) CHARACTER SET OCTETS", nullable: false),
+                    MealId = table.Column<string>(type: "VARCHAR(36)", nullable: false),
                     Date = table.Column<DateTime>(type: "TIMESTAMP", nullable: false),
-                    Status = table.Column<int>(type: "INTEGER", nullable: false)
+                    Status = table.Column<int>(type: "INTEGER", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "BOOLEAN", nullable: false)
                 },
                 constraints: table =>
                 {

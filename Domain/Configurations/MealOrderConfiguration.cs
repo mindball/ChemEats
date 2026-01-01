@@ -10,10 +10,15 @@ public class MealOrderConfiguration : IEntityTypeConfiguration<MealOrder>
     {
         builder.HasKey(mo => mo.Id);
 
-        builder.Property(mo => mo.Id)
+        builder.Property(m => m.Id)
+            .HasColumnType("VARCHAR(36)")
             .ValueGeneratedNever();
 
-        builder.Property(mo => mo.MealId)
+        // builder.Property(mo => mo.MealId)
+        //     .IsRequired();
+
+        builder.Property<Guid>(mo => mo.MealId)
+            .HasColumnType("VARCHAR(36)")
             .IsRequired();
 
         builder.Property(mo => mo.Date)

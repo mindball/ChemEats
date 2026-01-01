@@ -23,11 +23,12 @@ namespace WebApi.Migrations
 
             modelBuilder.Entity("Domain.Entities.Meal", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("CHAR(16) CHARACTER SET OCTETS");
+                    b.Property<string>("Id")
+                        .HasColumnType("VARCHAR(36)");
 
-                    b.Property<Guid?>("MenuId")
-                        .HasColumnType("CHAR(16) CHARACTER SET OCTETS");
+                    b.Property<string>("MenuId")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(36)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -43,8 +44,8 @@ namespace WebApi.Migrations
 
             modelBuilder.Entity("Domain.Entities.MealOrder", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("CHAR(16) CHARACTER SET OCTETS");
+                    b.Property<string>("Id")
+                        .HasColumnType("VARCHAR(36)");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("TIMESTAMP");
@@ -52,8 +53,9 @@ namespace WebApi.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("BOOLEAN");
 
-                    b.Property<Guid>("MealId")
-                        .HasColumnType("CHAR(16) CHARACTER SET OCTETS");
+                    b.Property<string>("MealId")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(36)");
 
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");
@@ -73,14 +75,19 @@ namespace WebApi.Migrations
 
             modelBuilder.Entity("Domain.Entities.Menu", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("CHAR(16) CHARACTER SET OCTETS");
+                    b.Property<string>("Id")
+                        .HasColumnType("VARCHAR(36)");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("TIMESTAMP");
 
-                    b.Property<Guid>("SupplierId")
-                        .HasColumnType("CHAR(16) CHARACTER SET OCTETS");
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("BOOLEAN")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("SupplierId")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(36)");
 
                     b.HasKey("Id");
 
@@ -91,8 +98,8 @@ namespace WebApi.Migrations
 
             modelBuilder.Entity("Domain.Entities.Supplier", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("CHAR(16) CHARACTER SET OCTETS");
+                    b.Property<string>("Id")
+                        .HasColumnType("VARCHAR(36)");
 
                     b.Property<string>("City")
                         .HasColumnType("BLOB SUB_TYPE TEXT");
@@ -136,8 +143,8 @@ namespace WebApi.Migrations
 
                     b.Property<string>("Abbreviation")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("VARCHAR(20)");
+                        .HasMaxLength(3)
+                        .HasColumnType("VARCHAR(3)");
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("INTEGER");
@@ -334,18 +341,21 @@ namespace WebApi.Migrations
 
             modelBuilder.Entity("Domain.Entities.Meal", b =>
                 {
-                    b.HasOne("Domain.Entities.Menu", null)
+                    b.HasOne("Domain.Entities.Menu", "Menu")
                         .WithMany("Meals")
-                        .HasForeignKey("MenuId");
+                        .HasForeignKey("MenuId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.OwnsOne("Domain.Entities.Price", "Price", b1 =>
                         {
-                            b1.Property<Guid>("MealId")
-                                .HasColumnType("CHAR(16) CHARACTER SET OCTETS");
+                            b1.Property<string>("MealId")
+                                .HasColumnType("VARCHAR(36)");
 
                             b1.Property<decimal>("Amount")
                                 .HasPrecision(10, 2)
-                                .HasColumnType("DECIMAL(18,2)");
+                                .HasColumnType("DECIMAL(18,2)")
+                                .HasColumnName("Price_Amount");
 
                             b1.HasKey("MealId");
 
@@ -354,6 +364,8 @@ namespace WebApi.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("MealId");
                         });
+
+                    b.Navigation("Menu");
 
                     b.Navigation("Price")
                         .IsRequired();

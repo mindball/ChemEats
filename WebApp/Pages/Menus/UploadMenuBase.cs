@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using CsvHelper;
+﻿using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -7,6 +6,7 @@ using Microsoft.JSInterop;
 using Shared.DTOs.Meals;
 using Shared.DTOs.Menus;
 using Shared.DTOs.Suppliers;
+using System.Globalization;
 using WebApp.Components;
 using WebApp.Services.Menus;
 using WebApp.Services.Suppliers;
@@ -174,8 +174,21 @@ public class UploadMenuBase : ComponentBase
         {
             CreateMenuDto menu = new(SelectedSupplierId.Value, MenuDate.Value, Meals.ToList());
             await _menuDataService.AddMenuAsync(menu);
+            const string message = "Menu saved successfully!";
+            await ShowPopupAsync("Success!", message, "success");
+            SuccessMessage = message;
 
-            await ShowPopupAsync("Success!", "Menu saved successfully!", "success");
+            // Reset UI state to prevent repeated saves and let edits happen in ViewMenu
+            Meals = null;
+            SecondMeals = null;
+            ShowSecondMenu = false;
+            SecondSelectedSupplierId = null;
+            SelectedSupplierId = null;
+            MenuDate = TomorrowDate;
+            MenuDateError = null;
+            ErrorMessage = null;
+
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {

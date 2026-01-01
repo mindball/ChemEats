@@ -8,7 +8,9 @@ public class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
 {
     public void Configure(EntityTypeBuilder<Supplier> builder)
     {
-        builder.HasKey(s => s.Id);
+        builder.Property(m => m.Id)
+            .HasColumnType("VARCHAR(36)")
+            .ValueGeneratedNever();
 
         builder.Property(s => s.Id)
             .ValueGeneratedNever();

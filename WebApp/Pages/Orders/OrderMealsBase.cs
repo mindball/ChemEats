@@ -9,7 +9,7 @@ using WebApp.Services.Orders;
 
 namespace WebApp.Pages.Orders;
 
-public class OrderMenuBase : ComponentBase
+public class OrderMealsBase : ComponentBase
 {
     [Inject] protected IMenuDataService MenuDataService { get; init; } = null!;
     [Inject] protected IOrderDataService OrderDataService { get; init; } = null!;
@@ -20,7 +20,7 @@ public class OrderMenuBase : ComponentBase
 
     // Supplier filter: store selected supplier id (optional) and list of suppliers present in menus
     protected Guid? SelectedSupplierId { get; set; }
-    protected IReadOnlyList<(Guid Id, string Name)> SuppliersForFilter { get; private set; } = Array.Empty<(Guid, string)>();
+    protected IReadOnlyList<(Guid Id, string Name)> SuppliersForFilter { get; private set; } = [];
 
     protected IEnumerable<MenuDto> FilteredMenus => Menus is null
         ? []
@@ -57,7 +57,7 @@ public class OrderMenuBase : ComponentBase
             IsAuthenticated = user?.Identity?.IsAuthenticated == true;
             CurrentUserName = user?.Identity?.Name;
 
-            Menus = (await MenuDataService.GetAllMenusAsync()).ToList();
+            Menus = (await MenuDataService.GetAllMenusAsync(includeDeleted: false)).ToList();
 
             // Default filter date to tomorrow
             FilterDate = DateTime.Today.AddDays(1);

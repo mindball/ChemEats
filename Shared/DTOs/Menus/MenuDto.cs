@@ -3,9 +3,10 @@
 namespace Shared.DTOs.Menus;
 
 public record MenuDto(
-    Guid? Id,
+    Guid Id,
     Guid SupplierId,
     string SupplierName,
     DateTime Date,
-    List<MealDto> Meals
+    List<MealDto> Meals,
+    bool IsDeleted
 );

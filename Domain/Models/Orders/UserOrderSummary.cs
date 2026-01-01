@@ -8,5 +8,7 @@ public sealed record UserOrderSummary(
     DateTime Date,
     int Quantity,
     decimal Price,
-    IReadOnlyList<Guid> OrderIds
+    IReadOnlyList<Guid> OrderIds,
+    string Status,      
+    bool IsDeleted      
 );

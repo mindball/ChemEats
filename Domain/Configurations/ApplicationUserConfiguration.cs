@@ -11,7 +11,7 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         builder.ToTable("AspNetUsers");
 
         builder.Property(u => u.Abbreviation)
-            .HasMaxLength(20); // примерно
+            .HasMaxLength(3); 
 
         builder.HasMany(u => u.Orders)
             .WithOne(o => o.User)

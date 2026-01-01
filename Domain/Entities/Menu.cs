@@ -16,6 +16,8 @@ public class Menu
         SupplierId = supplierId;
         Date = date;
         _meals = meals.ToList();
+        // IsActive = true;
+        IsDeleted = false;
     }
 
     public Guid Id { get; private set; }
@@ -26,10 +28,40 @@ public class Menu
 
     [Required] public DateTime Date { get; private set; }
 
+    // public bool IsActive { get; private set; }
+
+    public bool IsDeleted { get; private set; }
+
     public IReadOnlyCollection<Meal> Meals => _meals.AsReadOnly();
 
     public static Menu Create(Guid supplierId, DateTime date, IEnumerable<Meal> meals)
     {
-        return new Menu(Guid.NewGuid(), supplierId, date, meals);
+        Guid menuId = Guid.NewGuid();
+
+        IEnumerable<Meal> fixedMeals = meals.Select(m =>
+            Meal.Create(menuId, m.Name, m.Price)
+        );
+
+        return new Menu(menuId, supplierId, date, fixedMeals);
+    }
+
+    public void UpdateDate(DateTime newDate)
+    {
+        Date = newDate;
+    }
+
+    // public void Deactivate()
+    // {
+    //     IsActive = false;
+    // }
+    //
+    // public void Activate()
+    // {
+    //     IsActive = true;
+    // }
+
+    public void SoftDelete()
+    {
+        IsDeleted = true;
     }
 }

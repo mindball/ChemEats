@@ -1,5 +1,6 @@
 ﻿@page "/menus/view"
 @inherits ViewMenuBase
+@inject IJSRuntime JSRuntime
 
 <h3>Menus List</h3>
 
@@ -17,15 +18,19 @@
 
     <div class="col-md-3">
         <label class="form-label">Start Date:</label>
-        <input type="date" class="form-control" @bind="StartDate"/>
+        <input type="date" class="form-control" @bind="StartDate" />
     </div>
 
     <div class="col-md-3">
         <label class="form-label">End Date:</label>
-        <input type="date" class="form-control" @bind="EndDate"/>
+        <input type="date" class="form-control" @bind="EndDate" />
     </div>
 
     <div class="col-md-3 d-flex align-items-end">
+        <div class="form-check me-3">
+            <input class="form-check-input" type="checkbox" id="includeDeleted" @bind="IncludeDeleted" />
+            <label class="form-check-label" for="includeDeleted">deleted</label>
+        </div>
         <button class="btn btn-primary w-100" @onclick="OnSearchClickedAsync">
             <i class="bi bi-search"></i> Search
         </button>
@@ -48,35 +53,55 @@ else
 {
     <table class="table table-sm table-striped table-bordered w-100">
         <thead class="table-light">
-        <tr class="align-middle text-center">
-            <th>Supplier</th>
-            <th>Date</th>
-            <th>Meals</th>
-        </tr>
+            <tr class="align-middle text-center">
+                <th>Supplier</th>
+                <th>Date</th>
+                <th>Meals</th>
+                <th style="width:220px">Actions</th>
+            </tr>
         </thead>
         <tbody>
-        @foreach (MenuDto menu in Menus)
-        {
-            <tr class="align-middle">
-                <td>@menu.SupplierName</td>
-                <td>@FormatBulgarianDate(menu.Date)</td>
-                <td>
-                    @if (menu.Meals.Any())
-                    {
-                        <ul class="mb-0">
-                            @foreach (MealDto meal in menu.Meals)
-                            {
-                                <li>@meal.Name</li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        <span>No meals</span>
-                    }
-                </td>
-            </tr>
-        }
+            @foreach (MenuDto menu in Menus)
+            {
+                <tr class="align-middle @(menu.IsDeleted ? "table-danger text-decoration-line-through" : "")">
+                    <td>@menu.SupplierName</td>
+                    <td>@FormatBulgarianDate(menu.Date)</td>
+                    <td>
+                        @if (menu.Meals.Any())
+                        {
+                            <ul class="mb-0">
+                                @foreach (MealDto meal in menu.Meals)
+                                {
+                                    <li>
+                                        <span>@meal.Name</span>
+                                        <span class="text-muted"> — @meal.Price.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <span>No meals</span>
+                        }
+                    </td>
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary" disabled="@menu.IsDeleted"
+                                    @onclick="() => EditDateAsync(menu.Id, menu.Date)">
+                                Edit Date
+                            </button>
+                            @* <button class="btn btn-outline-warning" *@
+                            @*         @onclick="() => DeactivateAsync(menu.Id)"> *@
+                            @*     Deactivate *@
+                            @* </button> *@
+                            <button class="btn btn-outline-danger" disabled="@menu.IsDeleted"
+                                    @onclick="() => SoftDeleteAsync(menu.Id)">
+                                Soft Delete
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            }
         </tbody>
     </table>
 
@@ -95,7 +120,7 @@ else
 
             @for (int i = 1; i <= TotalPages; i++)
             {
-                int pageNumber = i; // capture local variable
+                int pageNumber = i;
 
                 <li class="page-item @(CurrentPage == pageNumber ? "active" : "")">
                     <button type="button" class="page-link" @onclick="async () => await GoToPageAsync(pageNumber)">
@@ -109,4 +134,41 @@ else
             </li>
         </ul>
     </nav>
+}
+
+@code {
+    private async Task EditDateAsync(Guid id, DateTime current)
+    {
+        string? newDateStr = await JSRuntime.InvokeAsync<string>("prompt", $"New date (yyyy-MM-dd)", current.ToString("yyyy-MM-dd"));
+        if (string.IsNullOrWhiteSpace(newDateStr)) return;
+        if (!DateTime.TryParse(newDateStr, out DateTime newDate)) return;
+
+        bool ok = await MenuDataService.UpdateMenuDateAsync(id, newDate);
+        if (ok)
+            await OnSearchClickedAsync();
+        else
+            ErrorMessage = "Failed to update menu date.";
+    }
+    //
+    // private async Task DeactivateAsync(Guid id)
+    // {
+    //     if (!await JSRuntime.InvokeAsync<bool>("confirm", "Deactivate this menu and cancel its orders?")) return;
+    //
+    //     bool ok = await MenuDataService.DeactivateMenuAsync(id);
+    //     if (ok)
+    //         await OnSearchClickedAsync();
+    //     else
+    //         ErrorMessage = "Failed to deactivate menu.";
+    // }
+
+    private async Task SoftDeleteAsync(Guid id)
+    {
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", "Soft delete this menu and cancel its orders?")) return;
+
+        bool ok = await MenuDataService.SoftDeleteMenuAsync(id);
+        if (ok)
+            await OnSearchClickedAsync();
+        else
+            ErrorMessage = "Failed to soft delete menu.";
+    }
 }
