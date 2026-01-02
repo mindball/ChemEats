@@ -44,4 +44,24 @@ public interface IMealOrderRepository
         bool includeDeleted = false,
         bool onlyDeleted = false,
         CancellationToken cancellationToken = default);
+
+    Task<UserOutstandingSummary> GetUserOutstandingSummaryAsync(
+        string userId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<UserOrderPaymentItem>> GetUnpaidOrdersAsync(
+        string userId,
+        Guid? supplierId = null,
+        CancellationToken cancellationToken = default);
+
+    Task MarkAsPaidAsync(
+        Guid orderId,
+        string userId,
+        DateTime paidOn,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> HasPortionAppliedOnDateAsync(
+        string userId,
+        DateOnly date,
+        CancellationToken cancellationToken = default);
 }

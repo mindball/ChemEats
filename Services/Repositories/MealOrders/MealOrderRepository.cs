@@ -3,6 +3,7 @@ using Domain.Entities;
 using Domain.Models.Orders;
 using Domain.Repositories.MealOrders;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
 
 namespace Services.Repositories.MealOrders;
 
@@ -49,9 +50,19 @@ public class MealOrderRepository : IMealOrderRepository
                 SupplierName = supplier.Name,
                 Date = mo.Date,
                 MenuDate = menu.Date,
-                Price = meal.Price.Amount,
+
+                // Use price snapshot from the order
+                Price = mo.PriceAmount,
+
                 Status = mo.Status,
-                IsDeleted = mo.IsDeleted
+                IsDeleted = mo.IsDeleted,
+
+                PaymentStatus = mo.PaymentStatus,
+                PaidOn = mo.PaidOn,
+
+                // New: portion flags from the order
+                PortionApplied = mo.PortionApplied,
+                PortionAmount = mo.PortionAmount
             };
     }
 
@@ -170,7 +181,7 @@ public class MealOrderRepository : IMealOrderRepository
         bool onlyDeleted,
         CancellationToken cancellationToken = default)
     {
-        var query = BuildBaseQuery(userId, includeDeleted, onlyDeleted);
+        IQueryable<OrderJoinRow> query = BuildBaseQuery(userId, includeDeleted, onlyDeleted);
         query = ApplyFilters(query, supplierId, startDate, endDate);
 
         return await query
@@ -212,7 +223,7 @@ public class MealOrderRepository : IMealOrderRepository
         DateTime? endDate = null,
         CancellationToken cancellationToken = default)
     {
-        var query = BuildBaseQuery(userId);
+        IQueryable<OrderJoinRow> query = BuildBaseQuery(userId);
         query = ApplyFilters(query, supplierId, startDate, endDate);
 
         return await query
@@ -240,7 +251,7 @@ public class MealOrderRepository : IMealOrderRepository
         bool onlyDeleted,
         CancellationToken cancellationToken = default)
     {
-        var query = BuildBaseQuery(userId, includeDeleted, onlyDeleted);
+        IQueryable<OrderJoinRow> query = BuildBaseQuery(userId, includeDeleted, onlyDeleted);
         query = ApplyFilters(query, supplierId, startDate, endDate);
 
         return await query
@@ -259,24 +270,120 @@ public class MealOrderRepository : IMealOrderRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<UserOutstandingSummary> GetUserOutstandingSummaryAsync(
+        string userId,
+        CancellationToken cancellationToken = default)
+    {
+        IQueryable<OrderJoinRow> query = BuildBaseQuery(userId)
+            .Where(x => x.PaymentStatus == PaymentStatus.Unpaid && x.Status == MealOrderStatus.Completed);
+
+        decimal totalOutstanding = await query
+            .Select(x => Math.Max(0m, x.Price - (x.PortionApplied ? x.PortionAmount : 0m)))
+            .SumAsync(cancellationToken);
+
+        int unpaidCount = await query
+            .CountAsync(cancellationToken);
+
+        return new UserOutstandingSummary(
+            userId,
+            totalOutstanding,
+            unpaidCount);
+    }
+
+    public async Task<IReadOnlyList<UserOrderPaymentItem>> GetUnpaidOrdersAsync(
+        string userId,
+        Guid? supplierId = null,
+        CancellationToken cancellationToken = default)
+    {
+        IQueryable<OrderJoinRow> query = BuildBaseQuery(userId);
+
+        if (supplierId.HasValue)
+            query = query.Where(x => x.SupplierId == supplierId.Value);
+
+        return await query
+            .Where(x => x.PaymentStatus == PaymentStatus.Unpaid)
+            .OrderBy(x => x.Date) // oldest first
+            .Select(x => new UserOrderPaymentItem(
+                x.OrderId,
+                x.MealId,
+                x.MealName,
+                x.SupplierId,
+                x.SupplierName,
+                x.Date,
+                x.Price,                  // snapshot price
+                x.PaymentStatus,
+                x.PaidOn,
+                x.PortionApplied,         // New
+                x.PortionAmount,          // New
+                Math.Max(0m, x.Price - (x.PortionApplied ? x.PortionAmount : 0m)) // NetAmount
+            ))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task MarkAsPaidAsync(
+        Guid orderId,
+        string userId,
+        DateTime paidOn,
+        CancellationToken cancellationToken = default)
+    {
+        MealOrder? order = await _dbContext.MealOrders
+            .FirstOrDefaultAsync(
+                x => x.Id == orderId && x.UserId == userId,
+                cancellationToken);
+
+        if (order is null)
+            throw new InvalidOperationException("Order not found.");
+
+        order.MarkAsPaid(paidOn);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public Task<bool> HasAppliedPortionAsync(string userId, Guid menuId, DateOnly date, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    // New: per-user per-date portion consumption check across all suppliers/menus
+    public async Task<bool> HasPortionAppliedOnDateAsync(
+        string userId,
+        DateOnly date,
+        CancellationToken cancellationToken = default)
+    {
+        // Compare by calendar day
+        DateTime start = date.ToDateTime(TimeOnly.MinValue);
+        DateTime endExclusive = date.ToDateTime(TimeOnly.MinValue).AddDays(1);
+
+        return await _dbContext.MealOrders
+            .AsNoTracking()
+            .AnyAsync(mo =>
+                mo.UserId == userId
+                && !mo.IsDeleted
+                && mo.PortionApplied
+                && mo.Date >= start
+                && mo.Date < endExclusive,
+                cancellationToken);
+    }
+
     #endregion
+
+    // Local projection type
+    private sealed class OrderJoinRow
+    {
+        public Guid OrderId { get; init; }
+        public string UserId { get; init; } = string.Empty;
+        public Guid MealId { get; init; }
+        public string MealName { get; init; } = string.Empty;
+        public Guid SupplierId { get; init; }
+        public string SupplierName { get; init; } = string.Empty;
+        public DateTime Date { get; init; }
+        public DateTime MenuDate { get; init; }
+        public decimal Price { get; init; }
+        public MealOrderStatus Status { get; init; }
+        public bool IsDeleted { get; init; }
+        public PaymentStatus PaymentStatus { get; init; }
+        public DateTime? PaidOn { get; init; }
+        public bool PortionApplied { get; init; }
+        public decimal PortionAmount { get; init; }
+    }
 }
-
-#region Helper DTO (internal)
-
-internal sealed class OrderJoinRow
-{
-    public Guid OrderId { get; init; }
-    public string UserId { get; init; } = null!;
-    public Guid MealId { get; init; }
-    public string MealName { get; init; } = null!;
-    public Guid SupplierId { get; init; }
-    public string SupplierName { get; init; } = null!;
-    public DateTime Date { get; init; }
-    public DateTime MenuDate { get; init; }
-    public decimal Price { get; init; }
-    public MealOrderStatus Status { get; init; }
-    public bool IsDeleted { get; init; }
-}
-
-#endregion

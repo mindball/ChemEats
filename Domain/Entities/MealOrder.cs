@@ -1,4 +1,5 @@
-﻿using Domain.Infrastructure.Identity;
+﻿using Domain.Common.Enums;
+using Domain.Infrastructure.Identity;
 using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Entities;
@@ -10,6 +11,12 @@ public enum MealOrderStatus
     Cancelled
 }
 
+public enum PaymentStatus
+{
+    Unpaid,        
+    Paid         
+}
+
 public class MealOrder
 {
     public Guid Id { get; private set; }
@@ -17,42 +24,73 @@ public class MealOrder
     public ApplicationUser? User { get; private set; }
 
     public Guid MealId { get; private set; }
-    public Meal? Meal { get; private set; }
+    public Meal Meal { get; private set; } = null!;
 
     public DateTime Date { get; private set; }
-    [Required] public DateTime RegisterDate { get; private set; }
+    public DateTime RegisterDate { get; private set; }
+
     public MealOrderStatus Status { get; private set; }
 
-    // Soft-delete flag
+    public PaymentStatus PaymentStatus { get; private set; }
+    public DateTime? PaidOn { get; private set; }
+
     public bool IsDeleted { get; private set; }
+
+    // New: snapshot of the meal price at order time (immutable snapshot)
+    public decimal PriceAmount { get; private set; }
+
+    // New: portion application flags on this order
+    public bool PortionApplied { get; private set; }
+    public decimal PortionAmount { get; private set; }
 
     private MealOrder() { }
 
     private MealOrder(Guid id, string userId, Guid mealId, DateTime date)
     {
         Id = id;
-        UserId = userId ?? throw new ArgumentNullException(nameof(userId));
+        UserId = userId;
         MealId = mealId;
         Date = date;
-        RegisterDate = DateTime.Now;
+        RegisterDate = DateTime.UtcNow;
+
         Status = MealOrderStatus.Pending;
-        IsDeleted = false;
+        PaymentStatus = PaymentStatus.Unpaid;
+
+        // defaults, will be set when adding via repository/factory
+        PriceAmount = 0m;
+        PortionApplied = false;
+        PortionAmount = 0m;
     }
 
-    private MealOrder(Guid id, ApplicationUser user, Guid mealId, DateTime date)
-        : this(id, user?.Id ?? throw new ArgumentNullException(nameof(user)), mealId, date)
+    public static MealOrder Create(
+        string userId,
+        Guid mealId,
+        DateTime date)
+        => new MealOrder(Guid.NewGuid(), userId, mealId, date);
+
+    public void SetPriceSnapshot(decimal priceAmount)
     {
-        User = user;
+        if (priceAmount < 0) throw new ArgumentOutOfRangeException(nameof(priceAmount));
+        PriceAmount = priceAmount;
     }
 
-    public static MealOrder Create(Guid id, string userId, Guid mealId, DateTime date)
+    public void ApplyPortion(decimal portionAmount)
     {
-        return new MealOrder(id, userId, mealId, date);
+        if (portionAmount < 0) throw new ArgumentOutOfRangeException(nameof(portionAmount));
+        PortionApplied = portionAmount > 0m;
+        PortionAmount = portionAmount;
     }
 
-    public static MealOrder Create(Guid id, ApplicationUser user, Guid mealId, DateTime date)
+    public decimal GetNetAmount() =>
+        Math.Max(0m, PriceAmount - (PortionApplied ? PortionAmount : 0m));
+
+    public void MarkAsPaid(DateTime paidOn)
     {
-        return new MealOrder(id, user, mealId, date);
+        if (PaymentStatus == PaymentStatus.Paid)
+            throw new InvalidOperationException("Order already paid.");
+
+        PaymentStatus = PaymentStatus.Paid;
+        PaidOn = paidOn;
     }
 
     public void MarkAsCompleted()
@@ -71,8 +109,13 @@ public class MealOrder
         Status = MealOrderStatus.Cancelled;
     }
 
-    public void SoftDelete()
+    public void SoftDelete() => IsDeleted = true;
+}
+
+public static class PaymentTermsExtensions
+{
+    public static DateTime CalculateDueDate(this PaymentTerms terms, DateTime orderDate)
     {
-        IsDeleted = true;
+        return orderDate.Date.AddDays((int)terms);
     }
 }

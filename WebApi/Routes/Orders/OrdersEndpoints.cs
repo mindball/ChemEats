@@ -3,9 +3,11 @@ using Domain.Infrastructure.Identity;
 using Domain.Models.Orders;
 using Domain.Repositories.MealOrders;
 using Domain.Repositories.Meals;
+using Domain.Repositories.Settings;
 using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Shared.DTOs.Orders;
+using System;
 using WebApi.Infrastructure.Filters;
 
 namespace WebApi.Routes.Orders;
@@ -18,49 +20,74 @@ public static class OrdersEndpoints
             .RequireAuthorization();
 
         group.MapPost("/", async (
-                PlaceOrdersRequestDto requestDto,
-                IMealOrderRepository orderRepository,
-                IMealRepository mealRepository,
-                UserManager<ApplicationUser> userManager,
-                HttpContext httpContext,
-                IMapper mapper,
-                CancellationToken cancellationToken) =>
+        PlaceOrdersRequestDto requestDto,
+        IMealOrderRepository orderRepository,
+        IMealRepository mealRepository,
+        ISettingsRepository settingsRepository,
+        UserManager<ApplicationUser> userManager,
+        HttpContext httpContext,
+        IMapper mapper,
+        CancellationToken cancellationToken) =>
+        {
+            if (requestDto?.Items is null || requestDto.Items.Count == 0)
+                return Results.BadRequest("Request must contain at least one item.");
+
+            ApplicationUser? user = await userManager.GetUserAsync(httpContext.User);
+            if (user is null)
+                return Results.Unauthorized();
+
+            decimal companyPortion = await settingsRepository.GetCompanyPortionAsync(cancellationToken);
+
+            var createdOrders = new List<Guid>();
+
+            // Track portion application per date within this request
+            var portionAppliedForDate = new HashSet<DateOnly>();
+
+            foreach (OrderRequestItemDto item in requestDto.Items)
             {
-                if (requestDto?.Items is null || requestDto.Items.Count == 0)
-                    return Results.BadRequest("Request must contain at least one item.");
+                cancellationToken.ThrowIfCancellationRequested();
 
-                ApplicationUser? user = await userManager.GetUserAsync(httpContext.User);
-                if (user == null)
-                    return Results.Unauthorized();
+                if (item.Quantity < 1)
+                    return Results.BadRequest("Quantity must be at least 1.");
 
-                List<Guid> createdOrders = [];
+                Meal? meal = await mealRepository.GetByIdAsync(item.MealId, cancellationToken);
+                if (meal is null)
+                    return Results.BadRequest($"Meal with id '{item.MealId}' does not exist.");
 
-                foreach (OrderRequestItemDto item in requestDto.Items)
+                DateOnly dateOnly = DateOnly.FromDateTime(item.Date);
+
+                // Check if the user already consumed a portion earlier that day (across all suppliers/menus)
+                bool alreadyAppliedToday = await orderRepository.HasPortionAppliedOnDateAsync(
+                    user.Id, dateOnly, cancellationToken);
+
+                // Apply portion once per date within this request if not consumed yet
+                bool shouldApplyPortion = !alreadyAppliedToday && !portionAppliedForDate.Contains(dateOnly);
+
+                for (int i = 0; i < item.Quantity; i++)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    MealOrder order = mapper.From(item)
+                        .AddParameters("userId", user.Id)
+                        .AdaptToType<MealOrder>();
 
-                    if (item.Quantity < 1)
-                        return Results.BadRequest("Quantity must be at least 1.");
+                    // Snapshot current meal price
+                    order.SetPriceSnapshot(meal.Price.Amount);
 
-                    Meal? meal = await mealRepository.GetByIdAsync(item.MealId, cancellationToken);
-                    if (meal is null)
-                        return Results.BadRequest($"Meal with id '{item.MealId}' does not exist.");
-
-                    for (int i = 0; i < item.Quantity; i++)
+                    if (shouldApplyPortion && companyPortion > 0m)
                     {
-                        MealOrder order = mapper.From(item)
-                            .AddParameters("userId", user.Id)
-                            .AdaptToType<MealOrder>();
-
-                        await orderRepository.AddAsync(order, cancellationToken);
-                        createdOrders.Add(order.Id);
+                        order.ApplyPortion(companyPortion);
+                        portionAppliedForDate.Add(dateOnly);
+                        shouldApplyPortion = false;
                     }
-                }
 
-                return Results.Ok(new { Created = createdOrders.Count, Ids = createdOrders });
-            })
-            .RequireAuthorization()
-            .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
+                    await orderRepository.AddAsync(order, cancellationToken);
+                    createdOrders.Add(order.Id);
+                }
+            }
+
+            return Results.Ok(new { Created = createdOrders.Count, Ids = createdOrders });
+        })
+    .RequireAuthorization()
+    .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
 
 
         // GET single order by id
@@ -158,9 +185,79 @@ public static class OrdersEndpoints
                 if (user == null)
                     return Results.Unauthorized();
 
-                IReadOnlyList<UserOrderItem> items = await orderRepository.GetUserOrderItemsAsync(user.Id, supplierId, startDate, endDate, cancellationToken);
+                IReadOnlyList<UserOrderItem> items =
+                    await orderRepository.GetUserOrderItemsAsync(user.Id, supplierId, startDate, endDate,
+                        cancellationToken);
                 List<UserOrderItemDto> userOrderItems = items.Select(mapper.Map<UserOrderItemDto>).ToList();
                 return Results.Ok(userOrderItems);
+            })
+            .RequireAuthorization()
+            .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
+
+        group.MapGet("/me/payments", async (
+                Guid? supplierId,
+                IMealOrderRepository orderRepository,
+                UserManager<ApplicationUser> userManager,
+                HttpContext httpContext,
+                IMapper mapper,
+                CancellationToken cancellationToken) =>
+            {
+                ApplicationUser? user = await userManager.GetUserAsync(httpContext.User);
+                if (user == null)
+                    return Results.Unauthorized();
+
+                IReadOnlyList<UserOrderPaymentItem> items =
+                    await orderRepository.GetUnpaidOrdersAsync(
+                        user.Id,
+                        supplierId,
+                        cancellationToken);
+
+                List<UserOrderPaymentItemDto> dtos = items.Select(mapper.Map<UserOrderPaymentItemDto>).ToList();
+                return Results.Ok(dtos);
+            })
+            .RequireAuthorization()
+            .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
+
+        group.MapGet("/me/payments/summary", async (
+                IMealOrderRepository orderRepository,
+                UserManager<ApplicationUser> userManager,
+                HttpContext httpContext,
+                IMapper mapper,
+                CancellationToken cancellationToken) =>
+            {
+                ApplicationUser? user = await userManager.GetUserAsync(httpContext.User);
+                if (user == null)
+                    return Results.Unauthorized();
+
+                UserOutstandingSummary summary =
+                    await orderRepository.GetUserOutstandingSummaryAsync(
+                        user.Id,
+                        cancellationToken);
+
+                UserOutstandingSummaryDto dto = mapper.Map<UserOutstandingSummaryDto>(summary);
+                return Results.Ok(dto);
+            })
+            .RequireAuthorization()
+            .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
+
+        group.MapPatch("/{orderId:guid}/pay", async (
+                Guid orderId,
+                IMealOrderRepository orderRepository,
+                UserManager<ApplicationUser> userManager,
+                HttpContext httpContext,
+                CancellationToken cancellationToken) =>
+            {
+                ApplicationUser? user = await userManager.GetUserAsync(httpContext.User);
+                if (user == null)
+                    return Results.Unauthorized();
+
+                await orderRepository.MarkAsPaidAsync(
+                    orderId,
+                    user.Id,
+                    DateTime.UtcNow,
+                    cancellationToken);
+
+                return Results.NoContent();
             })
             .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();

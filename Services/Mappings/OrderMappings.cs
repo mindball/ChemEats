@@ -1,5 +1,7 @@
 ﻿using Domain.Entities;
+using Domain.Models.Orders;
 using Mapster;
+using Shared.Common.Enums;
 using Shared.DTOs.Orders;
 
 namespace Services.Mappings;
@@ -14,6 +16,12 @@ public class OrderMappings : IRegister
     {
         config.NewConfig<OrderRequestItemDto, MealOrder>()
             .MapWith(static src => CreateMealOrder(src));
+
+        config.NewConfig<PaymentStatus, PaymentStatusDto>()
+            .MapWith(src => MapPaymentStatus(src));
+
+        config.NewConfig<UserOrderPaymentItem, UserOrderPaymentItemDto>();
+        config.NewConfig<UserOutstandingSummary, UserOutstandingSummaryDto>();
     }
 
     private static MealOrder CreateMealOrder(OrderRequestItemDto src)
@@ -27,8 +35,13 @@ public class OrderMappings : IRegister
         var userId = userIdObj as string
                      ?? throw new ArgumentException("Mapping parameter 'userId' must be a string.");
 
-        return MealOrder.Create(Guid.NewGuid(), userId, src.MealId, src.Date);
+        return MealOrder.Create(userId, src.MealId, src.Date);
     }
+
+    private static PaymentStatusDto MapPaymentStatus(PaymentStatus status)
+        => status == PaymentStatus.Paid
+            ? PaymentStatusDto.Paid
+            : PaymentStatusDto.Unpaid;
 }
 
 

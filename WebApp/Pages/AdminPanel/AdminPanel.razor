@@ -1,0 +1,80 @@
+﻿@page "/admin"
+@inherits WebApp.Pages.AdminPanel.AdminPanelBase
+
+<h3 class="mb-3"><i class="bi bi-shield-lock-fill me-2"></i>Admin panel</h3>
+
+<div class="card mb-3">
+    <div class="card-header">
+        <strong>Company Portion Settings</strong>
+    </div>
+    <div class="card-body">
+        <div class="mb-3">
+            <label class="form-label">Portion amount (BGN)</label>
+            <input type="number"
+                   class="form-control"
+                   step="0.01"
+                   min="0"
+                   @bind="PortionAmount" />
+            <div class="form-text">
+                Applied once per menu per user (only the first meal quantity gets the deduction).
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" @onclick="SaveAsync">
+                <i class="bi bi-save me-2"></i>Save
+            </button>
+            <button class="btn btn-outline-secondary" @onclick="ResetToDefault">
+                Reset to @PortionAmount.ToString("F2")
+            </button>
+        </div>
+
+        @if (!string.IsNullOrEmpty(SuccessMessage))
+        {
+            <div class="alert alert-success mt-3 mb-0">@SuccessMessage</div>
+        }
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <div class="alert alert-danger mt-3 mb-0">@ErrorMessage</div>
+        }
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
+        <strong>Outstanding Payments</strong>
+    </div>
+    <div class="card-body">
+        @if (PaymentsSummary is null)
+        {
+            <div class="text-muted">Loading...</div>
+        }
+        else
+        {
+            <div class="d-flex align-items-center gap-3">
+                <div>
+                    <span class="fw-semibold">Total outstanding:</span>
+                    <span class="text-danger">@PaymentsSummary.TotalOutstanding.ToString("F2") лв.</span>
+                </div>
+                <div>
+                    <span class="fw-semibold">Unpaid orders:</span>
+                    <span class="text-danger">@PaymentsSummary.UnpaidCount</span>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <strong>Links</strong>
+    </div>
+    <div class="card-body">
+        <ul class="list-unstyled mb-0">
+            <li class="mb-2">
+                <a href="/upload-menu" class="link-primary">
+                    <i class="bi bi-file-arrow-up me-2"></i>Upload Menu (CSV)
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>

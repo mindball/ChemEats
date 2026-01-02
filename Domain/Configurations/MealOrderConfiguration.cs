@@ -38,5 +38,17 @@ public class MealOrderConfiguration : IEntityTypeConfiguration<MealOrder>
             .HasForeignKey(mo => mo.MealId)
             .IsRequired()
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Property(x => x.PaymentStatus)
+            .HasConversion<int>()
+            .IsRequired();
+
+        builder.Property(x => x.PaidOn)
+            .IsRequired(false);
+
+        builder.Property(x => x.PaymentStatus)
+            .HasDefaultValue(PaymentStatus.Unpaid);
+
+        builder.HasIndex(x => x.PaymentStatus);
     }
 }

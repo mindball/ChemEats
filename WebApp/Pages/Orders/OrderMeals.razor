@@ -122,8 +122,9 @@ else
 
         <div class="col-lg-4">
             <div class="card mb-3 sticky-top" style="top:1rem;">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <strong><i class="bi bi-list-check me-2"></i>Order summary</strong>
+                    <span class="text-muted small">Portion applied once per day</span>
                 </div>
                 <div class="card-body">
                     @if (SelectedItemsCount == 0)
@@ -132,46 +133,47 @@ else
                     }
                     else
                     {
-                        var flatMeals = Menus!
-                        .SelectMany(m => m.Meals.Select(me => new { MenuDate = m.Date, m.SupplierName, Meal = me }))
-                        .ToList();
+                        var summary = BuildSummaryFromSelection();
+                        var perDateTotals = ComputePerDateTotalsWithPortion(summary, PortionAmount);
 
-                        var summary = Selected
-                        .Select(kvp =>
-                        {
-                            var entry = flatMeals.FirstOrDefault(x => x.Meal.Id == kvp.Key.MealId && x.MenuDate == kvp.Key.Date);
-                            return new
-                            {
-                                Name = entry?.Meal.Name ?? "Unknown",
-                                SupplierName = entry?.SupplierName ?? "Unknown supplier",
-                                MenuDate = kvp.Key.Date,
-                                Quantity = kvp.Value,
-                                Price = entry?.Meal.Price ?? 0m,
-                                LineTotal = (entry?.Meal.Price ?? 0m) * kvp.Value
-                            };
-                        })
-                        .ToList();
-
-                        decimal totalPrice = summary.Sum(x => x.LineTotal);
+                        decimal totalPrice = perDateTotals.Sum(x => x.Total);
+                        decimal totalPortionApplied = perDateTotals.Sum(x => x.PortionApplied);
 
                         <ul class="list-group mb-2">
-                            @foreach (var item in summary)
+                            @foreach (var day in perDateTotals)
                             {
-                                <li class="list-group-item d-flex justify-content-between align-items-start">
-                                    <div class="ms-2 me-auto">
-                                        <div class="fw-bold">@item.Name</div>
-                                        <small class="text-muted">
-                                            @item.SupplierName — Menu: @FormatBulgarianDate(item.MenuDate)
-                                        </small>
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <div class="fw-bold">Date: @FormatBulgarianDate(day.Date)</div>
+                                        <div class="text-end">
+                                            <div>Subtotal: @day.Subtotal.ToString("C", CultureInfo.CurrentCulture)</div>
+                                            <div class="text-success">- Portion: @day.PortionApplied.ToString("C", CultureInfo.CurrentCulture)</div>
+                                            <div class="fw-bold">Total: @day.Total.ToString("C", CultureInfo.CurrentCulture)</div>
+                                        </div>
                                     </div>
-                                    <div class="text-end">
-                                        <div>@item.Quantity × @item.Price.ToString("C", CultureInfo.CurrentCulture)</div>
-                                        <div class="fw-bold">@item.LineTotal.ToString("C", CultureInfo.CurrentCulture)</div>
-                                    </div>
+                                    <ul class="list-group list-group-flush mt-2">
+                                        @foreach (var item in day.Items)
+                                        {
+                                            <li class="list-group-item d-flex justify-content-between align-items-start">
+                                                <div class="ms-2 me-auto">
+                                                    <div class="fw-bold">@item.Name</div>
+                                                    <small class="text-muted">@item.SupplierName — Menu: @FormatBulgarianDate(item.MenuDate)</small>
+                                                </div>
+                                                <div class="text-end">
+                                                    <div>@item.Quantity × @item.Price.ToString("C", CultureInfo.CurrentCulture)</div>
+                                                    <div class="fw-bold">@((item.Price * item.Quantity).ToString("C", CultureInfo.CurrentCulture))</div>
+                                                </div>
+                                            </li>
+                                        }
+                                    </ul>
                                 </li>
                             }
                         </ul>
 
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="fw-bold">Total portion applied</div>
+                            <div class="fw-bold text-success">-@totalPortionApplied.ToString("C", CultureInfo.CurrentCulture)</div>
+                        </div>
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <div class="fw-bold">Total</div>
                             <div class="fw-bold">@totalPrice.ToString("C", CultureInfo.CurrentCulture)</div>
@@ -216,12 +218,7 @@ else
                                                 <span class="badge text-bg-info ms-2">Pending</span>
                                             }
                                         </div>
-                                        <small class="text-muted">
-                                            @item.SupplierName —
-                                            Menu: @FormatBulgarianDate(item.MenuDate) •
-                                            Order: @FormatBulgarianDate(item.Date) •
-                                            @item.Status
-                                        </small>
+                                        <small class="text-muted">@item.SupplierName — Menu: @FormatBulgarianDate(item.MenuDate) • Order: @FormatBulgarianDate(item.Date) • @item.Status</small>
                                     </div>
                                     <div class="text-end">
                                         <div class="fw-bold">@item.Price.ToString("C", CultureInfo.CurrentCulture)</div>
@@ -249,6 +246,8 @@ else
 }
 
 @code {
+    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
+
     private async Task OnDeleteOrderItem(UserOrderItemDto item)
     {
         if (!await JSRuntime.InvokeAsync<bool>("confirm",
@@ -264,5 +263,4 @@ else
         }
     }
 
-    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
 }

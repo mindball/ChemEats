@@ -4,6 +4,7 @@ using Domain;
 using FirebirdSql.EntityFrameworkCore.Firebird.Metadata;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260102065623_AddPaymentTrackingToMealOrder")]
+    partial class AddPaymentTrackingToMealOrder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -63,15 +66,6 @@ namespace WebApi.Migrations
                     b.Property<int>("PaymentStatus")
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(0);
-
-                    b.Property<decimal>("PortionAmount")
-                        .HasColumnType("DECIMAL(18,2)");
-
-                    b.Property<bool>("PortionApplied")
-                        .HasColumnType("BOOLEAN");
-
-                    b.Property<decimal>("PriceAmount")
-                        .HasColumnType("DECIMAL(18,2)");
 
                     b.Property<DateTime>("RegisterDate")
                         .HasColumnType("TIMESTAMP");

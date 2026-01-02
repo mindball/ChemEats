@@ -6,6 +6,7 @@ using WebApp;
 using WebApp.Infrastructure.States;
 using WebApp.Services.Menus;
 using WebApp.Services.Orders;
+using WebApp.Services.Settings;
 using WebApp.Services.Suppliers;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -17,6 +18,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddScoped<ISupplierDataService, SupplierDataService>();
 builder.Services.AddScoped<IMenuDataService, MenuDataService>();
 builder.Services.AddScoped<IOrderDataService, OrderDataService>();
+builder.Services.AddScoped<ISettingsDataService, SettingsDataService>();
 
 builder.Services.AddScoped((sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) }));
 

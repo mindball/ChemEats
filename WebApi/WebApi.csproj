@@ -35,6 +35,7 @@
 
   <ItemGroup>
     <Folder Include="Migrations\" />
+    <Folder Include="Routes\Settings\" />
   </ItemGroup>
 
 </Project>

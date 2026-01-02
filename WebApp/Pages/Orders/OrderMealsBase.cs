@@ -6,6 +6,7 @@ using Shared.DTOs.Menus;
 using Shared.DTOs.Orders;
 using WebApp.Services.Menus;
 using WebApp.Services.Orders;
+using WebApp.Services.Settings;
 
 namespace WebApp.Pages.Orders;
 
@@ -13,12 +14,12 @@ public class OrderMealsBase : ComponentBase
 {
     [Inject] protected IMenuDataService MenuDataService { get; init; } = null!;
     [Inject] protected IOrderDataService OrderDataService { get; init; } = null!;
+    [Inject] protected ISettingsDataService SettingsDataService { get; init; } = null!;
 
     [CascadingParameter] protected Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
 
     protected IReadOnlyList<MenuDto>? Menus { get; private set; }
 
-    // Supplier filter: store selected supplier id (optional) and list of suppliers present in menus
     protected Guid? SelectedSupplierId { get; set; }
     protected IReadOnlyList<(Guid Id, string Name)> SuppliersForFilter { get; private set; } = [];
 
@@ -28,7 +29,6 @@ public class OrderMealsBase : ComponentBase
             .Where(m => !FilterDate.HasValue || m.Date.Date == FilterDate.Value.Date)
             .Where(m => !SelectedSupplierId.HasValue || m.SupplierId == SelectedSupplierId.Value);
 
-    // Always default to tomorrow; user can change to any future date
     protected DateTime? FilterDate { get; set; }
 
     protected string? ErrorMessage { get; set; }
@@ -43,6 +43,10 @@ public class OrderMealsBase : ComponentBase
     protected bool CanPlaceOrder => IsAuthenticated && SelectedItemsCount > 0;
 
     protected List<UserOrderItemDto> MyOrders { get; private set; } = [];
+
+    // Server-sourced portion
+    private readonly decimal _fallbackPortion = 3.00m;
+    protected decimal PortionAmount { get; private set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -59,16 +63,15 @@ public class OrderMealsBase : ComponentBase
 
             Menus = (await MenuDataService.GetAllMenusAsync(includeDeleted: false)).ToList();
 
-            // Default filter date to tomorrow
             FilterDate = DateTime.Today.AddDays(1);
 
-            // Build supplier list from menus
             SuppliersForFilter = Menus
                 .GroupBy(m => (m.SupplierId, m.SupplierName))
                 .Select(g => (g.Key.SupplierId, g.Key.SupplierName))
                 .OrderBy(x => x.SupplierName)
                 .ToList();
 
+            await LoadPortionAsync();
             await LoadMyOrdersAsync();
         }
         catch (Exception ex)
@@ -81,11 +84,23 @@ public class OrderMealsBase : ComponentBase
         }
     }
 
+    protected async Task LoadPortionAsync()
+    {
+        try
+        {
+            PortionAmount = await SettingsDataService.GetCompanyPortionAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to load portion: {ex.Message}";
+            PortionAmount = _fallbackPortion;
+        }
+    }
+
     protected async Task LoadMyOrdersAsync()
     {
         try
         {
-            // show only from today and onwards
             DateTime start = DateTime.Today;
             MyOrders = (await OrderDataService.GetMyOrderItemsAsync(null, start, null)).ToList();
         }
@@ -103,44 +118,28 @@ public class OrderMealsBase : ComponentBase
     {
         CultureInfo bgCulture = new("bg-BG");
         string dayName = date.ToString("dddd", bgCulture);
-        string capitalizedDay = char.ToUpper(dayName[0], bgCulture) + dayName.Substring(1);
+        string capitalizedDay = char.ToUpper(dayName[0], bgCulture) + dayName[1..];
         return $"{capitalizedDay} {date:dd.MM.yyyy'ã.'}";
     }
 
-    protected bool IsSelected((Guid MealId, DateTime Date) key)
-    {
-        return Selected.ContainsKey(key);
-    }
-
-    // Default quantity is now 0 for items not in Selected
-    protected int GetQuantity((Guid MealId, DateTime Date) key)
-    {
-        return Selected.GetValueOrDefault(key, 0);
-    }
+    protected bool IsSelected((Guid MealId, DateTime Date) key) => Selected.ContainsKey(key);
+    protected int GetQuantity((Guid MealId, DateTime Date) key) => Selected.GetValueOrDefault(key, 0);
 
     protected void ToggleSelection((Guid MealId, DateTime Date) key, bool isSelected)
     {
         if (isSelected)
-        {
-            // add with a sensible default of 1 when user explicitly selects via checkbox
             Selected.TryAdd(key, 1);
-        }
         else
-        {
             Selected.Remove(key);
-        }
     }
 
-    // Accept 0 as "remove item" and allow adding/updating quantities > 0
     protected void UpdateQuantity((Guid MealId, DateTime Date) key, string value)
     {
         if (!int.TryParse(value, out int q) || q < 0)
             q = 0;
 
         if (q == 0)
-        {
             Selected.Remove(key);
-        }
         else
         {
             if (!Selected.TryAdd(key, q))
@@ -159,23 +158,18 @@ public class OrderMealsBase : ComponentBase
 
         try
         {
-            // Build shared request DTO expected by the server (use Shared.DTOs.Orders types)
-            var items = Selected
+            List<OrderRequestItemDto> items = Selected
                 .Select(kvp => new OrderRequestItemDto(kvp.Key.MealId, kvp.Key.Date, kvp.Value))
                 .ToList();
 
-            var request = new PlaceOrdersRequestDto(items);
+            PlaceOrdersRequestDto request = new(items);
 
-            // Call the strongly-typed service that posts the shared DTO
             PlaceOrdersResponse? response = await OrderDataService.PlaceOrdersAsync(request);
 
             if (response is not null && response.Created > 0)
             {
                 SuccessMessage = $"Order placed successfully ({response.Created} items).";
-                // clear selection
                 Selected.Clear();
-
-                // reload user's persisted items from today forward
                 await LoadMyOrdersAsync();
             }
             else
@@ -214,7 +208,7 @@ public class OrderMealsBase : ComponentBase
     {
         try
         {
-            bool ok = false;//await OrderDataService.DeleteOrdersForMealAndDateAsync(mealId, date);
+            bool ok = false; // placeholder if implementing batch delete
             if (ok)
                 await LoadMyOrdersAsync();
             return ok;
@@ -224,5 +218,68 @@ public class OrderMealsBase : ComponentBase
             ErrorMessage = $"Failed to delete orders: {ex.Message}";
             return false;
         }
+    }
+
+    // Summary helpers
+
+    protected record SummaryItem(string Name, string SupplierName, DateTime MenuDate, int Quantity, decimal Price);
+
+    protected IReadOnlyList<SummaryItem> BuildSummaryFromSelection()
+    {
+        if (Menus is null || Selected.Count == 0)
+            return [];
+
+        var flatMeals = Menus
+            .SelectMany(m => m.Meals.Select(me => new { MenuDate = m.Date, m.SupplierName, Meal = me }))
+            .ToList();
+
+        var summary = Selected
+            .Select(kvp =>
+            {
+                var entry = flatMeals.FirstOrDefault(x => x.Meal.Id == kvp.Key.MealId && x.MenuDate == kvp.Key.Date);
+                return new SummaryItem(
+                    Name: entry?.Meal.Name ?? "Unknown",
+                    SupplierName: entry?.SupplierName ?? "Unknown supplier",
+                    MenuDate: kvp.Key.Date,
+                    Quantity: kvp.Value,
+                    Price: entry?.Meal.Price ?? 0m
+                );
+            })
+            .ToList();
+
+        return summary;
+    }
+
+    // Apply portion once per calendar date across all suppliers
+    protected sealed record PerDateTotal(DateTime Date, IReadOnlyList<SummaryItem> Items, decimal Subtotal, decimal PortionApplied, decimal Total);
+
+    protected IReadOnlyList<PerDateTotal> ComputePerDateTotalsWithPortion(IReadOnlyList<SummaryItem> items, decimal portion)
+    {
+        var perDate = items
+            .GroupBy(x => x.MenuDate.Date)
+            .OrderBy(g => g.Key)
+            .Select(g =>
+            {
+            decimal subtotal = g.Sum(x => x.Price * x.Quantity);
+
+            // Portion applies to a single unit of the first item (if any) for this date
+            SummaryItem? firstItem = g.FirstOrDefault(x => x.Quantity > 0);
+            decimal portionApplied = 0m;
+            if (firstItem is not null)
+                portionApplied = Math.Min(portion, firstItem.Price);
+
+            decimal total = subtotal - portionApplied;
+
+            return new PerDateTotal(
+                Date: g.Key,
+                Items: g.ToList(),
+                Subtotal: subtotal,
+                PortionApplied: portionApplied,
+                Total: total
+            );
+        })
+        .ToList();
+
+        return perDate;
     }
 }

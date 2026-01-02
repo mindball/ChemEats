@@ -9,8 +9,6 @@ public class MenuMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        
-
         config.NewConfig<CreateMenuDto, Menu>()
             .ConstructUsing(src =>
                 Menu.Create(

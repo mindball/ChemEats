@@ -2,6 +2,7 @@ using WebApi.Routes.Emails;
 using WebApi.Routes.Employees;
 using WebApi.Routes.Menus;
 using WebApi.Routes.Orders;
+using WebApi.Routes.Settings;
 using WebApi.Routes.Suppliers;
 
 namespace WebApi.Infrastructure.Extensions;
@@ -57,6 +58,7 @@ public static class ApplicationBuilderExtensions
         app.MapEmployeeEndpoints();
         app.MapMealOrderEndpoints();
         app.EmailEndpoints();
+        app.MapSettingsEndpoints();
         return app;
     }
 

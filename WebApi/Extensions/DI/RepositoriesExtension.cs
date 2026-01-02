@@ -2,11 +2,13 @@
 using Domain.Repositories.MealOrders;
 using Domain.Repositories.Meals;
 using Domain.Repositories.Menus;
+using Domain.Repositories.Settings;
 using Domain.Repositories.Suppliers;
 using Services.Repositories.Employees;
 using Services.Repositories.MealOrders;
 using Services.Repositories.Meals;
 using Services.Repositories.Menus;
+using Services.Repositories.Settings;
 using Services.Repositories.Suppliers;
 
 
@@ -24,6 +26,7 @@ public static class RepositoriesExtension
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IMealOrderRepository, MealOrderRepository>();
         services.AddScoped<IMealRepository, MealRepository>();
+        services.AddScoped<ISettingsRepository, InMemorySettingsRepository>();
         return services;
     }
 }

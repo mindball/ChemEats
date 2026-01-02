@@ -1,6 +1,4 @@
-﻿using StronglyTypedIds;
-
-namespace Domain.Entities;
+﻿namespace Domain.Entities;
 
 public class Meal 
 {
