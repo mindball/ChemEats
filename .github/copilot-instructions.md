@@ -26,6 +26,7 @@ C# code should be written to maximize readability, maintainability, and correctn
 - Follow C# Coding Conventions.
 - Use expressive syntax (null-conditional, string interpolation).
 - Keep code clean and consistent.
+- Never use 'var', used concrete type
 
 # File Organization:
 - Use a single file per class or record:

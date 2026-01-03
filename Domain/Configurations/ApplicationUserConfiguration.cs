@@ -15,7 +15,7 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
 
         builder.HasMany(u => u.Orders)
             .WithOne(o => o.User)
-            .HasForeignKey("UserId")
+            .HasForeignKey(o => o.UserId)
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
     }

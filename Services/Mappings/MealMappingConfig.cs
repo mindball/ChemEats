@@ -22,15 +22,15 @@ public class MealMappingConfig : IRegister
             .Map(dest => dest.Name, src => src.Name)
             .Map(dest => dest.Price, src => src.Price.Amount);
 
-        config.NewConfig<MealDto, Meal>()
-            .ConstructUsing(src =>
-                new Meal(
-                    src.Id,
-                    src.MenuId,
-                    src.Name,
-                    new Price(src.Price)
-                )
-            );
+        config.NewConfig<MealDto, Meal>();
+            // .ConstructUsing(src =>
+            //     new Meal(
+            //         src.Id,
+            //         src.MenuId,
+            //         src.Name,
+            //         new Price(src.Price)
+            //     )
+            // );
 
         config.NewConfig<UpdateMealDto, Meal>()
             .AfterMapping((src, dest) =>

@@ -37,6 +37,10 @@ else
         </div>
 
         <div class="col-md-2 d-flex align-items-end">
+            <div class="form-check me-3">
+                <input class="form-check-input" type="checkbox" id="includeDeleted" @bind="IncludeDeleted"/>
+                <label class="form-check-label" for="includeDeleted">deleted</label>
+            </div>
             <button class="btn btn-primary w-100" @onclick="LoadOrdersAsync">Apply</button>
         </div>
     </div>
@@ -47,20 +51,17 @@ else
     }
     else
     {
-        decimal total = Orders.Sum(o => o.Price * o.Quantity);
+        decimal totalNet = Orders.Sum(o => o.NetAmount);
+        decimal totalPortionApplied = Orders.Where(o => o.PortionApplied).Sum(o => o.PortionAmount);
 
         <ul class="list-group mb-3">
-            @foreach (UserOrderDto item in Orders)
+            @foreach (UserOrderItemDto item in Orders)
             {
                 <li class="list-group-item d-flex justify-content-between align-items-start">
                     <div class="ms-2 me-auto">
                         <div class="fw-bold">
                             @item.MealName
-                            @if (item.IsDeleted)
-                            {
-                                <span class="badge text-bg-secondary ms-2">Deleted</span>
-                            }
-                            else if (string.Equals(item.Status, "Completed", StringComparison.OrdinalIgnoreCase))
+                            @if (string.Equals(item.Status, "Completed", StringComparison.OrdinalIgnoreCase))
                             {
                                 <span class="badge text-bg-success ms-2">Completed</span>
                             }
@@ -68,10 +69,7 @@ else
                             {
                                 <span class="badge text-bg-warning ms-2">Cancelled</span>
                             }
-                            else
-                            {
-                                <span class="badge text-bg-info ms-2">Pending</span>
-                            }
+                            @* Deleted state if you expose it on the DTO *@
                         </div>
                         <small class="text-muted">
                             @item.SupplierName —
@@ -81,16 +79,24 @@ else
                         </small>
                     </div>
                     <div class="text-end">
-                        <div>@item.Quantity × @item.Price.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</div>
-                        <div class="fw-bold">@((item.Price * item.Quantity).ToString("C", System.Globalization.CultureInfo.CurrentCulture))</div>
+                        <div>Price: @item.Price.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</div>
+                        @if (item.PortionApplied)
+                        {
+                            <div class="text-success">- Portion: @item.PortionAmount.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</div>
+                        }
+                        <div class="fw-bold">Net: @item.NetAmount.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</div>
                     </div>
                 </li>
             }
         </ul>
 
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <div class="fw-bold">Total portion applied</div>
+            <div class="fw-bold text-success">-@totalPortionApplied.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</div>
+        </div>
         <div class="d-flex justify-content-between align-items-center mb-2">
-            <div class="fw-bold">Total</div>
-            <div class="fw-bold">@total.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</div>
+            <div class="fw-bold">Total to pay</div>
+            <div class="fw-bold">@totalNet.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</div>
         </div>
     }
 }

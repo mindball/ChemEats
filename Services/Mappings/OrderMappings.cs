@@ -1,14 +1,9 @@
 ﻿using Domain.Entities;
 using Domain.Models.Orders;
-using Mapster;
 using Shared.Common.Enums;
 using Shared.DTOs.Orders;
-
 namespace Services.Mappings;
-
-
 using Mapster;
-
 
 public class OrderMappings : IRegister
 {

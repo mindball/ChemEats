@@ -1,5 +1,6 @@
 ﻿using Domain.Common.Enums;
 using Domain.Entities;
+using Domain.Infrastructure.Exceptions;
 using StronglyTypedIds;
 
 namespace Domain.Entities;
@@ -20,7 +21,10 @@ public class Supplier
 
     public static Supplier Create(string name, string vatNumber, PaymentTerms paymentTerms, IEnumerable<Menu>? menus = null)
     {
-        var supplier = new Supplier(Guid.NewGuid(), name, vatNumber, paymentTerms);
+        Supplier supplier = new (Guid.NewGuid(), name, vatNumber, paymentTerms);
+        if (string.IsNullOrWhiteSpace(name))
+            throw new DomainException("Supplier name is required");
+
         if (menus != null)
         {
             foreach (var menu in menus)
@@ -44,7 +48,10 @@ public class Supplier
 
     public void AddMenu(Menu menu)
     {
-        if (menu is null) throw new ArgumentNullException(nameof(menu));
+        if (_menus.Any(m => m.Date == menu.Date))
+            throw new DomainException(
+                $"Menu for {menu.Date:d} already exists for this supplier");
+
         _menus.Add(menu);
     }
 }

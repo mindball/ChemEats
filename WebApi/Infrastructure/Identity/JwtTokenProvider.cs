@@ -16,27 +16,37 @@ public class JwtTokenProvider
 
     public string GenerateToken(ApplicationUser user, IList<string> roles)
     {
-        var claims = new List<Claim>
+        ArgumentNullException.ThrowIfNull(user);
+
+        if (user is not { UserName: not null, Email: not null })
         {
-            new(ClaimTypes.NameIdentifier, user.Id),
-            new(ClaimTypes.Name, user.UserName),
-            new(ClaimTypes.Email, user.Email)
-        };
+            throw new ArgumentException("User must have non-null UserName and Email.", nameof(user));
+        }
 
-        foreach (var role in roles)
-            claims.Add(new(ClaimTypes.Role, role));
+        List<Claim> claims =
+        [
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
+            new Claim(ClaimTypes.Name, user.UserName),
+            new Claim(ClaimTypes.Email, user.Email)
+        ];
 
-        var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_settings.Secret));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        foreach (string role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
 
-        var token = new JwtSecurityToken(
+        SymmetricSecurityKey key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_settings.Secret));
+        SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        JwtSecurityToken token = new JwtSecurityToken(
             _settings.Issuer,
             _settings.Audience,
             claims,
             expires: DateTime.UtcNow.AddMinutes(_settings.ExpiryMinutes),
             signingCredentials: creds);
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
+        return handler.WriteToken(token);
     }
 }
 

@@ -73,7 +73,7 @@ public class OrderDataService : IOrderDataService
     }
 
     public async Task<List<UserOrderItemDto>> GetMyOrderItemsAsync(Guid? supplierId = null, DateTime? startDate = null,
-        DateTime? endDate = null)
+        DateTime? endDate = null, bool includeDeleted = false)
     {
         List<string> query = [];
         if (supplierId.HasValue)
@@ -83,7 +83,8 @@ public class OrderDataService : IOrderDataService
         if (endDate.HasValue)
             query.Add($"endDate={Uri.EscapeDataString(endDate.Value.ToString("o"))}");
 
-        string url = "api/mealorders/me/items" + (query.Count > 0 ? "?" + string.Join("&", query) : string.Empty);
+        // string url = "api/mealorders/me/items" + (query.Count > 0 ? "?" + string.Join("&", query) : string.Empty);
+        string url = includeDeleted ? "api/mealorders/me/items?includeDeleted=true" : "api/mealorders/me/items" + (query.Count > 0 ? "?" + string.Join("&", query) : string.Empty);
         List<UserOrderItemDto>? items = await _httpClient.GetFromJsonAsync<List<UserOrderItemDto>>(url);
         return items ?? new List<UserOrderItemDto>();
     }

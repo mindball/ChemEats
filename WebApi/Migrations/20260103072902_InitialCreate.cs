@@ -230,7 +230,12 @@ namespace WebApi.Migrations
                     Date = table.Column<DateTime>(type: "TIMESTAMP", nullable: false),
                     RegisterDate = table.Column<DateTime>(type: "TIMESTAMP", nullable: false),
                     Status = table.Column<int>(type: "INTEGER", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "BOOLEAN", nullable: false)
+                    PaymentStatus = table.Column<int>(type: "INTEGER", nullable: false, defaultValue: 0),
+                    PaidOn = table.Column<DateTime>(type: "TIMESTAMP", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "BOOLEAN", nullable: false),
+                    PriceAmount = table.Column<decimal>(type: "DECIMAL(18,2)", nullable: false),
+                    PortionApplied = table.Column<bool>(type: "BOOLEAN", nullable: false),
+                    PortionAmount = table.Column<decimal>(type: "DECIMAL(18,2)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -290,6 +295,11 @@ namespace WebApi.Migrations
                 name: "IX_MealOrders_MealId",
                 table: "MealOrders",
                 column: "MealId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MealOrders_PaymentStatus",
+                table: "MealOrders",
+                column: "PaymentStatus");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MealOrders_UserId",

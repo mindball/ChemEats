@@ -32,8 +32,10 @@ public class MenuRepository : IMenuRepository
             .Include(m => m.Meals)
             .AsNoTracking();
 
-        if (!includeDeleted)
-            query = query.Where(m => !m.IsDeleted);
+        if (includeDeleted)
+        {
+            query = query.IgnoreQueryFilters();
+        }
 
         return await query.ToListAsync(cancellationToken);
     }
@@ -71,15 +73,19 @@ public class MenuRepository : IMenuRepository
 
     public async Task<bool> SoftDeleteAsync(Guid menuId, CancellationToken cancellationToken = default)
     {
-        Menu? menu = await _dbContext.Menus.FirstOrDefaultAsync(x => x.Id == menuId, cancellationToken);
-        if (menu is null) return false;
+        Menu? menu = await _dbContext.Menus
+            .FirstOrDefaultAsync(x => x.Id == menuId, cancellationToken);
 
-        menu.SoftDelete();
+        if (menu is null)
+            return false;
 
-        // Optionally cancel orders for that date too
-        await _dbContext.MealOrders
-            .Where(o => o.Date.Date == menu.Date.Date && !o.IsDeleted)
-            .ForEachAsync(o => o.Cancel(), cancellationToken);
+        List<MealOrder> orders = await _dbContext.MealOrders
+            .Where(o => !o.IsDeleted
+                        && o.Status == MealOrderStatus.Pending
+                        && o.Meal.MenuId == menuId)
+            .ToListAsync(cancellationToken);
+
+        menu.SoftDeleteAndCancelOrders(orders);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         return true;

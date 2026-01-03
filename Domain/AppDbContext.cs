@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using System.Diagnostics;
+using Domain.Entities;
 using Domain.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -21,8 +22,20 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
-
+        
         modelBuilder.Entity<MealOrder>()
             .HasQueryFilter(m => !m.IsDeleted);
+        
+        modelBuilder.Entity<Menu>()
+            .HasQueryFilter(m => !m.IsDeleted);
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        //TODO run only debug mode
+        optionsBuilder
+            .EnableSensitiveDataLogging()
+            .LogTo(msg => Debug.WriteLine(msg));
+        base.OnConfiguring(optionsBuilder);
     }
 }

@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Infrastructure\Exceptions\" />
     <Folder Include="Repositories\Meals\" />
   </ItemGroup>
 

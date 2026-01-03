@@ -36,12 +36,25 @@ app.UseAppSwagger(app.Environment)
 using (IServiceScope scope = app.Services.CreateScope())
 {
     IEmployeeCacheService employeeCache = scope.ServiceProvider.GetRequiredService<IEmployeeCacheService>();
-    await employeeCache.InitializeAsync();
-
     IEmployeeSyncService syncService = scope.ServiceProvider.GetRequiredService<IEmployeeSyncService>();
-    await syncService.SyncEmployeesAsync();
-}
 
-app.UseAppFallback();
+    var logger = scope.ServiceProvider
+        .GetRequiredService<ILogger<Program>>();
+
+    try
+    {
+        await syncService.SyncEmployeesAsync();
+    }
+    catch (Exception ex)
+    {
+        logger.LogCritical(ex, "Employee sync failed on startup");
+    }
+    finally
+    {
+        await employeeCache.InitializeAsync();
+
+        app.UseAppFallback();
+    }
+}
 
 await app.RunAsync();

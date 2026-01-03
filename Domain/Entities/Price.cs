@@ -25,4 +25,9 @@ public sealed class Price
 
     // Explicit conversion from Price to decimal
     public static explicit operator decimal(Price price) => price.Amount;
+
+    public override bool Equals(object? obj) =>
+        obj is Price other && Amount == other.Amount;
+
+    public override int GetHashCode() => Amount.GetHashCode();
 }

@@ -1,7 +1,10 @@
-﻿using System.Globalization;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using Shared.DTOs.Menus;
 using Shared.DTOs.Suppliers;
+using System.Globalization;
+using Microsoft.AspNetCore.Components.Authorization;
+using WebApp.Infrastructure.States;
 using WebApp.Services.Menus;
 using WebApp.Services.Suppliers;
 
@@ -10,7 +13,9 @@ namespace WebApp.Pages.Menus;
 public class ViewMenusBase : ComponentBase
 {
     [Inject] protected IMenuDataService MenuDataService { get; init; } = null!;
+    [Inject] protected IJSRuntime JsRuntime { get; set; } = null!;
     [Inject] protected ISupplierDataService SupplierDataService { get; init; } = null!;
+    [Inject] protected CustomAuthStateProvider AuthProvider { get; init; } = null!;
 
     protected IReadOnlyList<MenuDto>? Menus { get; private set; }
     protected List<SupplierDto> Suppliers { get; private set; } = [];
@@ -19,6 +24,7 @@ public class ViewMenusBase : ComponentBase
     protected DateTime? StartDate { get; set; }
     protected DateTime? EndDate { get; set; }
     protected bool IncludeDeleted { get; set; }
+    protected bool IsAdmin;
 
     protected string? ErrorMessage { get; set; }
     protected bool IsLoading { get; private set; }
@@ -31,6 +37,9 @@ public class ViewMenusBase : ComponentBase
 
     protected override async Task OnInitializedAsync()
     {
+        AuthenticationState authState = await AuthProvider.GetAuthenticationStateAsync();
+        IsAdmin = authState.User.IsInRole("Admin");
+
         Suppliers = (await SupplierDataService.GetAllSuppliersAsync()).ToList();
 
         // Default: today only
@@ -105,5 +114,29 @@ public class ViewMenusBase : ComponentBase
         string capitalizedDay = char.ToUpper(dayName[0], bgCulture) + dayName[1..];
 
         return $"{capitalizedDay} {date:dd.MM.yyyy'г.'}";
+    }
+
+    protected async Task EditDateAsync(Guid id, DateTime current)
+    {
+        string? newDateStr = await JsRuntime.InvokeAsync<string>("prompt", $"New date (yyyy-MM-dd)", current.ToString("yyyy-MM-dd"));
+        if (string.IsNullOrWhiteSpace(newDateStr)) return;
+        if (!DateTime.TryParse(newDateStr, out DateTime newDate)) return;
+
+        bool ok = await MenuDataService.UpdateMenuDateAsync(id, newDate);
+        if (ok)
+            await OnSearchClickedAsync();
+        else
+            ErrorMessage = "Failed to update menu date.";
+    }
+
+    protected async Task SoftDeleteAsync(Guid id)
+    {
+        if (!await JsRuntime.InvokeAsync<bool>("confirm", "Soft delete this menu and cancel its orders?")) return;
+
+        bool ok = await MenuDataService.SoftDeleteMenuAsync(id);
+        if (ok)
+            await OnSearchClickedAsync();
+        else
+            ErrorMessage = "Failed to soft delete menu.";
     }
 }

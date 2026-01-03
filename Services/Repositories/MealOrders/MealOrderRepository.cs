@@ -221,9 +221,10 @@ public class MealOrderRepository : IMealOrderRepository
         Guid? supplierId = null,
         DateTime? startDate = null,
         DateTime? endDate = null,
+        bool includeDeleted = false,
         CancellationToken cancellationToken = default)
     {
-        IQueryable<OrderJoinRow> query = BuildBaseQuery(userId);
+        IQueryable<OrderJoinRow> query = BuildBaseQuery(userId, includeDeleted);
         query = ApplyFilters(query, supplierId, startDate, endDate);
 
         return await query
@@ -238,7 +239,11 @@ public class MealOrderRepository : IMealOrderRepository
                 x.Date,
                 x.MenuDate,
                 x.Price,
-                x.Status.ToString()))
+                x.Status.ToString(),
+                x.PortionApplied,                         // New
+                x.PortionAmount,                          // New
+                Math.Max(0m, x.Price - (x.PortionApplied ? x.PortionAmount : 0m)) // NetAmount
+            ))
             .ToListAsync(cancellationToken);
     }
 
@@ -266,7 +271,11 @@ public class MealOrderRepository : IMealOrderRepository
                 x.Date,
                 x.MenuDate,
                 x.Price,
-                x.Status.ToString()))
+                x.Status.ToString(),
+                x.PortionApplied,
+                x.PortionAmount,
+                Math.Max(0m, x.Price - (x.PortionApplied ? x.PortionAmount : 0m))
+            ))
             .ToListAsync(cancellationToken);
     }
 

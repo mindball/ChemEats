@@ -5,8 +5,20 @@ public class Entity<TId>
 {
     public TId Id { get; protected set; }
 
-    public override bool Equals(object? obj) => 
-        obj is Entity<TId> entity && EqualityComparer<TId>.Default.Equals(Id, entity.Id);
+    public override bool Equals(object? obj)
+    {
+        if (obj is not Entity<TId> other)
+            return false;
+
+        if (ReferenceEquals(this, other))
+            return true;
+
+        if (EqualityComparer<TId>.Default.Equals(Id, default) ||
+            EqualityComparer<TId>.Default.Equals(other.Id, default))
+            return false;
+
+        return EqualityComparer<TId>.Default.Equals(Id, other.Id);
+    }
 
     protected bool Equals(Entity<TId> other)
     {

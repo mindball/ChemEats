@@ -4,7 +4,7 @@ public class Meal
 {
     private Meal() { }
 
-    public Meal(Guid id, Guid menuId, string name, Price price)
+    internal Meal(Guid id, Guid menuId, string name, Price price)
     {
         Id = id;
         MenuId = menuId;

@@ -23,5 +23,8 @@ public sealed record UserOrderItemDto(
     DateTime MenuDate,
     decimal Price,
     string Status,
-    bool IsDeleted
+    bool IsDeleted,
+    bool PortionApplied,   // New
+    decimal PortionAmount, // New
+    decimal NetAmount      // New
 );

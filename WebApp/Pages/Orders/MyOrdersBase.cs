@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using System.Globalization;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Shared.DTOs.Menus;
 using Shared.DTOs.Orders;
-using System.Globalization;
 using WebApp.Services.Menus;
 using WebApp.Services.Orders;
 
@@ -16,11 +17,12 @@ public class MyOrdersBase : ComponentBase
     [CascadingParameter] protected Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
 
     protected IReadOnlyList<MenuDto>? Menus { get; private set; }
-    protected List<UserOrderDto>? Orders { get; private set; }
+    protected List<UserOrderItemDto>? Orders { get; private set; } // Changed: use item DTOs
 
     protected DateTime? StartDate { get; set; }
     protected DateTime? EndDate { get; set; }
     protected Guid? SelectedSupplierId { get; set; }
+    protected bool IncludeDeleted { get; set; }
 
     protected string? ErrorMessage { get; private set; }
     protected bool IsLoading { get; private set; }
@@ -32,15 +34,15 @@ public class MyOrdersBase : ComponentBase
 
         try
         {
-            var auth = await AuthenticationStateTask;
-            var user = auth.User;
+            AuthenticationState auth = await AuthenticationStateTask;
+            ClaimsPrincipal? user = auth.User;
             if (user?.Identity?.IsAuthenticated != true)
             {
                 ErrorMessage = "You must be signed in to view your orders.";
                 return;
             }
 
-            Menus = (await MenuDataService.GetAllMenusAsync()).ToList();
+            Menus = (await MenuDataService.GetAllMenusAsync(true)).ToList();
 
             // Default to today if there are menus for today
             StartDate = DateTime.Today;
@@ -51,7 +53,7 @@ public class MyOrdersBase : ComponentBase
                 EndDate = null;
             }
 
-            await LoadOrdersAsync();
+            // await LoadOrdersAsync();
         }
         catch (Exception ex)
         {
@@ -70,16 +72,12 @@ public class MyOrdersBase : ComponentBase
 
         try
         {
-            // ensure start <= end if both set
             if (StartDate.HasValue && EndDate.HasValue && StartDate.Value.Date > EndDate.Value.Date)
             {
-                // swap to keep intuitive behavior
-                var tmp = StartDate;
-                StartDate = EndDate;
-                EndDate = tmp;
+                (StartDate, EndDate) = (EndDate, StartDate);
             }
 
-            Orders = await OrderDataService.GetMyOrdersAsync(SelectedSupplierId, StartDate, EndDate);
+            Orders = await OrderDataService.GetMyOrderItemsAsync(SelectedSupplierId, StartDate, EndDate, IncludeDeleted);
         }
         catch (Exception ex)
         {
@@ -101,10 +99,7 @@ public class MyOrdersBase : ComponentBase
     }
 
     protected IEnumerable<(Guid SupplierId, string SupplierName)> AvailableSuppliers =>
-        Menus is null
-            ? Enumerable.Empty<(Guid, string)>()
-            : Menus
-                .Select(m => (m.SupplierId, m.SupplierName))
-                .Distinct()
-                .OrderBy(x => x.SupplierName);
+        Menus?.Select(m => (m.SupplierId, m.SupplierName))
+            .Distinct()
+            .OrderBy(x => x.SupplierName) ?? Enumerable.Empty<(Guid, string)>();
 }

@@ -13,7 +13,8 @@ public static class MenuEndpoints
     {
         RouteGroupBuilder group = app.MapGroup("/api/menus");
 
-        group.MapPost("", async ([FromBody] CreateMenuDto menuDto, IMenuRepository menuRepository, IMapper mapper, CancellationToken cancellationToken) =>
+        group.MapPost("", async ([FromBody] CreateMenuDto menuDto, IMenuRepository menuRepository, IMapper mapper, CancellationToken cancellationToken) 
+            =>
         {
             Menu menu = mapper.Map<Menu>(menuDto);
             await menuRepository.AddAsync(menu, cancellationToken);
@@ -21,7 +22,8 @@ public static class MenuEndpoints
             return Results.Created($"/api/menus/{menu.Id}", createdDto);
         }).RequireAuthorization().AddEndpointFilter<AuthorizedRequestLoggingFilter>();
 
-        group.MapGet("/{menuId:guid}", async (Guid menuId, IMenuRepository menuRepository, IMapper mapper, CancellationToken cancellationToken) =>
+        group.MapGet("/{menuId:guid}", async (Guid menuId, IMenuRepository menuRepository, IMapper mapper, CancellationToken cancellationToken) 
+            =>
         {
             Menu? menu = await menuRepository.GetByIdAsync(menuId, cancellationToken);
             return menu != null
@@ -41,18 +43,6 @@ public static class MenuEndpoints
             bool ok = await repo.UpdateDateAsync(menuId, newDate, ct);
             return ok ? Results.NoContent() : Results.NotFound();
         }).RequireAuthorization();
-
-        // group.MapPost("/{menuId:guid}/deactivate", async (Guid menuId, IMenuRepository repo, CancellationToken ct) =>
-        // {
-        //     bool ok = await repo.DeactivateAsync(menuId, ct);
-        //     return ok ? Results.NoContent() : Results.NotFound();
-        // }).RequireAuthorization();
-        //
-        // group.MapPost("/{menuId:guid}/activate", async (Guid menuId, IMenuRepository repo, CancellationToken ct) =>
-        // {
-        //     bool ok = await repo.ActivateAsync(menuId, ct);
-        //     return ok ? Results.NoContent() : Results.NotFound();
-        // }).RequireAuthorization();
 
         group.MapDelete("/{menuId:guid}", async (Guid menuId, IMenuRepository repo, CancellationToken ct) =>
         {

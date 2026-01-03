@@ -8,6 +8,7 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Shared.DTOs.Orders;
 using System;
+using Microsoft.AspNetCore.Mvc;
 using WebApi.Infrastructure.Filters;
 
 namespace WebApi.Routes.Orders;
@@ -175,6 +176,7 @@ public static class OrdersEndpoints
                 Guid? supplierId,
                 DateTime? startDate,
                 DateTime? endDate,
+                [FromQuery] bool includeDeleted,
                 IMealOrderRepository orderRepository,
                 UserManager<ApplicationUser> userManager,
                 HttpContext httpContext,
@@ -186,7 +188,7 @@ public static class OrdersEndpoints
                     return Results.Unauthorized();
 
                 IReadOnlyList<UserOrderItem> items =
-                    await orderRepository.GetUserOrderItemsAsync(user.Id, supplierId, startDate, endDate,
+                    await orderRepository.GetUserOrderItemsAsync(user.Id, supplierId, startDate, endDate, includeDeleted,
                         cancellationToken);
                 List<UserOrderItemDto> userOrderItems = items.Select(mapper.Map<UserOrderItemDto>).ToList();
                 return Results.Ok(userOrderItems);

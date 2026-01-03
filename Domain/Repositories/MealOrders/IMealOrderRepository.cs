@@ -24,6 +24,7 @@ public interface IMealOrderRepository
         Guid? supplierId = null,
         DateTime? startDate = null,
         DateTime? endDate = null,
+        bool includeDeleted = false,
         CancellationToken cancellationToken = default);
 
     //when create admin panel then admin must see delete orders 

@@ -103,6 +103,9 @@ public class MealOrder
 
     public void Cancel()
     {
+        if (PaymentStatus == PaymentStatus.Paid)
+            throw new InvalidOperationException("Paid orders cannot be cancelled");
+
         if (Status == MealOrderStatus.Completed)
             throw new InvalidOperationException("Completed orders cannot be cancelled.");
 

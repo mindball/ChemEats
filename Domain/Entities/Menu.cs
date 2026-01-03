@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Domain.Infrastructure.Exceptions;
 
 namespace Domain.Entities;
 
@@ -13,6 +14,10 @@ public class Menu
     public Menu(Guid id, Guid supplierId, DateTime date, IEnumerable<Meal> meals)
     {
         Id = id;
+
+        if (supplierId == Guid.Empty)
+            throw new DomainException("Supplier is required");
+
         SupplierId = supplierId;
         Date = date;
         RegisterDate = DateTime.Now;
@@ -22,13 +27,13 @@ public class Menu
 
     public Guid Id { get; private set; }
 
-    [Required] public Guid SupplierId { get; private set; }
+    public Guid SupplierId { get; private set; }
 
     public Supplier? Supplier { get; private set; }
 
-    [Required] public DateTime Date { get; private set; }
+    public DateTime Date { get; private set; }
 
-    [Required] public DateTime RegisterDate { get; private set; }
+    public DateTime RegisterDate { get; private set; }
 
 
     public bool IsDeleted { get; private set; }
@@ -51,8 +56,26 @@ public class Menu
         Date = newDate;
     }
 
+    private void SoftDeleteInternal()
+    {
+        if (Date < DateTime.Today)
+            throw new DomainException("Past menus cannot be deleted");
+        IsDeleted = true;
+    }
+
     public void SoftDelete()
     {
-        IsDeleted = true;
+        if (IsDeleted) return;
+        SoftDeleteInternal();
+    }
+
+    public void SoftDeleteAndCancelOrders(IEnumerable<MealOrder> orders)
+    {
+        if (IsDeleted) return;
+
+        SoftDeleteInternal();
+
+        foreach (MealOrder order in orders)
+            order.Cancel();
     }
 }
