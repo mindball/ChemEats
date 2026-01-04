@@ -131,12 +131,21 @@ public class ViewMenusBase : ComponentBase
 
     protected async Task SoftDeleteAsync(Guid id)
     {
-        if (!await JsRuntime.InvokeAsync<bool>("confirm", "Soft delete this menu and cancel its orders?")) return;
+        if (!await JsRuntime.InvokeAsync<bool>("confirm", "Soft delete this menu and cancel its orders?"))
+            return;
 
-        bool ok = await MenuDataService.SoftDeleteMenuAsync(id);
-        if (ok)
+        try
+        {
+            await MenuDataService.SoftDeleteMenuAsync(id);
             await OnSearchClickedAsync();
-        else
-            ErrorMessage = "Failed to soft delete menu.";
+        }
+        catch (ApplicationException ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        catch (Exception)
+        {
+            ErrorMessage = "Unexpected error while deleting menu.";
+        }
     }
 }

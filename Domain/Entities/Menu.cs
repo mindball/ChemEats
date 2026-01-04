@@ -78,4 +78,18 @@ public class Menu
         foreach (MealOrder order in orders)
             order.Cancel();
     }
+
+    public void EnsureNoPendingNonDeletedOrders(IEnumerable<MealOrder> orders)
+    {
+        bool hasBlockingOrders = orders.Any(o => o is { IsDeleted: false, Status: MealOrderStatus.Pending } && o.Meal.MenuId == Id);
+        if (hasBlockingOrders)
+            throw new DomainException("Menu cannot be deleted while there are pending orders.");
+    }
+    
+    public void SoftDeleteIfNoActiveOrders(IEnumerable<MealOrder> orders)
+    {
+        if (IsDeleted) return;
+        EnsureNoPendingNonDeletedOrders(orders);
+        SoftDeleteInternal();
+    }
 }

@@ -72,21 +72,27 @@ public class OrderDataService : IOrderDataService
         return Uri.EscapeDataString(utc.ToString("o"));
     }
 
-    public async Task<List<UserOrderItemDto>> GetMyOrderItemsAsync(Guid? supplierId = null, DateTime? startDate = null,
-        DateTime? endDate = null, bool includeDeleted = false)
+    public async Task<List<UserOrderItemDto>> GetMyOrderItemsAsync(
+        Guid? supplierId = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        bool includeDeleted = false)
     {
-        List<string> query = [];
+        List<string> query = [$"includeDeleted={includeDeleted}"];
+
         if (supplierId.HasValue)
             query.Add($"supplierId={supplierId.Value}");
+
         if (startDate.HasValue)
             query.Add($"startDate={Uri.EscapeDataString(startDate.Value.ToString("o"))}");
+
         if (endDate.HasValue)
             query.Add($"endDate={Uri.EscapeDataString(endDate.Value.ToString("o"))}");
 
-        // string url = "api/mealorders/me/items" + (query.Count > 0 ? "?" + string.Join("&", query) : string.Empty);
-        string url = includeDeleted ? "api/mealorders/me/items?includeDeleted=true" : "api/mealorders/me/items" + (query.Count > 0 ? "?" + string.Join("&", query) : string.Empty);
+        string url = "api/mealorders/me/items?" + string.Join("&", query);
+
         List<UserOrderItemDto>? items = await _httpClient.GetFromJsonAsync<List<UserOrderItemDto>>(url);
-        return items ?? new List<UserOrderItemDto>();
+        return items ?? [];
     }
 
     public async Task<List<UserOrderPaymentItemDto>> GetMyUnpaidPaymentsAsync(Guid? supplierId = null)

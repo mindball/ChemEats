@@ -227,6 +227,11 @@ public class MealOrderRepository : IMealOrderRepository
         IQueryable<OrderJoinRow> query = BuildBaseQuery(userId, includeDeleted);
         query = ApplyFilters(query, supplierId, startDate, endDate);
 
+        if (includeDeleted)
+        {
+            query = query.IgnoreQueryFilters();
+        }
+
         return await query
             .OrderBy(x => x.Date)
             .Select(x => new UserOrderItem(

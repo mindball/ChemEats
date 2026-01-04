@@ -1,5 +1,7 @@
-﻿using System.Net.Http.Json;
+﻿using Shared.DTOs.Errors;
 using Shared.DTOs.Menus;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace WebApp.Services.Menus;
 
@@ -74,7 +76,39 @@ public class MenuDataService : IMenuDataService
 
     public async Task<bool> SoftDeleteMenuAsync(Guid menuId)
     {
-        HttpResponseMessage resp = await _httpClient.DeleteAsync($"api/menus/{menuId}");
-        return resp.IsSuccessStatusCode;
+        HttpResponseMessage response = await _httpClient.DeleteAsync($"api/menus/{menuId}");
+
+        if (!response.IsSuccessStatusCode)
+        {
+            ProblemDetailsDto? problem = await SafeReadJsonAsync<ProblemDetailsDto>(response);
+            if (problem is not null && !string.IsNullOrWhiteSpace(problem.Detail))
+                throw new ApplicationException(problem.Detail);
+
+            ErrorResponse? error = await SafeReadJsonAsync<ErrorResponse>(response);
+            if (error is not null && !string.IsNullOrWhiteSpace(error.Message))
+                throw new ApplicationException(error.Message);
+
+            string raw = await response.Content.ReadAsStringAsync();
+            throw new ApplicationException(string.IsNullOrWhiteSpace(raw)
+                ? $"Delete failed ({(int)response.StatusCode})"
+                : raw);
+        }
+
+        return true;
+    }
+
+    private static async Task<T?> SafeReadJsonAsync<T>(HttpResponseMessage response)
+    {
+        try
+        {
+            return await response.Content.ReadFromJsonAsync<T>(new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+        }
+        catch
+        {
+            return default;
+        }
     }
 }

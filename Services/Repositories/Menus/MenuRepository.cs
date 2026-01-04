@@ -79,13 +79,15 @@ public class MenuRepository : IMenuRepository
         if (menu is null)
             return false;
 
+        // Eager load Meal to avoid null navigation
         List<MealOrder> orders = await _dbContext.MealOrders
-            .Where(o => !o.IsDeleted
-                        && o.Status == MealOrderStatus.Pending
-                        && o.Meal.MenuId == menuId)
+            .Include(o => o.Meal)
+            .Where(o => o.Meal.MenuId == menuId)
             .ToListAsync(cancellationToken);
 
-        menu.SoftDeleteAndCancelOrders(orders);
+        menu.EnsureNoPendingNonDeletedOrders(orders);
+
+        menu.SoftDelete();
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         return true;

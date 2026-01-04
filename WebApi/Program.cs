@@ -1,4 +1,7 @@
-﻿using Serilog;
+﻿using Domain.Infrastructure.Exceptions;
+using Microsoft.AspNetCore.Diagnostics;
+using Serilog;
+using Shared.DTOs.Errors;
 using WebApi.Infrastructure.Employees;
 using WebApi.Infrastructure.Extensions;
 
@@ -31,6 +34,28 @@ app.UseAppSwagger(app.Environment)
    .UseAppWebAssets()
    .UseAppSecurity()
    .MapAppEndpoints();
+
+app.UseExceptionHandler(appBuilder =>
+{
+    appBuilder.Run(async context =>
+    {
+        Exception? exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+
+        if (exception is DomainException domainEx)
+        {
+            context.Response.StatusCode = StatusCodes.Status409Conflict;
+            await context.Response.WriteAsJsonAsync(new ProblemDetailsDto(
+                Title: "Business rule violation",
+                Detail: domainEx.Message,
+                Status: StatusCodes.Status409Conflict,
+                Type: "https://httpstatuses.com/409"
+            ));
+            return;
+        }
+
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+    });
+});
 
 // Startup tasks (cache + sync)
 using (IServiceScope scope = app.Services.CreateScope())
