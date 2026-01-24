@@ -59,7 +59,7 @@ public class MealOrderRepository : IMealOrderRepository
 
                 PaymentStatus = mo.PaymentStatus,
                 PaidOn = mo.PaidOn,
-
+                
                 // New: portion flags from the order
                 PortionApplied = mo.PortionApplied,
                 PortionAmount = mo.PortionAmount
@@ -246,6 +246,7 @@ public class MealOrderRepository : IMealOrderRepository
                 x.Price,
                 x.Status.ToString(),
                 x.PortionApplied,                         // New
+                x.IsDeleted,
                 x.PortionAmount,                          // New
                 Math.Max(0m, x.Price - (x.PortionApplied ? x.PortionAmount : 0m)) // NetAmount
             ))
@@ -278,6 +279,7 @@ public class MealOrderRepository : IMealOrderRepository
                 x.Price,
                 x.Status.ToString(),
                 x.PortionApplied,
+                x.IsDeleted,
                 x.PortionAmount,
                 Math.Max(0m, x.Price - (x.PortionApplied ? x.PortionAmount : 0m))
             ))

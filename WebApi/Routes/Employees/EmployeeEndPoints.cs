@@ -12,10 +12,27 @@ public static class EmployeeEndPoints
 {
     public static void MapEmployeeEndpoints(this WebApplication app)
     {
-        app.MapPost("/api/sync-employees", async (IEmployeeSyncService syncService) =>
+        app.MapPost("/api/sync-employees", async (
+            IEmployeeSyncService syncService,
+            ILogger<IEmployeeSyncService> logger) =>
             {
-                await syncService.SyncEmployeesAsync();
-                return Results.Ok("Employees synchronized successfully.");
+                try
+                {
+                    logger.LogInformation("Starting employee synchronization process");
+                    System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
+                    
+                    await syncService.SyncEmployeesAsync();
+                    
+                    sw.Stop();
+                    logger.LogInformation("Employee synchronization completed successfully in {ElapsedMs} ms", sw.ElapsedMilliseconds);
+                    
+                    return Results.Ok("Employees synchronized successfully.");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Employee synchronization failed with error: {ErrorMessage}", ex.Message);
+                    throw;
+                }
             })
             .RequireAuthorization("AdminPolicy") 
             .WithTags("System Maintenance")
@@ -26,31 +43,57 @@ public static class EmployeeEndPoints
             IUserRepository userRepo,
             SignInManager<ApplicationUser> signInManager,
             UserManager<ApplicationUser> userManager,
-            JwtTokenProvider jwtProvider) => 
+            JwtTokenProvider jwtProvider,
+            ILogger<JwtTokenProvider> logger) => 
         {
-            var user = await userRepo.FindByEmailAsync(req.Email);
-            if (user == null)
-                return Results.Unauthorized();
-
-            var result = await signInManager.CheckPasswordSignInAsync(
-                user,
-                req.Password,
-                lockoutOnFailure: false);
-
-            if (!result.Succeeded)
-                return Results.Unauthorized();
-
-            var roles = await userManager.GetRolesAsync(user);
-
-            var accessToken = jwtProvider.GenerateToken(user, roles);
-
-            return Results.Ok(new
+            logger.LogInformation("Login attempt for user: {Email}", req.Email);
+            
+            try
             {
-                AccessToken = accessToken,
-                Username = user.UserName,
-                Email = user.Email,
-                Roles = roles
-            });
+                ApplicationUser? user = await userRepo.FindByEmailAsync(req.Email);
+                if (user == null)
+                {
+                    logger.LogWarning("Login failed - User not found: {Email}", req.Email);
+                    return Results.Unauthorized();
+                }
+
+                logger.LogInformation("User found: {Abbreviation}, {UserName}. Checking password", user.Abbreviation, user.UserName);
+
+                SignInResult result = await signInManager.CheckPasswordSignInAsync(
+                    user,
+                    req.Password,
+                    lockoutOnFailure: false);
+
+                if (!result.Succeeded)
+                {
+                    logger.LogWarning("Login failed - Invalid password for user: {Email}, UserId: {Abbreviation}", 
+                        req.Email, user.Abbreviation);
+                    return Results.Unauthorized();
+                }
+
+                IList<string> roles = await userManager.GetRolesAsync(user);
+                logger.LogInformation("Password validated successfully. User {UserName} ({Abbreviation}) has roles: {Roles}", 
+                    user.UserName, user.Abbreviation, string.Join(", ", roles));
+
+                string accessToken = jwtProvider.GenerateToken(user, roles);
+                
+                logger.LogInformation("JWT token generated successfully for user: {UserName} ({Abbreviation})", 
+                    user.UserName, user.Abbreviation);
+
+                return Results.Ok(new
+                {
+                    AccessToken = accessToken,
+                    Username = user.UserName,
+                    Email = user.Email,
+                    Roles = roles
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Login process failed for user: {Email} with error: {ErrorMessage}", 
+                    req.Email, ex.Message);
+                throw;
+            }
         });
 
     }

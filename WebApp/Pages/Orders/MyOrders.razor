@@ -61,7 +61,12 @@ else
                     <div class="ms-2 me-auto">
                         <div class="fw-bold">
                             @item.MealName
-                            @if (string.Equals(item.Status, "Completed", StringComparison.OrdinalIgnoreCase))
+
+                            @if (item.IsDeleted)
+                            {
+                                <span class="badge text-bg-danger ms-2">Deleted</span>
+                            }
+                            else if (string.Equals(item.Status, "Completed", StringComparison.OrdinalIgnoreCase))
                             {
                                 <span class="badge text-bg-success ms-2">Completed</span>
                             }
@@ -69,7 +74,10 @@ else
                             {
                                 <span class="badge text-bg-warning ms-2">Cancelled</span>
                             }
-                            @* Deleted state if you expose it on the DTO *@
+                            else if (string.Equals(item.Status, "Pending", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="badge text-bg-info ms-2">Pending</span>
+                            }
                         </div>
                         <small class="text-muted">
                             @item.SupplierName —

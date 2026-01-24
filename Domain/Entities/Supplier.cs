@@ -1,7 +1,5 @@
 ﻿using Domain.Common.Enums;
-using Domain.Entities;
 using Domain.Infrastructure.Exceptions;
-using StronglyTypedIds;
 
 namespace Domain.Entities;
 
@@ -13,23 +11,28 @@ public class Supplier
 
     public Supplier(Guid id, string name, string vatNumber, PaymentTerms paymentTerms)
     {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new DomainException("Supplier name is required");
+
+        if (string.IsNullOrWhiteSpace(vatNumber))
+            throw new DomainException("VAT number is required");
+
         Id = id;
-        Name = name ?? throw new ArgumentNullException(nameof(name));
-        VatNumber = vatNumber ?? throw new ArgumentNullException(nameof(vatNumber));
+        Name = name;
+        VatNumber = vatNumber;
         PaymentTerms = paymentTerms;
     }
 
     public static Supplier Create(string name, string vatNumber, PaymentTerms paymentTerms, IEnumerable<Menu>? menus = null)
     {
-        Supplier supplier = new (Guid.NewGuid(), name, vatNumber, paymentTerms);
-        if (string.IsNullOrWhiteSpace(name))
-            throw new DomainException("Supplier name is required");
+        Supplier supplier = new(Guid.NewGuid(), name, vatNumber, paymentTerms);
 
         if (menus != null)
         {
-            foreach (var menu in menus)
+            foreach (Menu menu in menus)
                 supplier.AddMenu(menu);
         }
+
         return supplier;
     }
 

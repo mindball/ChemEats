@@ -49,11 +49,17 @@
                         <span class="bi bi-card-list me-2 d-inline-flex align-items-center"></span> View orders
                     </NavLink>
                 </div>
+                
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link d-flex align-items-center" href="menus/view">
+                        <span class="bi bi-eye-fill me-2 d-inline-flex align-items-center"></span> View menus
+                    </NavLink>
+                </div>
+
 
             </Authorized>
         </AuthorizeView>
 
-        <!-- Visible only to ADMIN users -->
         <AuthorizeView Roles="Admin">
             <Authorized>
                 <div class="nav-item px-3">
@@ -63,14 +69,7 @@
                 </div>
             </Authorized>
         </AuthorizeView>
-
-        <!-- Always visible -->
-        <div class="nav-item px-3">
-            <NavLink class="nav-link d-flex align-items-center" href="menus/view">
-                <span class="bi bi-eye-fill me-2 d-inline-flex align-items-center"></span> View menus
-            </NavLink>
-        </div>
-
+        
     </nav>
 </div>
 

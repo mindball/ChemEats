@@ -1,9 +1,6 @@
 ﻿using Domain.Infrastructure.Identity;
 using Domain.Repositories.Employees;
-using Mapster;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
-using Shared.DTOs.Employees;
 
 namespace WebApi.Infrastructure.Employees;
 
@@ -26,169 +23,144 @@ public class EmployeeCacheService : IEmployeeCacheService
 
     public async Task InitializeAsync()
     {
-        _logger.LogInformation("Initializing employee cache...");
+        try
+        {
+            _logger.LogInformation("Initializing employee cache from database");
+            System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
 
-        List<ApplicationUser> users = await _userRepository.GetAllUsersAsync();
-        _cache.Set(CacheKey, users, TimeSpan.FromHours(12));
+            List<ApplicationUser> users = await _userRepository.GetAllUsersAsync();
 
-        _logger.LogInformation("Employee cache initialized with {Count} users.", users.Count);
+            sw.Stop();
+
+            _cache.Set(CacheKey, users, TimeSpan.FromHours(12));
+
+            _logger.LogInformation(
+                "Employee cache initialized successfully with {UserCount} users in {ElapsedMs} ms (TTL: 12 hours)",
+                users.Count,
+                sw.ElapsedMilliseconds);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Failed to initialize employee cache: {ErrorMessage}",
+                ex.Message);
+            throw;
+        }
     }
 
     public async Task<ApplicationUser?> GetByAbbreviationAsync(string abbreviation)
     {
-        if (!_cache.TryGetValue(CacheKey, out List<ApplicationUser>? users))
+        try
         {
-            await InitializeAsync();
-            users = _cache.Get<List<ApplicationUser>>(CacheKey);
-        }
+            if (!_cache.TryGetValue(CacheKey, out List<ApplicationUser>? users))
+            {
+                _logger.LogWarning(
+                    "Employee cache miss when looking up {Abbreviation}. Reinitializing cache.",
+                    abbreviation);
 
-        return users?.FirstOrDefault(u =>
-            u.Abbreviation.Equals(abbreviation, StringComparison.OrdinalIgnoreCase));
+                await InitializeAsync();
+                users = _cache.Get<List<ApplicationUser>>(CacheKey);
+            }
+
+            ApplicationUser? user = users?.FirstOrDefault(u =>
+                u.Abbreviation.Equals(abbreviation, StringComparison.OrdinalIgnoreCase));
+
+            if (user != null)
+            {
+                _logger.LogDebug(
+                    "Employee {Abbreviation} found in cache: {UserName} (Id: {UserId})",
+                    abbreviation,
+                    user.UserName,
+                    user.Id);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Employee {Abbreviation} not found in cache",
+                    abbreviation);
+            }
+
+            return user;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Error retrieving employee {Abbreviation} from cache: {ErrorMessage}",
+                abbreviation,
+                ex.Message);
+            return null;
+        }
     }
 
     public IReadOnlyCollection<ApplicationUser> GetAll()
     {
-        if (!_cache.TryGetValue(CacheKey, out List<ApplicationUser>? users))
-            return [];
+        try
+        {
+            if (!_cache.TryGetValue(CacheKey, out List<ApplicationUser>? users))
+            {
+                _logger.LogWarning("Employee cache miss when getting all employees. Cache not initialized.");
+                return [];
+            }
 
-        return users;
+            _logger.LogDebug("Retrieved {UserCount} employees from cache", users.Count);
+            return users;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Error retrieving all employees from cache: {ErrorMessage}",
+                ex.Message);
+            return [];
+        }
     }
 
     public async Task AddOrUpdateAsync(ApplicationUser employee)
     {
-        if (!_cache.TryGetValue(CacheKey, out List<ApplicationUser>? users))
-            users = [];
+        try
+        {
+            if (!_cache.TryGetValue(CacheKey, out List<ApplicationUser>? users))
+            {
+                _logger.LogWarning(
+                    "Cache miss when adding/updating employee {UserName}. Initializing empty list.",
+                    employee.UserName);
+                users = [];
+            }
 
-        ApplicationUser? existing = users.FirstOrDefault(u => u.Id == employee.Id);
-        if (existing != null)
-            users.Remove(existing);
+            ApplicationUser? existing = users.FirstOrDefault(u => u.Id == employee.Id);
 
-        users.Add(employee);
-        _cache.Set(CacheKey, users, TimeSpan.FromHours(12));
+            if (existing != null)
+            {
+                users.Remove(existing);
+                _logger.LogInformation(
+                    "Updating employee in cache: {UserName} ({Abbreviation}, Id: {UserId})",
+                    employee.UserName,
+                    employee.Abbreviation,
+                    employee.Id);
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "Adding new employee to cache: {UserName} ({Abbreviation}, Id: {UserId})",
+                    employee.UserName,
+                    employee.Abbreviation,
+                    employee.Id);
+            }
 
-        await Task.CompletedTask;
+            users.Add(employee);
+            _cache.Set(CacheKey, users, TimeSpan.FromHours(12));
+
+            _logger.LogInformation(
+                "Employee cache updated successfully. Total employees in cache: {TotalCount}",
+                users.Count);
+
+            await Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Error adding/updating employee {UserName} in cache: {ErrorMessage}",
+                employee.UserName,
+                ex.Message);
+        }
     }
 }
-
-
-// public class EmployeeCacheService : IEmployeeCacheService
-// {
-//     private const string CacheKey = "EmployeeCache";
-//     private readonly IMemoryCache _cache;
-//     private readonly IEmployeeExternalService _externalService;
-//     private readonly IUserRepository _userRepository;
-//     private readonly ILogger<EmployeeCacheService> _logger;
-//
-//     private static readonly string[] DefaultRoles = ["Admin", "Employee", "Manager"];
-//     private static readonly string[] AdminEmployeeCodes = ["MM", "DM"];
-//
-//     public EmployeeCacheService(
-//         IEmployeeExternalService externalService,
-//         ILogger<EmployeeCacheService> logger,
-//         IMemoryCache cache,
-//         IUserRepository userRepository)
-//     {
-//         _externalService = externalService;
-//         _logger = logger;
-//         _cache = cache;
-//         _userRepository = userRepository;
-//     }
-//
-//     public async Task InitializeAsync()
-//     {
-//         _logger.LogInformation("Initializing employee cache and syncing Identity users...");
-//
-//         foreach (string role in DefaultRoles)
-//         {
-//             if (!await _userRepository.RoleExistsAsync(role))
-//             {
-//                 await _userRepository.CreateAsync(role);
-//                 _logger.LogInformation("Created missing role: {Role}", role);
-//             }
-//         }
-//
-//         List<UserDto> employeesFromApi = await _externalService.GetAllEmployeesAsync();
-//         if (employeesFromApi.Count == 0)
-//         {
-//             _logger.LogWarning("No employees fetched from API.");
-//             return;
-//         }
-//
-//         foreach (UserDto dto in employeesFromApi)
-//         {
-//             ApplicationUser? existing = await _userRepository.FindByUserNameAsync(dto.Code);
-//
-//             if (existing == null)
-//             {
-//                 ApplicationUser user = dto.Adapt<ApplicationUser>();
-//                 user.UserName = dto.Code;
-//                 user.Email = $"{dto.Code.ToLower()}@cpachem.com";
-//                 user.EmailConfirmed = true;
-//
-//                 IdentityResult createResult = await _userRepository.AddAsync(user, dto.Code);
-//
-//                 if (createResult.Succeeded)
-//                 {
-//                     string roleToAssign = AdminEmployeeCodes.Contains(dto.Code)
-//                         ? "Admin"
-//                         : "Employee";
-//                     await _userRepository.AddToRoleAsync(user, roleToAssign);
-//
-//                     _logger.LogInformation("Created user {User} with role {Role}", user.UserName, roleToAssign);
-//                 }
-//                 else
-//                 {
-//                     _logger.LogError("Failed to create user {User}: {Errors}",
-//                         dto.Code,
-//                         string.Join(", ", createResult.Errors.Select(e => e.Description)));
-//                 }
-//             }
-//         }
-//
-//         List<ApplicationUser> allEmployees = await _userRepository.GetAllUsersAsync();
-//         _cache.Set(CacheKey, allEmployees, TimeSpan.FromHours(12));
-//
-//         _logger.LogInformation("Employee cache initialized with {Count} records.", allEmployees.Count);
-//     }
-//
-//     public async Task<ApplicationUser?> GetByAbbreviationAsync(string abbreviation)
-//     {
-//         _logger.LogInformation("Entered {Service}.{Method}", nameof(IEmployeeCacheService), nameof(GetByAbbreviationAsync));
-//
-//         if (!_cache.TryGetValue(CacheKey, out List<ApplicationUser>? users))
-//         {
-//             await InitializeAsync();
-//             users = _cache.Get<List<ApplicationUser>>(CacheKey);
-//         }
-//
-//         return users?.FirstOrDefault(e =>
-//             e.Abbreviation.Equals(abbreviation, StringComparison.OrdinalIgnoreCase));
-//     }
-//
-//     public IReadOnlyCollection<ApplicationUser> GetAll()
-//     {
-//         _logger.LogInformation("Entered {Service}.{Method}", nameof(IEmployeeCacheService), nameof(GetAll));
-//
-//         if (!_cache.TryGetValue(CacheKey, out List<ApplicationUser>? users))
-//             return [];
-//
-//         return users ?? [];
-//     }
-//
-//     public async Task AddOrUpdateAsync(ApplicationUser employee)
-//     {
-//         _logger.LogInformation("Entered {Service}.{Method}", nameof(IEmployeeCacheService), nameof(AddOrUpdateAsync));
-//
-//         if (!_cache.TryGetValue(CacheKey, out List<ApplicationUser>? users))
-//             users = [];
-//
-//         ApplicationUser? existing = users?.FirstOrDefault(e => e.Id == employee.Id);
-//         if (existing != null)
-//             users?.Remove(existing);
-//
-//         users?.Add(employee);
-//         _cache.Set(CacheKey, users, TimeSpan.FromHours(12));
-//
-//         await Task.CompletedTask;
-//     }
-// }

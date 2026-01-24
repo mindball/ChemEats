@@ -22,7 +22,11 @@ public class Meal
 
     public static Meal Create(Guid menuId, string name, Price price)
     {
-        return new Meal(Guid.NewGuid(), menuId, name, price);
+
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Meal name is required");
+
+        return price is null ? throw new ArgumentNullException(nameof(price)) : new Meal(Guid.NewGuid(), menuId, name.Trim(), price);
     }
 
     public void ChangePrice(Price newPrice)

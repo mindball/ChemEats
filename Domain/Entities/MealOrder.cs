@@ -45,7 +45,7 @@ public class MealOrder
 
     private MealOrder() { }
 
-    private MealOrder(Guid id, string userId, Guid mealId, DateTime date)
+    private MealOrder(Guid id, string userId, Guid mealId, DateTime date, decimal priceSnapshot)
     {
         Id = id;
         UserId = userId;
@@ -65,8 +65,14 @@ public class MealOrder
     public static MealOrder Create(
         string userId,
         Guid mealId,
-        DateTime date)
-        => new MealOrder(Guid.NewGuid(), userId, mealId, date);
+        DateTime orderDate,
+        decimal priceSnapshot)
+    {
+        if (priceSnapshot < 0)
+            throw new ArgumentOutOfRangeException(nameof(priceSnapshot));
+
+        return new MealOrder(Guid.NewGuid(), userId, mealId, orderDate, priceSnapshot);
+    }
 
     public void SetPriceSnapshot(decimal priceAmount)
     {
@@ -76,7 +82,12 @@ public class MealOrder
 
     public void ApplyPortion(decimal portionAmount)
     {
-        if (portionAmount < 0) throw new ArgumentOutOfRangeException(nameof(portionAmount));
+        if (portionAmount < 0)
+            throw new ArgumentOutOfRangeException(nameof(portionAmount));
+
+        if (portionAmount > PriceAmount)
+            throw new InvalidOperationException("Portion cannot exceed price.");
+
         PortionApplied = portionAmount > 0m;
         PortionAmount = portionAmount;
     }
@@ -86,6 +97,9 @@ public class MealOrder
 
     public void MarkAsPaid(DateTime paidOn)
     {
+        if (Status == MealOrderStatus.Cancelled)
+            throw new InvalidOperationException("Cancelled orders cannot be paid.");
+
         if (PaymentStatus == PaymentStatus.Paid)
             throw new InvalidOperationException("Order already paid.");
 

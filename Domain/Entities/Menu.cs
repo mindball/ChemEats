@@ -18,6 +18,7 @@ public class Menu
         if (supplierId == Guid.Empty)
             throw new DomainException("Supplier is required");
 
+
         SupplierId = supplierId;
         Date = date;
         RegisterDate = DateTime.Now;
@@ -53,7 +54,8 @@ public class Menu
 
     public void UpdateDate(DateTime newDate)
     {
-        Date = newDate;
+        if (newDate < DateTime.UtcNow.Date)
+            throw new DomainException("Menu date cannot be in the past.");
     }
 
     private void SoftDeleteInternal()

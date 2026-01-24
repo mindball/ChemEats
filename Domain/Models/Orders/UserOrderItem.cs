@@ -12,6 +12,7 @@ public sealed record UserOrderItem(
     decimal Price,          // Snapshot price at order time
     string Status,
     bool PortionApplied,    // New
+    bool IsDeleted,    // New
     decimal PortionAmount,  // New
     decimal NetAmount       // New: Price - Portion (min 0)
 );

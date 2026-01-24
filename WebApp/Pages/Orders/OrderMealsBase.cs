@@ -61,7 +61,7 @@ public class OrderMealsBase : ComponentBase
             IsAuthenticated = user?.Identity?.IsAuthenticated == true;
             CurrentUserName = user?.Identity?.Name;
 
-            Menus = (await MenuDataService.GetAllMenusAsync(includeDeleted: false)).ToList();
+            Menus = (await MenuDataService.GetAllMenusAsync(includeDeleted: true)).ToList();
 
             FilterDate = DateTime.Today.AddDays(1);
 
