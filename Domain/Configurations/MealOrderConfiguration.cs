@@ -21,10 +21,10 @@ public class MealOrderConfiguration : IEntityTypeConfiguration<MealOrder>
             .HasColumnType("VARCHAR(36)")
             .IsRequired();
 
-        builder.Property(mo => mo.Date)
+        builder.Property(mo => mo.MenuDate)
             .IsRequired();
 
-        builder.Property(mo => mo.RegisterDate)
+        builder.Property(mo => mo.OrderedAt)
             .IsRequired();
 
         builder.HasOne(mo => mo.User)
@@ -50,5 +50,9 @@ public class MealOrderConfiguration : IEntityTypeConfiguration<MealOrder>
             .HasDefaultValue(PaymentStatus.Unpaid);
 
         builder.HasIndex(x => x.PaymentStatus);
+        builder.HasIndex(mo => mo.UserId);
+        builder.HasIndex(mo => mo.MealId);
+        builder.HasIndex(mo => mo.MenuDate);  
+        builder.HasIndex(mo => mo.IsDeleted);
     }
 }

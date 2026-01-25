@@ -76,7 +76,8 @@ public class OrderDataService : IOrderDataService
         Guid? supplierId = null,
         DateTime? startDate = null,
         DateTime? endDate = null,
-        bool includeDeleted = false)
+        bool includeDeleted = false,
+        string? status = null)
     {
         List<string> query = [$"includeDeleted={includeDeleted}"];
 
@@ -88,6 +89,9 @@ public class OrderDataService : IOrderDataService
 
         if (endDate.HasValue)
             query.Add($"endDate={Uri.EscapeDataString(endDate.Value.ToString("o"))}");
+
+        if (!string.IsNullOrWhiteSpace(status))
+            query.Add($"status={Uri.EscapeDataString(status)}");
 
         string url = "api/mealorders/me/items?" + string.Join("&", query);
 

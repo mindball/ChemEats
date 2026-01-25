@@ -72,7 +72,13 @@ else
 
     @if (Meals?.Any() == true)
     {
-        <h4 class="font-semibold mt-4">Primary Menu Preview</h4>
+        <h4 class="font-semibold mt-4">
+            Primary Menu Preview
+            @if (!string.IsNullOrEmpty(SelectedSupplierName))
+            {
+                <span class="text-blue-600"> - @SelectedSupplierName</span>
+            }
+        </h4>
         <table class="table-auto border-collapse border border-gray-400 mt-2">
             <thead>
                 <tr class="bg-gray-200">
@@ -94,7 +100,13 @@ else
 
     @if (ShowSecondMenu && SecondMeals?.Any() == true)
     {
-        <h4 class="font-semibold mt-4">Secondary Menu Preview</h4>
+        <h4 class="font-semibold mt-4">
+            Secondary Menu Preview
+            @if (!string.IsNullOrEmpty(SecondSelectedSupplierName))
+            {
+                <span class="text-blue-600"> - @SecondSelectedSupplierName</span>
+            }
+        </h4>
         <table class="table-auto border-collapse border border-gray-400 mt-2">
             <thead>
                 <tr class="bg-gray-200">
@@ -115,8 +127,8 @@ else
     }
 
     @if ((Meals?.Any() == true || (ShowSecondMenu && SecondMeals?.Any() == true))
-             && SelectedSupplierId != Guid.Empty
-             && (!ShowSecondMenu || SecondSelectedSupplierId != Guid.Empty))
+                 && SelectedSupplierId != Guid.Empty
+                 && (!ShowSecondMenu || SecondSelectedSupplierId != Guid.Empty))
     {
         <button class="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
                 @onclick="ConfirmAndSaveAsync"

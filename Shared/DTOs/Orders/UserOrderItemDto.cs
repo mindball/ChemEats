@@ -9,7 +9,7 @@
 /// <param name="MealName">The name of the meal.</param>
 /// <param name="SupplierId">The unique identifier for the supplier.</param>
 /// <param name="SupplierName">The name of the supplier.</param>
-/// <param name="Date">The date and time when the order was placed.</param>
+/// <param name="OrderedAt">The date and time when the order was placed.</param>
 /// <param name="Price">The price of the meal in the order.</param>
 /// <param name="Status">The current status of the order item.</param>
 public sealed record UserOrderItemDto(
@@ -19,7 +19,7 @@ public sealed record UserOrderItemDto(
     string MealName,
     Guid SupplierId,
     string SupplierName,
-    DateTime Date,
+    DateTime OrderedAt,
     DateTime MenuDate,
     decimal Price,
     string Status,

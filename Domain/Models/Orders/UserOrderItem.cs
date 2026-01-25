@@ -7,7 +7,7 @@ public sealed record UserOrderItem(
     string MealName,
     Guid SupplierId,
     string SupplierName,
-    DateTime Date,
+    DateTime OrderedAt,
     DateTime MenuDate,
     decimal Price,          // Snapshot price at order time
     string Status,

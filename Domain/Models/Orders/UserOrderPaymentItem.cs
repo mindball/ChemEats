@@ -8,7 +8,8 @@ public sealed record UserOrderPaymentItem(
     string MealName,
     Guid SupplierId,
     string SupplierName,
-    DateTime OrderDate,
+    DateTime OrderedAt,
+    DateTime MenuDate,
     decimal Price,            // Snapshot price
     PaymentStatus PaymentStatus,
     DateTime? PaidOn,

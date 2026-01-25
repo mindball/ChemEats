@@ -26,8 +26,9 @@ public class MealOrder
     public Guid MealId { get; private set; }
     public Meal Meal { get; private set; } = null!;
 
-    public DateTime Date { get; private set; }
-    public DateTime RegisterDate { get; private set; }
+    public DateTime MenuDate { get; private set; }     
+    public DateTime OrderedAt { get; private set; }    
+
 
     public MealOrderStatus Status { get; private set; }
 
@@ -45,18 +46,17 @@ public class MealOrder
 
     private MealOrder() { }
 
-    private MealOrder(Guid id, string userId, Guid mealId, DateTime date, decimal priceSnapshot)
+    private MealOrder(Guid id, string userId, Guid mealId, DateTime menuDate, decimal priceSnapshot)
     {
         Id = id;
         UserId = userId;
         MealId = mealId;
-        Date = date;
-        RegisterDate = DateTime.UtcNow;
+        MenuDate = menuDate;           
+        OrderedAt = DateTime.Now;   
 
         Status = MealOrderStatus.Pending;
         PaymentStatus = PaymentStatus.Unpaid;
 
-        // defaults, will be set when adding via repository/factory
         PriceAmount = 0m;
         PortionApplied = false;
         PortionAmount = 0m;
@@ -65,13 +65,13 @@ public class MealOrder
     public static MealOrder Create(
         string userId,
         Guid mealId,
-        DateTime orderDate,
+        DateTime menuDate,
         decimal priceSnapshot)
     {
         if (priceSnapshot < 0)
             throw new ArgumentOutOfRangeException(nameof(priceSnapshot));
 
-        return new MealOrder(Guid.NewGuid(), userId, mealId, orderDate, priceSnapshot);
+        return new MealOrder(Guid.NewGuid(), userId, mealId, menuDate, priceSnapshot);
     }
 
     public void SetPriceSnapshot(decimal priceAmount)

@@ -2,109 +2,182 @@
 @using Shared.DTOs.Orders
 @inherits MyOrdersBase
 
-<h3 class="mb-3"><i class="bi bi-card-list me-2"></i>My Orders</h3>
-
-@if (IsLoading)
-{
-    <p>Loading...</p>
-}
-else if (!string.IsNullOrEmpty(ErrorMessage))
-{
-    <div class="alert alert-danger">@ErrorMessage</div>
-}
-else
-{
-    <div class="row mb-3">
-        <div class="col-md-3">
-            <label class="form-label">Start date</label>
-            <input type="date" class="form-control" @bind="StartDate" />
-        </div>
-
-        <div class="col-md-3">
-            <label class="form-label">End date</label>
-            <input type="date" class="form-control" @bind="EndDate" />
-        </div>
-
-        <div class="col-md-4">
-            <label class="form-label">Supplier</label>
-            <select class="form-select" @bind="SelectedSupplierId">
-                <option value="">All suppliers</option>
-                @foreach ((Guid SupplierId, string SupplierName) s in AvailableSuppliers)
-                {
-                    <option value="@s.SupplierId">@s.SupplierName</option>
-                }
-            </select>
-        </div>
-
-        <div class="col-md-2 d-flex align-items-end">
-            <div class="form-check me-3">
-                <input class="form-check-input" type="checkbox" id="includeDeleted" @bind="IncludeDeleted"/>
-                <label class="form-check-label" for="includeDeleted">deleted</label>
-            </div>
-            <button class="btn btn-primary w-100" @onclick="LoadOrdersAsync">Apply</button>
-        </div>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0"><i class="bi bi-card-list me-2"></i>My Orders</h3>
     </div>
 
-    @if (Orders is null || !Orders.Any())
+    @if (IsLoading)
     {
-        <div class="text-muted">No orders found for the selected criteria.</div>
+        <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="alert alert-danger">@ErrorMessage</div>
     }
     else
     {
-        decimal totalNet = Orders.Sum(o => o.NetAmount);
-        decimal totalPortionApplied = Orders.Where(o => o.PortionApplied).Sum(o => o.PortionAmount);
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="bi bi-funnel me-2"></i>Filters
+                </h5>
+                
+                <div class="row g-3">
+                    <div class="col-md-6 col-lg-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-calendar-range me-1"></i>Start date
+                        </label>
+                        <input type="date" class="form-control" @bind="StartDate" />
+                    </div>
 
-        <ul class="list-group mb-3">
-            @foreach (UserOrderItemDto item in Orders)
-            {
-                <li class="list-group-item d-flex justify-content-between align-items-start">
-                    <div class="ms-2 me-auto">
-                        <div class="fw-bold">
-                            @item.MealName
+                    <div class="col-md-6 col-lg-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-calendar-check me-1"></i>End date
+                        </label>
+                        <input type="date" class="form-control" @bind="EndDate" />
+                    </div>
 
-                            @if (item.IsDeleted)
+                    <div class="col-md-6 col-lg-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-shop me-1"></i>Supplier
+                        </label>
+                        <select class="form-select" @bind="SelectedSupplierId">
+                            <option value="">All suppliers</option>
+                            @foreach ((Guid SupplierId, string SupplierName) s in AvailableSuppliers)
                             {
-                                <span class="badge text-bg-danger ms-2">Deleted</span>
+                                <option value="@s.SupplierId">@s.SupplierName</option>
                             }
-                            else if (string.Equals(item.Status, "Completed", StringComparison.OrdinalIgnoreCase))
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 col-lg-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-flag me-1"></i>Status
+                        </label>
+                        <select class="form-select" @bind="SelectedStatus">
+                            @foreach (string status in AvailableStatuses)
                             {
-                                <span class="badge text-bg-success ms-2">Completed</span>
+                                <option value="@status">@status</option>
                             }
-                            else if (string.Equals(item.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
-                            {
-                                <span class="badge text-bg-warning ms-2">Cancelled</span>
-                            }
-                            else if (string.Equals(item.Status, "Pending", StringComparison.OrdinalIgnoreCase))
-                            {
-                                <span class="badge text-bg-info ms-2">Pending</span>
-                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12">
+                        @* <div class="d-flex justify-content-between align-items-center"> *@
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="includeDeleted" @bind="IncludeDeleted"/>
+                                <label class="form-check-label" for="includeDeleted">
+                                    <i class="bi bi-trash me-1"></i>Include deleted orders
+                                </label>
+                            </div>
+                            <button class="btn btn-primary px-4" @onclick="LoadOrdersAsync">
+                                <i class="bi bi-search me-2"></i>Apply Filters
+                            </button>
                         </div>
-                        <small class="text-muted">
-                            @item.SupplierName —
-                            Menu: @FormatBulgarianDate(item.MenuDate) •
-                            Order: @FormatBulgarianDate(item.Date) •
-                            @item.Status
-                        </small>
                     </div>
-                    <div class="text-end">
-                        <div>Price: @item.Price.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</div>
-                        @if (item.PortionApplied)
-                        {
-                            <div class="text-success">- Portion: @item.PortionAmount.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</div>
-                        }
-                        <div class="fw-bold">Net: @item.NetAmount.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</div>
-                    </div>
-                </li>
-            }
-        </ul>
+                </div>
+            </div>
+        </div>
 
-        <div class="d-flex justify-content-between align-items-center mb-1">
-            <div class="fw-bold">Total portion applied</div>
-            <div class="fw-bold text-success">-@totalPortionApplied.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</div>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <div class="fw-bold">Total to pay</div>
-            <div class="fw-bold">@totalNet.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</div>
-        </div>
+        @if (Orders is null || !Orders.Any())
+        {
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>No orders found for the selected criteria.
+            </div>
+        }
+        else
+        {
+            decimal totalNet = Orders.Sum(o => o.NetAmount);
+            decimal totalPortionApplied = Orders.Where(o => o.PortionApplied).Sum(o => o.PortionAmount);
+
+            <div class="card">
+                <div class="card-header bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">
+                            <i class="bi bi-list-check me-2"></i>Order Items (@Orders.Count)
+                        </span>
+                        <span class="badge bg-primary rounded-pill">Total: @totalNet.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
+                    </div>
+                </div>
+                <ul class="list-group list-group-flush">
+                    @foreach (UserOrderItemDto item in Orders)
+                    {
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold mb-1">
+                                        @item.MealName
+                                        @if (item.IsDeleted)
+                                        {
+                                            <span class="badge text-bg-danger ms-2">Deleted</span>
+                                        }
+                                        else if (string.Equals(item.Status, "Completed", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge text-bg-success ms-2">Completed</span>
+                                        }
+                                        else if (string.Equals(item.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge text-bg-warning ms-2">Cancelled</span>
+                                        }
+                                        else if (string.Equals(item.Status, "Pending", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge text-bg-info ms-2">Pending</span>
+                                        }
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="bi bi-shop-window me-1"></i>@item.SupplierName
+                                        <span class="mx-2">•</span>
+                                        <i class="bi bi-calendar-event me-1"></i>@FormatBulgarianDate(item.MenuDate)
+                                        <span class="mx-2">•</span>
+                                        <i class="bi bi-clock me-1"></i>@FormatBulgarianDate(item.OrderedAt)
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <div class="mb-1">
+                                        <small class="text-muted">Price:</small>
+                                        <span class="ms-1">@item.Price.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
+                                    </div>
+                                    @if (item.PortionApplied)
+                                    {
+                                        <div class="text-success mb-1">
+                                            <small class="text-muted">Portion:</small>
+                                            <span class="ms-1">-@item.PortionAmount.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
+                                        </div>
+                                    }
+                                    <div class="fw-bold border-top pt-1">
+                                        <small class="text-muted">Net:</small>
+                                        <span class="ms-1">@item.NetAmount.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    }
+                </ul>
+                <div class="card-footer bg-light">
+                    <div class="row">
+                        <div class="col-md-6 mb-2 mb-md-0">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-semibold">Total portion applied:</span>
+                                <span class="fw-semibold text-success">-@totalPortionApplied.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold">Total to pay:</span>
+                                <span class="fw-bold text-primary fs-5">@totalNet.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
     }
-}
+</div>

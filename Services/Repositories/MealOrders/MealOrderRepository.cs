@@ -48,8 +48,8 @@ public class MealOrderRepository : IMealOrderRepository
                 MealName = meal.Name,
                 SupplierId = supplier.Id,
                 SupplierName = supplier.Name,
-                Date = mo.Date,
-                MenuDate = menu.Date,
+                MenuDate = mo.MenuDate,          // ✅ Changed
+                OrderedAt = mo.OrderedAt,    // ✅ New
 
                 // Use price snapshot from the order
                 Price = mo.PriceAmount,
@@ -70,16 +70,20 @@ public class MealOrderRepository : IMealOrderRepository
         IQueryable<OrderJoinRow> query,
         Guid? supplierId,
         DateTime? startDate,
-        DateTime? endDate)
+        DateTime? endDate,
+        MealOrderStatus? status = null)
     {
         if (supplierId.HasValue)
             query = query.Where(x => x.SupplierId == supplierId.Value);
 
         if (startDate.HasValue)
-            query = query.Where(x => x.Date >= startDate.Value.Date);
+            query = query.Where(x => x.OrderedAt >= startDate.Value.Date);
 
         if (endDate.HasValue)
-            query = query.Where(x => x.Date < endDate.Value.Date.AddDays(1));
+            query = query.Where(x => x.OrderedAt < endDate.Value.Date.AddDays(1));
+
+        if (status.HasValue)
+            query = query.Where(x => x.Status == status.Value);
 
         return query;
     }
@@ -151,7 +155,7 @@ public class MealOrderRepository : IMealOrderRepository
                 x.MealName,
                 x.SupplierId,
                 x.SupplierName,
-                x.Date,
+                x.OrderedAt,
                 x.MenuDate,
                 x.Price,
                 x.Status,
@@ -162,7 +166,7 @@ public class MealOrderRepository : IMealOrderRepository
                 g.Key.MealName,
                 g.Key.SupplierId,
                 g.Key.SupplierName ?? string.Empty,
-                g.Key.Date,
+                g.Key.OrderedAt,
                 g.Key.MenuDate,
                 g.Count(),
                 g.Key.Price,
@@ -191,7 +195,7 @@ public class MealOrderRepository : IMealOrderRepository
                 x.MealName,
                 x.SupplierId,
                 x.SupplierName,
-                x.Date,
+                x.OrderedAt,
                 x.MenuDate,
                 x.Price,
                 x.Status,
@@ -202,7 +206,7 @@ public class MealOrderRepository : IMealOrderRepository
                 g.Key.MealName,
                 g.Key.SupplierId,
                 g.Key.SupplierName ?? string.Empty,
-                g.Key.Date,
+                g.Key.OrderedAt,
                 g.Key.MenuDate,
                 g.Count(),
                 g.Key.Price,
@@ -222,18 +226,14 @@ public class MealOrderRepository : IMealOrderRepository
         DateTime? startDate = null,
         DateTime? endDate = null,
         bool includeDeleted = false,
+        MealOrderStatus? status = null,
         CancellationToken cancellationToken = default)
     {
         IQueryable<OrderJoinRow> query = BuildBaseQuery(userId, includeDeleted);
-        query = ApplyFilters(query, supplierId, startDate, endDate);
-
-        if (includeDeleted)
-        {
-            query = query.IgnoreQueryFilters();
-        }
+        query = ApplyFilters(query, supplierId, startDate, endDate, status);
 
         return await query
-            .OrderBy(x => x.Date)
+            .OrderBy(x => x.OrderedAt)
             .Select(x => new UserOrderItem(
                 x.OrderId,
                 x.UserId,
@@ -241,14 +241,14 @@ public class MealOrderRepository : IMealOrderRepository
                 x.MealName,
                 x.SupplierId,
                 x.SupplierName ?? string.Empty,
-                x.Date,
+                x.OrderedAt,
                 x.MenuDate,
                 x.Price,
                 x.Status.ToString(),
-                x.PortionApplied,                         // New
+                x.PortionApplied,
                 x.IsDeleted,
-                x.PortionAmount,                          // New
-                Math.Max(0m, x.Price - (x.PortionApplied ? x.PortionAmount : 0m)) // NetAmount
+                x.PortionAmount,
+                Math.Max(0m, x.Price - (x.PortionApplied ? x.PortionAmount : 0m))
             ))
             .ToListAsync(cancellationToken);
     }
@@ -260,13 +260,14 @@ public class MealOrderRepository : IMealOrderRepository
         DateTime? endDate,
         bool includeDeleted,
         bool onlyDeleted,
+        MealOrderStatus? status = null,
         CancellationToken cancellationToken = default)
     {
         IQueryable<OrderJoinRow> query = BuildBaseQuery(userId, includeDeleted, onlyDeleted);
-        query = ApplyFilters(query, supplierId, startDate, endDate);
+        query = ApplyFilters(query, supplierId, startDate, endDate, status);
 
         return await query
-            .OrderBy(x => x.Date)
+            .OrderBy(x => x.OrderedAt)
             .Select(x => new UserOrderItem(
                 x.OrderId,
                 x.UserId,
@@ -274,7 +275,7 @@ public class MealOrderRepository : IMealOrderRepository
                 x.MealName,
                 x.SupplierId,
                 x.SupplierName ?? string.Empty,
-                x.Date,
+                x.OrderedAt,
                 x.MenuDate,
                 x.Price,
                 x.Status.ToString(),
@@ -318,14 +319,15 @@ public class MealOrderRepository : IMealOrderRepository
 
         return await query
             .Where(x => x.PaymentStatus == PaymentStatus.Unpaid)
-            .OrderBy(x => x.Date) // oldest first
+            .OrderBy(x => x.OrderedAt) // oldest first
             .Select(x => new UserOrderPaymentItem(
                 x.OrderId,
                 x.MealId,
                 x.MealName,
                 x.SupplierId,
                 x.SupplierName,
-                x.Date,
+                x.OrderedAt,
+                x.MenuDate,
                 x.Price,                  // snapshot price
                 x.PaymentStatus,
                 x.PaidOn,
@@ -375,9 +377,9 @@ public class MealOrderRepository : IMealOrderRepository
             .AnyAsync(mo =>
                 mo.UserId == userId
                 && !mo.IsDeleted
-                && mo.PortionApplied
-                && mo.Date >= start
-                && mo.Date < endExclusive,
+                && mo.PortionApplied,
+                // && mo.Date >= start
+                // && mo.Date < endExclusive,
                 cancellationToken);
     }
 
@@ -392,7 +394,7 @@ public class MealOrderRepository : IMealOrderRepository
         public string MealName { get; init; } = string.Empty;
         public Guid SupplierId { get; init; }
         public string SupplierName { get; init; } = string.Empty;
-        public DateTime Date { get; init; }
+        public DateTime OrderedAt { get; init; }
         public DateTime MenuDate { get; init; }
         public decimal Price { get; init; }
         public MealOrderStatus Status { get; init; }

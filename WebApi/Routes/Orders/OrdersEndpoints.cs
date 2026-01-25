@@ -84,14 +84,14 @@ public static class OrdersEndpoints
                         }
 
                         logger.LogInformation(
-                            "Processing order item: Meal {MealId} ({MealName}), Quantity {Quantity}, Date {Date}, Price {Price}",
+                            "Processing order item: Meal {MealId} ({MealName}), Quantity {Quantity}, Date at {OrderedAt}, Price {Price}",
                             meal.Id,
                             meal.Name,
                             item.Quantity,
-                            item.Date,
+                            item.OrderedAt,
                             meal.Price.Amount);
 
-                        DateOnly dateOnly = DateOnly.FromDateTime(item.Date);
+                        DateOnly dateOnly = DateOnly.FromDateTime(item.OrderedAt);
 
                         bool alreadyAppliedToday = await orderRepository.HasPortionAppliedOnDateAsync(
                             user.Id, dateOnly, cancellationToken);
@@ -174,11 +174,11 @@ public static class OrdersEndpoints
                     }
 
                     logger.LogInformation(
-                        "Order {OrderId} retrieved successfully: UserId {UserId}, MealId {MealId}, Date {Date}, Status {Status}",
+                        "Order {OrderId} retrieved successfully: UserId {UserId}, MenuDateMealId {MealId}, OrderedAt {OrderedAt}, Status {Status}",
                         order.Id,
                         order.UserId,
                         order.MealId,
-                        order.Date,
+                        order.OrderedAt,
                         order.Status);
 
                     var dto = new
@@ -186,7 +186,7 @@ public static class OrdersEndpoints
                         order.Id,
                         order.UserId,
                         order.MealId,
-                        order.Date,
+                        order.OrderedAt,
                         Status = order.Status.ToString(),
                         Meal = order.Meal is null
                             ? null
@@ -338,6 +338,7 @@ public static class OrdersEndpoints
                 DateTime? startDate,
                 DateTime? endDate,
                 [FromQuery] bool includeDeleted,
+                [FromQuery] string? status,
                 IMealOrderRepository orderRepository,
                 UserManager<ApplicationUser> userManager,
                 HttpContext httpContext,
@@ -354,20 +355,28 @@ public static class OrdersEndpoints
                         return Results.Unauthorized();
                     }
 
+                    MealOrderStatus? orderStatus = null;
+                    if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<MealOrderStatus>(status, true, out MealOrderStatus parsedStatus))
+                    {
+                        orderStatus = parsedStatus;
+                    }
+
                     logger.LogInformation(
-                        "Retrieving order items for user {UserName} ({UserId}) - SupplierId: {SupplierId}, StartDate: {StartDate}, EndDate: {EndDate}, IncludeDeleted: {IncludeDeleted}",
+                        "Retrieving order items for user {UserName} ({UserId}) - SupplierId: {SupplierId}, StartDate: {StartDate}, EndDate: {EndDate}, IncludeDeleted: {IncludeDeleted}, Status: {Status}",
                         user.UserName,
                         user.Id,
                         supplierId?.ToString() ?? "All",
                         startDate?.ToString("yyyy-MM-dd") ?? "None",
                         endDate?.ToString("yyyy-MM-dd") ?? "None",
-                        includeDeleted);
+                        includeDeleted,
+                        orderStatus?.ToString() ?? "All");
 
                     Stopwatch sw = Stopwatch.StartNew();
 
                     IReadOnlyList<UserOrderItem> items =
                         await orderRepository.GetUserOrderItemsAsync(user.Id, supplierId, startDate, endDate,
                             includeDeleted,
+                            orderStatus,
                             cancellationToken);
 
                     List<UserOrderItemDto> userOrderItems = items.Select(mapper.Map<UserOrderItemDto>).ToList();

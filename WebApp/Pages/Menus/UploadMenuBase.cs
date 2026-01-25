@@ -34,6 +34,17 @@ public class UploadMenuBase : ComponentBase
     protected string MenuDateCss => MenuDateIsValid ? "form-control" : "form-control is-invalid border border-red-500";
     protected DateTime TomorrowDate => DateTime.Today.AddDays(1);
 
+    // Add supplier name properties
+    protected string? SelectedSupplierName =>
+        SelectedSupplierId.HasValue
+            ? Suppliers.FirstOrDefault(s => s.Id == SelectedSupplierId.Value)?.Name
+            : null;
+
+    protected string? SecondSelectedSupplierName =>
+        SecondSelectedSupplierId.HasValue
+            ? Suppliers.FirstOrDefault(s => s.Id == SecondSelectedSupplierId.Value)?.Name
+            : null;
+
     protected override async Task OnInitializedAsync()
     {
         Suppliers = (await _supplierDataService.GetAllSuppliersAsync()).ToList();
@@ -81,7 +92,6 @@ public class UploadMenuBase : ComponentBase
                 .Select(m => m)
                 .ToList()
                 .AsReadOnly();
-            ;
         }
         catch (Exception ex)
         {
@@ -165,7 +175,7 @@ public class UploadMenuBase : ComponentBase
 
         if (!MenuDateIsValid)
         {
-            var tomorrow = TomorrowDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            string tomorrow = TomorrowDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
             await ShowPopupAsync("Error", $"Menu date must be tomorrow ({tomorrow}).", "error");
             return;
         }
@@ -174,7 +184,7 @@ public class UploadMenuBase : ComponentBase
         {
             CreateMenuDto menu = new(SelectedSupplierId.Value, MenuDate.Value, Meals.ToList());
             await _menuDataService.AddMenuAsync(menu);
-            const string message = "Menu saved successfully!";
+            string message = "Menu saved successfully!";
             await ShowPopupAsync("Success!", message, "success");
             SuccessMessage = message;
 
@@ -210,5 +220,4 @@ public class UploadMenuBase : ComponentBase
             await ToastInstance.ShowAsync(title, message, icon);
         }
     }
-
 }

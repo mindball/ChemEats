@@ -5,7 +5,7 @@ public sealed record UserOrderDto(
     string MealName,
     Guid SupplierId,
     string SupplierName,
-    DateTime Date,
+    DateTime OrderedAt,
     DateTime MenuDate,
     int Quantity,
     decimal Price,

@@ -25,6 +25,7 @@ public interface IMealOrderRepository
         DateTime? startDate = null,
         DateTime? endDate = null,
         bool includeDeleted = false,
+        MealOrderStatus? status = null,
         CancellationToken cancellationToken = default);
 
     //when create admin panel then admin must see delete orders 
@@ -44,6 +45,7 @@ public interface IMealOrderRepository
         DateTime? endDate = null,
         bool includeDeleted = false,
         bool onlyDeleted = false,
+        MealOrderStatus? status = null,
         CancellationToken cancellationToken = default);
 
     Task<UserOutstandingSummary> GetUserOutstandingSummaryAsync(

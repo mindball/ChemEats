@@ -218,7 +218,7 @@ else
                                                 <span class="badge text-bg-info ms-2">Pending</span>
                                             }
                                         </div>
-                                        <small class="text-muted">@item.SupplierName — Menu: @FormatBulgarianDate(item.MenuDate) • Order: @FormatBulgarianDate(item.Date) • @item.Status</small>
+                                        <small class="text-muted">@item.SupplierName — Menu date: @FormatBulgarianDate(item.MenuDate) • Order at: @FormatBulgarianDate(item.OrderedAt) • @item.Status</small>
                                     </div>
                                     <div class="text-end">
                                         <div class="fw-bold">@item.Price.ToString("C", CultureInfo.CurrentCulture)</div>
@@ -251,7 +251,7 @@ else
     private async Task OnDeleteOrderItem(UserOrderItemDto item)
     {
         if (!await JSRuntime.InvokeAsync<bool>("confirm",
-            $"Delete order '{item.MealName}' (Menu: {item.MenuDate:dd.MM.yyyy}, Order: {item.Date:dd.MM.yyyy})?"))
+            $"Delete order '{item.MealName}' (Menu: {item.MenuDate:dd.MM.yyyy}, Order: {item.OrderedAt:dd.MM.yyyy})?"))
             return;
 
         bool ok = await DeleteOrderByIdAsync(item.OrderId);

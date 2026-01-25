@@ -11,7 +11,12 @@ public interface IOrderDataService
 
     Task<bool> DeleteOrderAsync(Guid orderId);
 
-    Task<List<UserOrderItemDto>> GetMyOrderItemsAsync(Guid? supplierId = null, DateTime? startDate = null,  DateTime? endDate = null, bool includeDeleted = false);
+    Task<List<UserOrderItemDto>> GetMyOrderItemsAsync(
+        Guid? supplierId = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        bool includeDeleted = false,
+        string? status = null);
 
     Task<List<UserOrderPaymentItemDto>> GetMyUnpaidPaymentsAsync(Guid? supplierId = null);
     Task<UserOutstandingSummaryDto?> GetMyPaymentsSummaryAsync();
@@ -21,3 +26,4 @@ public interface IOrderDataService
 public sealed record PlaceOrdersResponse(int Created, List<Guid> Ids);
 
 
+    

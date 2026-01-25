@@ -17,15 +17,24 @@ public class MyOrdersBase : ComponentBase
     [CascadingParameter] protected Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
 
     protected IReadOnlyList<MenuDto>? Menus { get; private set; }
-    protected List<UserOrderItemDto>? Orders { get; private set; } // Changed: use item DTOs
+    protected List<UserOrderItemDto>? Orders { get; private set; }
 
     protected DateTime? StartDate { get; set; }
     protected DateTime? EndDate { get; set; }
     protected Guid? SelectedSupplierId { get; set; }
+    protected string? SelectedStatus { get; set; }
     protected bool IncludeDeleted { get; set; }
 
     protected string? ErrorMessage { get; private set; }
     protected bool IsLoading { get; private set; }
+
+    protected IEnumerable<string> AvailableStatuses =>
+    [
+        "All",
+        "Pending",
+        "Completed",
+        "Cancelled"
+    ];
 
     protected override async Task OnInitializedAsync()
     {
@@ -44,7 +53,6 @@ public class MyOrdersBase : ComponentBase
 
             Menus = (await MenuDataService.GetAllMenusAsync(true)).ToList();
 
-            // Default to today if there are menus for today
             StartDate = DateTime.Today;
             EndDate = DateTime.Today;
             if (Menus!.All(m => m.Date.Date != StartDate.Value.Date))
@@ -53,7 +61,7 @@ public class MyOrdersBase : ComponentBase
                 EndDate = null;
             }
 
-            // await LoadOrdersAsync();
+            SelectedStatus = "All";
         }
         catch (Exception ex)
         {
@@ -77,7 +85,14 @@ public class MyOrdersBase : ComponentBase
                 (StartDate, EndDate) = (EndDate, StartDate);
             }
 
-            Orders = await OrderDataService.GetMyOrderItemsAsync(SelectedSupplierId, StartDate, EndDate, IncludeDeleted);
+            string? statusFilter = SelectedStatus == "All" ? null : SelectedStatus;
+
+            Orders = await OrderDataService.GetMyOrderItemsAsync(
+                SelectedSupplierId, 
+                StartDate, 
+                EndDate, 
+                IncludeDeleted,
+                statusFilter);
         }
         catch (Exception ex)
         {

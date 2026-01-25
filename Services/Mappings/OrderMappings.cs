@@ -30,7 +30,7 @@ public class OrderMappings : IRegister
         var userId = userIdObj as string
                      ?? throw new ArgumentException("Mapping parameter 'userId' must be a string.");
 
-        return MealOrder.Create(userId, src.MealId, src.Date, 0);
+        return MealOrder.Create(userId, src.MealId, src.OrderedAt, 0);
     }
 
     private static PaymentStatusDto MapPaymentStatus(PaymentStatus status)
