@@ -103,6 +103,9 @@ namespace WebApi.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("VARCHAR(36)");
 
+                    b.Property<DateTime>("ActiveUntil")
+                        .HasColumnType("TIMESTAMP");
+
                     b.Property<DateTime>("Date")
                         .HasColumnType("TIMESTAMP");
 
@@ -119,9 +122,16 @@ namespace WebApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SupplierId");
+                    b.HasIndex("Date")
+                        .HasDatabaseName("IX_Menus_Date");
 
-                    b.ToTable("Menus");
+                    b.HasIndex("IsDeleted")
+                        .HasDatabaseName("IX_Menus_IsDeleted");
+
+                    b.HasIndex("SupplierId", "Date")
+                        .HasDatabaseName("IX_Menus_SupplierId_Date");
+
+                    b.ToTable("Menus", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Supplier", b =>

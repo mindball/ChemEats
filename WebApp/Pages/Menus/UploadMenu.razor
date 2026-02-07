@@ -1,176 +1,145 @@
 ﻿@page "/upload-menu"
+@using Shared.DTOs.Suppliers
 @inherits UploadMenuBase
 
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0"><i class="bi bi-cloud-upload me-2"></i>Upload Menu</h3>
+    </div>
 
-<Toast @ref="ToastRef" />
-
-@if (Suppliers.Count == 0)
-{
-    <p>Loading suppliers...</p>
-}
-else
-{
-    <h3 class="text-xl font-bold mb-4">Upload Menu (CSV)</h3>
-
-    <label class="block mb-2 font-semibold">Select Supplier:</label>
-    <select class="mb-4 px-2 py-1 border rounded" @bind="SelectedSupplierId">
-        <option value="">-- Select Supplier --</option>
-        @foreach (var supplier in Suppliers)
-        {
-            <option value="@supplier.Id">@supplier.Name</option>
-        }
-    </select>
-
-    @if (SelectedSupplierId != Guid.Empty)
+    @if (IsLoading)
     {
-        <div class="mb-4">
-            <label class="block font-semibold">Primary Menu File:</label>
-            <InputFile OnChange="HandleFileSelected" />
-        </div>
-
-        <div class="row mb-4">
-            <div class="col-2">
-                <input type="date"
-                       class="@MenuDateCss"
-                       @bind="MenuDate"
-                       @bind:format="yyyy-MM-dd"
-                       @bind:after="ValidateMenuDate" />
-                @if (!MenuDateIsValid)
-                {
-                    <div class="invalid-feedback d-block text-red-600 text-sm mt-1">
-                        @MenuDateError
-                    </div>
-                }
+        <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
             </div>
         </div>
-
-        <div class="mb-4 flex items-center">
-            <input type="checkbox" id="addSecondMenu" @bind="ShowSecondMenu" class="mr-2" />
-            <label for="addSecondMenu">Add another menu</label>
+    }   
+    else if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@ErrorMessage
+            <button type="button" class="btn-close" @onclick="@(() => ErrorMessage = null)"></button>
         </div>
+    }
+    else if (!string.IsNullOrEmpty(SuccessMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@SuccessMessage
+            <button type="button" class="btn-close" @onclick="@(() => SuccessMessage = null)"></button>
+        </div>
+    }
 
-        @if (ShowSecondMenu)
-        {
-            <label class="block mb-2 font-semibold">Select Supplier for Second Menu:</label>
-            <select class="mb-4 px-2 py-1 border rounded" @bind="SecondSelectedSupplierId">
-                <option value="">-- Select Supplier --</option>
-                @foreach (var supplier in Suppliers)
-                {
-                    <option value="@supplier.Id">@supplier.Name</option>
-                }
-            </select>
+    <div class="card">
+        <div class="card-body">
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">
+                        <i class="bi bi-shop me-1"></i>Supplier <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" @bind="SelectedSupplierId">
+                        <option value="">Select supplier...</option>
+                        @foreach (SupplierDto supplier in Suppliers)
+                        {
+                            <option value="@supplier.Id">@supplier.Name</option>
+                        }
+                    </select>
+                </div>
 
-            @if (SecondSelectedSupplierId != Guid.Empty)
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">
+                        <i class="bi bi-calendar-event me-1"></i>Menu Date <span class="text-danger">*</span>
+                    </label>
+                    <input type="date" class="form-control" @bind="SelectedDate" />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">
+                        <i class="bi bi-clock me-1"></i>Active Until <span class="text-danger">*</span>
+                    </label>
+                    <input type="time" class="form-control" 
+                           min="08:00" max="16:00" step="1800"
+                           @bind="ActiveUntilTime" 
+                           @bind:format="HH:mm" />
+                    <div class="form-text">
+                        <i class="bi bi-info-circle me-1"></i>Menu will be active until this time (08:00-16:00)
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-file-earmark-spreadsheet me-2"></i>CSV File Upload</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-upload me-1"></i>Select CSV File <span class="text-danger">*</span>
+                        </label>
+                        <InputFile OnChange="HandleFileSelected" 
+                                   class="form-control" 
+                                   accept=".csv" />
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>Expected format: Name,Price (one meal per line)
+                        </div>
+                    </div>
+
+                    @if (ParsedMeals.Any())
+                    {
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>@ParsedMeals.Count</strong> meal(s) loaded from CSV
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @if (ParsedMeals.Any())
             {
-                <div class="mb-4">
-                    <label class="block font-semibold">Secondary Menu File:</label>
-                    <InputFile OnChange="HandleSecondFileSelected" />
+                <div class="card mb-3">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Parsed Meals Preview</h5>
+                            <span class="badge bg-primary rounded-pill">@ParsedMeals.Count items</span>
+                        </div>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        @foreach (CsvMealRow meal in ParsedMeals)
+                        {
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="bi bi-egg-fried me-2 text-primary"></i>
+                                        <strong>@meal.Name</strong>
+                                    </div>
+                                    <span class="badge bg-success">@meal.Price.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
+                                </div>
+                            </li>
+                        }
+                    </ul>
                 </div>
             }
-        }
-    }
 
-    @if (Meals?.Any() == true)
-    {
-        <h4 class="font-semibold mt-4">
-            Primary Menu Preview
-            @if (!string.IsNullOrEmpty(SelectedSupplierName))
-            {
-                <span class="text-blue-600"> - @SelectedSupplierName</span>
-            }
-        </h4>
-        <table class="table-auto border-collapse border border-gray-400 mt-2">
-            <thead>
-                <tr class="bg-gray-200">
-                    <th class="border border-gray-400 px-2 py-1">Meal Name</th>
-                    <th class="border border-gray-400 px-2 py-1">Price</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (CreateMealDto item in Meals)
-                {
-                    <tr>
-                        <td class="border border-gray-400 px-2 py-1">@item.Name</td>
-                        <td class="border border-gray-400 px-2 py-1">@item.Price</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-
-    @if (ShowSecondMenu && SecondMeals?.Any() == true)
-    {
-        <h4 class="font-semibold mt-4">
-            Secondary Menu Preview
-            @if (!string.IsNullOrEmpty(SecondSelectedSupplierName))
-            {
-                <span class="text-blue-600"> - @SecondSelectedSupplierName</span>
-            }
-        </h4>
-        <table class="table-auto border-collapse border border-gray-400 mt-2">
-            <thead>
-                <tr class="bg-gray-200">
-                    <th class="border border-gray-400 px-2 py-1">Meal Name</th>
-                    <th class="border border-gray-400 px-2 py-1">Price</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (CreateMealDto item in SecondMeals)
-                {
-                    <tr>
-                        <td class="border border-gray-400 px-2 py-1">@item.Name</td>
-                        <td class="border border-gray-400 px-2 py-1">@item.Price</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-
-    @if ((Meals?.Any() == true || (ShowSecondMenu && SecondMeals?.Any() == true))
-                 && SelectedSupplierId != Guid.Empty
-                 && (!ShowSecondMenu || SecondSelectedSupplierId != Guid.Empty))
-    {
-        <button class="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
-                @onclick="ConfirmAndSaveAsync"
-                disabled="@(!MenuDateIsValid)">
-            Save Menus
-        </button>
-    }
-    else
-    {
-        <p class="text-gray-600 mt-2">Please select a supplier to upload menus.</p>
-    }
-
-    @if (!string.IsNullOrEmpty(SuccessMessage))
-    {
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 text-center" role="alert">
-            <strong>Success:</strong> @SuccessMessage
+            <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-secondary px-4" @onclick="ResetForm">
+                    <i class="bi bi-x-circle me-2"></i>Reset
+                </button>
+                <button type="button" 
+                        class="btn btn-primary px-4" 
+                        @onclick="HandleUploadAsync"
+                        disabled="@IsSubmitting">
+                    @if (IsSubmitting)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        <span>Uploading...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-cloud-upload me-2"></i>
+                        <span>Upload Menu</span>
+                    }
+                </button>
+            </div>
         </div>
-    }
-    @if (!string.IsNullOrEmpty(ErrorMessage))
-    {
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-center" role="alert">
-            <strong>Error:</strong> @ErrorMessage
-        </div>
-    }
-}
-
-@code {
-    private Toast? ToastRef;
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (firstRender && ToastRef != null)
-        {
-            ToastInitialized(ToastRef);
-        }
-    }
-
-    private async Task ConfirmAndSaveAsync()
-    {
-        if (!await JSRuntime.InvokeAsync<bool>("confirm", $"Save menu for {MenuDate:yyyy-MM-dd}?"))
-            return;
-
-        await SaveMenusAsync();
-    }
-}
+    </div>
+</div>

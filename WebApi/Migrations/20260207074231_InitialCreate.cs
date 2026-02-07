@@ -186,6 +186,7 @@ namespace WebApi.Migrations
                     Id = table.Column<string>(type: "VARCHAR(36)", nullable: false),
                     SupplierId = table.Column<string>(type: "VARCHAR(36)", nullable: false),
                     Date = table.Column<DateTime>(type: "TIMESTAMP", nullable: false),
+                    ActiveUntil = table.Column<DateTime>(type: "TIMESTAMP", nullable: false),
                     RegisterDate = table.Column<DateTime>(type: "TIMESTAMP", nullable: false),
                     IsDeleted = table.Column<bool>(type: "BOOLEAN", nullable: false, defaultValue: false)
                 },
@@ -227,8 +228,8 @@ namespace WebApi.Migrations
                     Id = table.Column<string>(type: "VARCHAR(36)", nullable: false),
                     UserId = table.Column<string>(type: "VARCHAR(256)", nullable: false),
                     MealId = table.Column<string>(type: "VARCHAR(36)", nullable: false),
-                    Date = table.Column<DateTime>(type: "TIMESTAMP", nullable: false),
-                    RegisterDate = table.Column<DateTime>(type: "TIMESTAMP", nullable: false),
+                    MenuDate = table.Column<DateTime>(type: "TIMESTAMP", nullable: false),
+                    OrderedAt = table.Column<DateTime>(type: "TIMESTAMP", nullable: false),
                     Status = table.Column<int>(type: "INTEGER", nullable: false),
                     PaymentStatus = table.Column<int>(type: "INTEGER", nullable: false, defaultValue: 0),
                     PaidOn = table.Column<DateTime>(type: "TIMESTAMP", nullable: true),
@@ -292,9 +293,19 @@ namespace WebApi.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_MealOrders_IsDeleted",
+                table: "MealOrders",
+                column: "IsDeleted");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_MealOrders_MealId",
                 table: "MealOrders",
                 column: "MealId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MealOrders_MenuDate",
+                table: "MealOrders",
+                column: "MenuDate");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MealOrders_PaymentStatus",
@@ -312,9 +323,19 @@ namespace WebApi.Migrations
                 column: "MenuId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Menus_SupplierId",
+                name: "IX_Menus_Date",
                 table: "Menus",
-                column: "SupplierId");
+                column: "Date");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Menus_IsDeleted",
+                table: "Menus",
+                column: "IsDeleted");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Menus_SupplierId_Date",
+                table: "Menus",
+                columns: new[] { "SupplierId", "Date" });
         }
 
         /// <inheritdoc />

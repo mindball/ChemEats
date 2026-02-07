@@ -7,6 +7,8 @@ public record MenuDto(
     Guid SupplierId,
     string SupplierName,
     DateTime Date,
-    List<MealDto> Meals,
-    bool IsDeleted
+    DateTime ActiveUntil,
+    bool IsActive,
+    bool IsDeleted,
+    List<MealDto> Meals
 );

@@ -1,13 +1,12 @@
-﻿using CsvHelper;
+﻿using System.Globalization;
+using System.Text;
+using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.JSInterop;
 using Shared.DTOs.Meals;
 using Shared.DTOs.Menus;
 using Shared.DTOs.Suppliers;
-using System.Globalization;
-using WebApp.Components;
 using WebApp.Services.Menus;
 using WebApp.Services.Suppliers;
 
@@ -15,209 +14,194 @@ namespace WebApp.Pages.Menus;
 
 public class UploadMenuBase : ComponentBase
 {
-    [Inject] private ISupplierDataService _supplierDataService { get; init; }
-    [Inject] protected IJSRuntime JSRuntime { get; set; } = null!;
-    [Inject] private IMenuDataService _menuDataService { get; init; }
-    protected IReadOnlyList<CreateMealDto>? Meals { get; private set; }
+    [Inject] protected IMenuDataService MenuService { get; set; } = default!;
+    [Inject] protected ISupplierDataService SupplierService { get; set; } = default!;
+    [Inject] protected NavigationManager Navigation { get; set; } = default!;
 
     protected List<SupplierDto> Suppliers { get; set; } = [];
-    protected Guid? SelectedSupplierId { get; set; }
-    protected bool ShowSecondMenu { get; set; }
-    protected IReadOnlyList<CreateMealDto>? SecondMeals { get; set; }
-    protected Guid? SecondSelectedSupplierId { get; set; }
-    protected DateTime? MenuDate { get; set; }
+    protected List<CsvMealRow> ParsedMeals { get; set; } = [];
+    
+    protected Guid SelectedSupplierId { get; set; }
+    protected DateTime SelectedDate { get; set; } = DateTime.Today.AddDays(1);
+    protected DateTime SelectedActiveUntil { get; set; } = DateTime.Today.AddDays(1).AddHours(12);
+    
+    protected bool IsLoading { get; set; }
+    protected bool IsSubmitting { get; set; }
+    protected string? ErrorMessage { get; set; }
+    protected string? SuccessMessage { get; set; }
 
-    protected string? ErrorMessage { get; private set; }
-    protected string? SuccessMessage { get; private set; }
-    protected string? MenuDateError { get; private set; }
-    protected bool MenuDateIsValid => MenuDate is not null && MenuDate.Value.Date >= TomorrowDate;
-    protected string MenuDateCss => MenuDateIsValid ? "form-control" : "form-control is-invalid border border-red-500";
-    protected DateTime TomorrowDate => DateTime.Today.AddDays(1);
-
-    // Add supplier name properties
-    protected string? SelectedSupplierName =>
-        SelectedSupplierId.HasValue
-            ? Suppliers.FirstOrDefault(s => s.Id == SelectedSupplierId.Value)?.Name
-            : null;
-
-    protected string? SecondSelectedSupplierName =>
-        SecondSelectedSupplierId.HasValue
-            ? Suppliers.FirstOrDefault(s => s.Id == SecondSelectedSupplierId.Value)?.Name
-            : null;
+    protected TimeOnly ActiveUntilTime
+    {
+        get => TimeOnly.FromDateTime(SelectedActiveUntil);
+        set => SelectedActiveUntil = SelectedDate.Date.Add(value.ToTimeSpan());
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        Suppliers = (await _supplierDataService.GetAllSuppliersAsync()).ToList();
+        await LoadSuppliersAsync();
+    }
 
-        // Default to tomorrow to guide users and meet the requirement
-        MenuDate ??= TomorrowDate;
-
-        await base.OnInitializedAsync();
+    protected async Task LoadSuppliersAsync()
+    {
+        try
+        {
+            IsLoading = true;
+            ErrorMessage = null;
+            
+            IEnumerable<SupplierDto> suppliers = await SupplierService.GetAllSuppliersAsync();
+            Suppliers = suppliers.ToList();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to load suppliers: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     protected async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
-        ErrorMessage = null;
-        IBrowserFile file = e.File;
+        IBrowserFile? file = e.File;
+        if (file is null)
+            return;
 
         try
         {
-            await using Stream readStream = file.OpenReadStream(10 * 1024 * 1024);
-            using MemoryStream ms = new();
-            await readStream.CopyToAsync(ms);
-            ms.Position = 0;
-
-            string? firstLine;
-            ms.Position = 0;
-            using (StreamReader sr = new(ms, leaveOpen: true))
-            {
-                firstLine = await sr.ReadLineAsync();
-            }
-
-            string delimiter = firstLine != null && firstLine.Contains(";") ? ";" : ",";
-
-            ms.Position = 0;
-            using StreamReader reader = new(ms, leaveOpen: true);
-            CsvConfiguration config = new(CultureInfo.InvariantCulture)
-            {
-                Delimiter = delimiter,
-                BadDataFound = null,
-                MissingFieldFound = null,
-                HeaderValidated = null,
-                IgnoreBlankLines = true
-            };
-
-            using CsvReader csv = new(reader, config);
-            Meals = csv.GetRecords<CreateMealDto>()
-                .Select(m => m)
-                .ToList()
-                .AsReadOnly();
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Failed to read CSV file: {ex.Message}";
-            Meals = null;
-        }
-    }
-
-    protected async Task HandleSecondFileSelected(InputFileChangeEventArgs e)
-    {
-        ErrorMessage = null;
-        IBrowserFile file = e.File;
-
-        try
-        {
-            await using Stream readStream = file.OpenReadStream(10 * 1024 * 1024);
-            using MemoryStream ms = new();
-            await readStream.CopyToAsync(ms);
-            ms.Position = 0;
-
-            string? firstLine;
-            ms.Position = 0;
-            using (StreamReader sr = new(ms, leaveOpen: true))
-            {
-                firstLine = await sr.ReadLineAsync();
-            }
-
-            string delimiter = firstLine != null && firstLine.Contains(';') ? ";" : ",";
-
-            ms.Position = 0;
-            using StreamReader reader = new(ms, leaveOpen: true);
-            CsvConfiguration config = new(CultureInfo.InvariantCulture)
-            {
-                Delimiter = delimiter,
-                BadDataFound = null,
-                MissingFieldFound = null,
-                HeaderValidated = null,
-                IgnoreBlankLines = true
-            };
-
-            using CsvReader csv = new(reader, config);
-            SecondMeals = csv.GetRecords<CreateMealDto>().ToList().AsReadOnly();
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Failed to read secondary CSV file: {ex.Message}";
-            SecondMeals = null;
-        }
-    }
-
-    // Runs on date change to set error state
-    protected Task ValidateMenuDate()
-    {
-        string tomorrow = TomorrowDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-        MenuDateError = MenuDateIsValid
-            ? null
-            : $"Menu date must be tomorrow or greater than tomorrow ({tomorrow}).";
-        StateHasChanged();
-        return Task.CompletedTask;
-    }
-
-    protected async Task SaveMenusAsync()
-    {
-        if (!SelectedSupplierId.HasValue)
-        {
-            await ShowPopupAsync("Error", "Please choose a supplier before saving.", "error");
-            return;
-        }
-
-        if (Meals is null || !Meals.Any())
-        {
-            await ShowPopupAsync("Error", "Please add at least one meal before saving.", "warning");
-            return;
-        }
-
-        if (MenuDate is null)
-        {
-            await ShowPopupAsync("Error", "Please select a menu date.", "error");
-            return;
-        }
-
-        if (!MenuDateIsValid)
-        {
-            string tomorrow = TomorrowDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-            await ShowPopupAsync("Error", $"Menu date must be tomorrow ({tomorrow}).", "error");
-            return;
-        }
-
-        try
-        {
-            CreateMenuDto menu = new(SelectedSupplierId.Value, MenuDate.Value, Meals.ToList());
-            await _menuDataService.AddMenuAsync(menu);
-            string message = "Menu saved successfully!";
-            await ShowPopupAsync("Success!", message, "success");
-            SuccessMessage = message;
-
-            // Reset UI state to prevent repeated saves and let edits happen in ViewMenu
-            Meals = null;
-            SecondMeals = null;
-            ShowSecondMenu = false;
-            SecondSelectedSupplierId = null;
-            SelectedSupplierId = null;
-            MenuDate = TomorrowDate;
-            MenuDateError = null;
             ErrorMessage = null;
+            SuccessMessage = null;
+            ParsedMeals.Clear();
 
-            await InvokeAsync(StateHasChanged);
+            const long maxFileSize = 5 * 1024 * 1024;
+            
+            await using Stream stream = file.OpenReadStream(maxFileSize);
+            using MemoryStream memoryStream = new();
+            await stream.CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
+            
+            using StreamReader reader = new(memoryStream, Encoding.UTF8);
+            
+            CsvConfiguration config = new(CultureInfo.InvariantCulture)
+            {
+                HasHeaderRecord = true,
+                Delimiter = ";",
+                TrimOptions = TrimOptions.Trim,
+                MissingFieldFound = null,
+                BadDataFound = null
+            };
+
+            using CsvReader csv = new(reader, config);
+            csv.Context.RegisterClassMap<CsvMealRowMap>();
+            
+            List<CsvMealRow> records = csv.GetRecords<CsvMealRow>().ToList();
+            
+            if (!records.Any())
+            {
+                ErrorMessage = "CSV file is empty or invalid format.";
+                return;
+            }
+
+            ParsedMeals = records;
+            SuccessMessage = $"Successfully loaded {ParsedMeals.Count} meal(s) from CSV.";
         }
         catch (Exception ex)
         {
-            await ShowPopupAsync("Error", $"Failed to save menu: {ex.Message}", "error");
+            ErrorMessage = $"Failed to parse CSV file: {ex.Message}";
+            ParsedMeals.Clear();
         }
     }
 
-    protected Toast? ToastInstance;
-
-    protected void ToastInitialized(Toast toast)
+    protected void ResetForm()
     {
-        ToastInstance = toast;
+        SelectedSupplierId = Guid.Empty;
+        SelectedDate = DateTime.Today.AddDays(1);
+        SelectedActiveUntil = DateTime.Today.AddDays(1).AddHours(12);
+        ParsedMeals.Clear();
+        ErrorMessage = null;
+        SuccessMessage = null;
     }
 
-    protected async Task ShowPopupAsync(string title, string message, string icon)
+    protected async Task HandleUploadAsync()
     {
-        if (ToastInstance is not null)
+        try
         {
-            await ToastInstance.ShowAsync(title, message, icon);
+            IsSubmitting = true;
+            ErrorMessage = null;
+            SuccessMessage = null;
+
+            if (SelectedSupplierId == Guid.Empty)
+            {
+                ErrorMessage = "Please select a supplier.";
+                return;
+            }
+
+            if (!ParsedMeals.Any())
+            {
+                ErrorMessage = "Please upload a CSV file with meals.";
+                return;
+            }
+
+            if (ParsedMeals.Any(m => string.IsNullOrWhiteSpace(m.Name)))
+            {
+                ErrorMessage = "All meals must have a name.";
+                return;
+            }
+
+            if (ParsedMeals.Any(m => m.Price <= 0))
+            {
+                ErrorMessage = "All meals must have a price greater than 0.";
+                return;
+            }
+
+            DateTime activeUntil = SelectedDate.Date.Add(SelectedActiveUntil.TimeOfDay);
+
+            List<CreateMealDto> mealDtos = ParsedMeals
+                .Select(m => new CreateMealDto(m.Name, m.Price))
+                .ToList();
+
+            CreateMenuDto dto = new(
+                SelectedSupplierId,
+                SelectedDate,
+                activeUntil,
+                mealDtos
+            );
+
+            MenuDto? result = await MenuService.AddMenuAsync(dto);
+
+            if (result is not null)
+            {
+                SuccessMessage = $"Menu uploaded successfully! {ParsedMeals.Count} meal(s) added. Active until {result.ActiveUntil:HH:mm}";
+                ResetForm();
+                
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/menus");
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsSubmitting = false;
+        }
+    }
+
+    public class CsvMealRow
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+    }
+
+    public sealed class CsvMealRowMap : ClassMap<CsvMealRow>
+    {
+        public CsvMealRowMap()
+        {
+            Map(m => m.Id).Index(0).Name("Id");
+            Map(m => m.Name).Index(1).Name("Name");
+            Map(m => m.Price).Index(2).Name("Price");
         }
     }
 }

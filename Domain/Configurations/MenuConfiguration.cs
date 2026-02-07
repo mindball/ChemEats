@@ -8,6 +8,8 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
 {
     public void Configure(EntityTypeBuilder<Menu> builder)
     {
+        builder.ToTable("Menus");
+
         builder.HasKey(m => m.Id);
 
         builder.Property(m => m.Id)
@@ -23,8 +25,13 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
 
         builder.Property(m => m.Date)
             .IsRequired();
-      
-        builder.Property(mo => mo.RegisterDate)
+
+        builder.Property(m => m.RegisterDate)
+            .HasColumnType("TIMESTAMP")
+            .IsRequired();
+
+        builder.Property(m => m.ActiveUntil)
+            .HasColumnType("TIMESTAMP")
             .IsRequired();
 
         builder.Property(m => m.IsDeleted)
@@ -35,6 +42,15 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
             .WithOne(m => m.Menu)
             .HasForeignKey(m => m.MenuId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(m => new { m.SupplierId, m.Date })
+            .HasDatabaseName("IX_Menus_SupplierId_Date");
+
+        builder.HasIndex(m => m.Date)
+            .HasDatabaseName("IX_Menus_Date");
+
+        builder.HasIndex(m => m.IsDeleted)
+            .HasDatabaseName("IX_Menus_IsDeleted");
     }
 }
 

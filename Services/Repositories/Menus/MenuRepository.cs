@@ -7,89 +7,112 @@ namespace Services.Repositories.Menus;
 
 public class MenuRepository : IMenuRepository
 {
-    private readonly AppDbContext _dbContext;
-        
-    public MenuRepository(AppDbContext dbContext)
+    private readonly AppDbContext _context;
+
+    public MenuRepository(AppDbContext context)
     {
-        _dbContext = dbContext;
+        _context = context;
     }
+
     public async Task<Menu?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        return await _dbContext.Menus
+        return await _context.Menus
             .Include(m => m.Supplier)
             .Include(m => m.Meals)
             .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
     }
 
-    public async Task<IEnumerable<Menu>> GetAllAsync(bool includeDeleted = false, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Menu>> GetAllAsync(bool includeDeleted = false, CancellationToken cancellationToken = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        IQueryable<Menu> query = _context.Menus
+            .Include(m => m.Supplier)
+            .Include(m => m.Meals);
 
-        IQueryable<Menu> query = _dbContext.Menus
+        if (!includeDeleted)
+            query = query.Where(m => !m.IsDeleted);
+
+        return await query
+            .OrderByDescending(m => m.Date)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Menu>> GetBySupplierAsync(Guid supplierId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Menus
             .Include(m => m.Supplier)
             .Include(m => m.Meals)
-            .AsNoTracking();
+            .Where(m => m.SupplierId == supplierId && !m.IsDeleted)
+            .OrderByDescending(m => m.Date)
+            .ToListAsync(cancellationToken);
+    }
 
-        if (includeDeleted)
-        {
-            query = query.IgnoreQueryFilters();
-        }
+    public async Task<IReadOnlyList<Menu>> GetActiveMenusAsync(CancellationToken cancellationToken = default)
+    {
+        DateTime now = DateTime.Now;
+        DateTime today = DateTime.Today;
 
-        return await query.ToListAsync(cancellationToken);
+        return await _context.Menus
+            .Include(m => m.Supplier)
+            .Include(m => m.Meals)
+            .Where(m => !m.IsDeleted && 
+                       m.Date.Date == today && 
+                       m.ActiveUntil >= now)
+            .OrderBy(m => m.ActiveUntil)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Menu?> GetBySupplierAndDateAsync(Guid supplierId, DateTime date, CancellationToken cancellationToken = default)
+    {
+        return await _context.Menus
+            .Include(m => m.Supplier)
+            .Include(m => m.Meals)
+            .FirstOrDefaultAsync(
+                m => m.SupplierId == supplierId && 
+                     m.Date.Date == date.Date && 
+                     !m.IsDeleted,
+                cancellationToken);
     }
 
     public async Task AddAsync(Menu menu, CancellationToken cancellationToken = default)
     {
-        await _dbContext.Menus.AddAsync(menu, cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await _context.Menus.AddAsync(menu, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<bool> UpdateDateAsync(Guid menuId, DateTime newDate, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(Menu menu, CancellationToken cancellationToken = default)
     {
-        Menu? menu = await _dbContext.Menus.FirstOrDefaultAsync(x => x.Id == menuId, cancellationToken);
-        if (menu is null) return false;
-
-        menu.UpdateDate(newDate);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-        return true;
+        _context.Menus.Update(menu);
+        await _context.SaveChangesAsync(cancellationToken);
     }
-    //
-    // public async Task<bool> DeactivateAsync(Guid menuId, CancellationToken cancellationToken = default)
-    // {
-    //     var menu = await _dbContext.Menus.FirstOrDefaultAsync(x => x.Id == menuId, cancellationToken);
-    //     if (menu is null) return false;
-    //
-    //
-    //     // Cancel all MealOrders for this menu’s date
-    //     await _dbContext.MealOrders
-    //         .Where(o => o.Date.Date == menu.Date.Date && !o.IsDeleted)
-    //         .ForEachAsync(o => o.Cancel(), cancellationToken);
-    //
-    //     await _dbContext.SaveChangesAsync(cancellationToken);
-    //     return true;
-    // }
+
+    public async Task<bool> ExistsAsync(Guid supplierId, DateTime date, CancellationToken cancellationToken = default)
+    {
+        return await _context.Menus
+            .AnyAsync(
+                m => m.SupplierId == supplierId && 
+                     m.Date.Date == date.Date && 
+                     !m.IsDeleted,
+                cancellationToken);
+    }
 
     public async Task<bool> SoftDeleteAsync(Guid menuId, CancellationToken cancellationToken = default)
     {
-        Menu? menu = await _dbContext.Menus
+        Menu? menu = await _context.Menus
             .FirstOrDefaultAsync(x => x.Id == menuId, cancellationToken);
 
         if (menu is null)
             return false;
 
         // Eager load Meal to avoid null navigation
-        List<MealOrder> orders = await _dbContext.MealOrders
+        List<MealOrder> orders = await _context.MealOrders
             .Include(o => o.Meal)
             .Where(o => o.Meal.MenuId == menuId)
             .ToListAsync(cancellationToken);
 
-        menu.EnsureNoPendingNonDeletedOrders(orders);
+        // Use new method that handles pending orders
+        menu.SoftDeleteWithPendingOrders(orders);
 
-        menu.SoftDelete();
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
         return true;
     }
 }
