@@ -90,8 +90,8 @@ public class Menu
 
     private void ValidateActiveUntil()
     {
-        if (ActiveUntil.Date != Date.Date)
-            throw new DomainException("ActiveUntil must be on the same day as the menu date.");
+        if (ActiveUntil.Date != RegisterDate.Date)
+            throw new DomainException("ActiveUntil must be on the same day as the register menu date.");
 
         if (ActiveUntil <= DateTime.Now && Date.Date == DateTime.Today)
             throw new DomainException("ActiveUntil must be in the future for today's menu.");

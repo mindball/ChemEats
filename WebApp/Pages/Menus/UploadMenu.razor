@@ -14,7 +14,7 @@
                 <span class="visually-hidden">Loading...</span>
             </div>
         </div>
-    }   
+    }
     else if (!string.IsNullOrEmpty(ErrorMessage))
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -55,14 +55,14 @@
 
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">
-                        <i class="bi bi-clock me-1"></i>Active Until <span class="text-danger">*</span>
+                        <i class="bi bi-clock me-1"></i>Active Until (Today) <span class="text-danger">*</span>
                     </label>
-                    <input type="time" class="form-control" 
+                    <input type="time" class="form-control"
                            min="08:00" max="16:00" step="1800"
-                           @bind="ActiveUntilTime" 
-                           @bind:format="HH:mm" />
+                           value="@ActiveUntilTimeString"
+                           @onchange="@(e => ActiveUntilTimeString = e.Value?.ToString() ?? "12:00")" />
                     <div class="form-text">
-                        <i class="bi bi-info-circle me-1"></i>Menu will be active until this time (08:00-16:00)
+                        <i class="bi bi-info-circle me-1"></i>Menu will be active until <strong>@ComputedActiveUntil.ToString("dd.MM.yyyy HH:mm")</strong> (Today 08:00-16:00)
                     </div>
                 </div>
             </div>
@@ -76,8 +76,8 @@
                         <label class="form-label fw-semibold">
                             <i class="bi bi-upload me-1"></i>Select CSV File <span class="text-danger">*</span>
                         </label>
-                        <InputFile OnChange="HandleFileSelected" 
-                                   class="form-control" 
+                        <InputFile OnChange="HandleFileSelected"
+                                   class="form-control"
                                    accept=".csv" />
                         <div class="form-text">
                             <i class="bi bi-info-circle me-1"></i>Expected format: Name,Price (one meal per line)
@@ -124,8 +124,8 @@
                 <button type="button" class="btn btn-secondary px-4" @onclick="ResetForm">
                     <i class="bi bi-x-circle me-2"></i>Reset
                 </button>
-                <button type="button" 
-                        class="btn btn-primary px-4" 
+                <button type="button"
+                        class="btn btn-primary px-4"
                         @onclick="HandleUploadAsync"
                         disabled="@IsSubmitting">
                     @if (IsSubmitting)

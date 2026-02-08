@@ -20,21 +20,53 @@ public class UploadMenuBase : ComponentBase
 
     protected List<SupplierDto> Suppliers { get; set; } = [];
     protected List<CsvMealRow> ParsedMeals { get; set; } = [];
-    
+
     protected Guid SelectedSupplierId { get; set; }
     protected DateTime SelectedDate { get; set; } = DateTime.Today.AddDays(1);
-    protected DateTime SelectedActiveUntil { get; set; } = DateTime.Today.AddDays(1).AddHours(12);
-    
+
     protected bool IsLoading { get; set; }
     protected bool IsSubmitting { get; set; }
     protected string? ErrorMessage { get; set; }
     protected string? SuccessMessage { get; set; }
 
+    private string _activeUntilTimeString = "12:00";
+
+    protected string ActiveUntilTimeString
+    {
+        get => _activeUntilTimeString;
+        set
+        {
+            _activeUntilTimeString = value;
+            StateHasChanged();
+        }
+    }
+
     protected TimeOnly ActiveUntilTime
     {
-        get => TimeOnly.FromDateTime(SelectedActiveUntil);
-        set => SelectedActiveUntil = SelectedDate.Date.Add(value.ToTimeSpan());
+        get
+        {
+            string[] formats = ["HH:mm", "HH:mm:ss", "H:mm", "H:mm:ss"];
+
+            if (TimeOnly.TryParseExact(
+                _activeUntilTimeString,
+                formats,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out TimeOnly result))
+            {
+                return result;
+            }
+
+            if (TimeOnly.TryParse(_activeUntilTimeString, CultureInfo.InvariantCulture, out TimeOnly fallbackResult))
+            {
+                return fallbackResult;
+            }
+
+            return new TimeOnly(12, 0);
+        }
     }
+
+    protected DateTime ComputedActiveUntil => DateTime.Today.Add(ActiveUntilTime.ToTimeSpan());
 
     protected override async Task OnInitializedAsync()
     {
@@ -47,7 +79,7 @@ public class UploadMenuBase : ComponentBase
         {
             IsLoading = true;
             ErrorMessage = null;
-            
+
             IEnumerable<SupplierDto> suppliers = await SupplierService.GetAllSuppliersAsync();
             Suppliers = suppliers.ToList();
         }
@@ -72,14 +104,14 @@ public class UploadMenuBase : ComponentBase
             ParsedMeals.Clear();
 
             const long maxFileSize = 5 * 1024 * 1024;
-            
+
             await using Stream stream = file.OpenReadStream(maxFileSize);
             using MemoryStream memoryStream = new();
             await stream.CopyToAsync(memoryStream);
             memoryStream.Position = 0;
-            
+
             using StreamReader reader = new(memoryStream, Encoding.UTF8);
-            
+
             CsvConfiguration config = new(CultureInfo.InvariantCulture)
             {
                 HasHeaderRecord = true,
@@ -91,9 +123,9 @@ public class UploadMenuBase : ComponentBase
 
             using CsvReader csv = new(reader, config);
             csv.Context.RegisterClassMap<CsvMealRowMap>();
-            
+
             List<CsvMealRow> records = csv.GetRecords<CsvMealRow>().ToList();
-            
+
             if (!records.Any())
             {
                 ErrorMessage = "CSV file is empty or invalid format.";
@@ -114,7 +146,7 @@ public class UploadMenuBase : ComponentBase
     {
         SelectedSupplierId = Guid.Empty;
         SelectedDate = DateTime.Today.AddDays(1);
-        SelectedActiveUntil = DateTime.Today.AddDays(1).AddHours(12);
+        _activeUntilTimeString = "12:00";
         ParsedMeals.Clear();
         ErrorMessage = null;
         SuccessMessage = null;
@@ -152,7 +184,23 @@ public class UploadMenuBase : ComponentBase
                 return;
             }
 
-            DateTime activeUntil = SelectedDate.Date.Add(SelectedActiveUntil.TimeOfDay);
+            TimeOnly minTime = new(8, 0);
+            TimeOnly maxTime = new(16, 0);
+            TimeOnly activeTime = ActiveUntilTime;
+
+            if (activeTime < minTime || activeTime > maxTime)
+            {
+                ErrorMessage = $"Active Until time must be between {minTime:HH:mm} and {maxTime:HH:mm}.";
+                return;
+            }
+
+            DateTime activeUntil = ComputedActiveUntil;
+
+            if (activeUntil <= DateTime.Now)
+            {
+                ErrorMessage = "Active Until time must be in the future.";
+                return;
+            }
 
             List<CreateMealDto> mealDtos = ParsedMeals
                 .Select(m => new CreateMealDto(m.Name, m.Price))
@@ -171,7 +219,7 @@ public class UploadMenuBase : ComponentBase
             {
                 SuccessMessage = $"Menu uploaded successfully! {ParsedMeals.Count} meal(s) added. Active until {result.ActiveUntil:HH:mm}";
                 ResetForm();
-                
+
                 await Task.Delay(2000);
                 Navigation.NavigateTo("/menus");
             }
