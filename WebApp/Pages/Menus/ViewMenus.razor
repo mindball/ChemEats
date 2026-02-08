@@ -104,6 +104,9 @@
                                 <th>
                                     <i class="bi bi-calendar3 me-1"></i>Date
                                 </th>
+                                <th>
+                                    <i class="bi bi-clock me-1"></i>Active Until
+                                </th>
                                 <th class="text-start">
                                     <i class="bi bi-egg-fried me-1"></i>Meals
                                 </th>
@@ -118,12 +121,38 @@
                         <tbody>
                             @foreach (MenuDto menu in Menus)
                             {
-                                <tr class="@(menu.IsDeleted ? "table-danger" : "")">
+                                bool isExpired = menu.ActiveUntil < DateTime.Now;
+                                bool isActive = !menu.IsDeleted && !isExpired;
+
+                                <tr class="@(menu.IsDeleted ? "table-danger" : isExpired ? "table-warning" : "")">
                                     <td class="fw-semibold ps-3 @(menu.IsDeleted ? "text-decoration-line-through" : "")">
                                         @menu.SupplierName
                                     </td>
                                     <td class="text-center @(menu.IsDeleted ? "text-decoration-line-through" : "")">
                                         @FormatBulgarianDate(menu.Date)
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <div class="@(menu.IsDeleted ? "text-decoration-line-through" : "")">
+                                                <i class="bi bi-clock me-1"></i>
+                                                <strong>@menu.ActiveUntil.ToString("dd.MM.yyyy HH:mm")</strong>
+                                            </div>
+                                            @if (!menu.IsDeleted)
+                                            {
+                                                @if (isExpired)
+                                                {
+                                                    <span class="badge bg-warning text-dark mt-1">
+                                                        <i class="bi bi-exclamation-triangle me-1"></i>Expired
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-success mt-1">
+                                                        <i class="bi bi-check-circle me-1"></i>Active
+                                                    </span>
+                                                }
+                                            }
+                                        </div>
                                     </td>
                                     <td>
                                         @if (menu.Meals.Any())
