@@ -1,63 +1,187 @@
 @page "/register-supplier"
-
+@using Shared.Common.Enums
 @inherits RegisterSupplierBase
 
 <AuthorizeView>
     <Authorized Context="authContext">
-        <h3 class="text-xl font-bold mb-4">Register Supplier</h3>
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="mb-0"><i class="bi bi-building me-2"></i>Register Supplier</h3>
+            </div>
 
-        <EditForm Model="@supplier" OnValidSubmit="RegisterSupplierAsync">
-            <ChildContent Context="editContext">
-                <DataAnnotationsValidator/>
-                <ValidationSummary/>
-
-                <!-- Supplier Name -->
-                <div class="mb-3">
-                    <label class="form-label" for="supplierName">Supplier Name:</label>
-                    <InputText id="supplierName" class="form-control" @bind-Value="supplier.Name"/>
-                    <ValidationMessage For="@(() => supplier.Name)"/>
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>@ErrorMessage
+                    <button type="button" class="btn-close" @onclick="@(() => ErrorMessage = null)"></button>
                 </div>
-
-                <!-- VAT Number -->
-                <div class="mb-3">
-                    <label class="form-label" for="vatNumber">VAT Number:</label>
-                    <InputText id="vatNumber" class="form-control" @bind-Value="supplier.VatNumber"/>
-                    <ValidationMessage For="@(() => supplier.VatNumber)"/>
+            }
+            else if (!string.IsNullOrEmpty(SuccessMessage))
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>@SuccessMessage
+                    <button type="button" class="btn-close" @onclick="@(() => SuccessMessage = null)"></button>
                 </div>
+            }
 
-                <!-- Payment Terms -->
-                <div class="mb-3">
-                    <label class="form-label" for="paymentTerms">Payment Terms:</label>
-                    <InputSelect id="paymentTerms" class="form-select" @bind-Value="supplier.PaymentTerms">
-                        @foreach (PaymentTermsUI term in Enum.GetValues<PaymentTermsUI>())
-                        {
-                            <option value="@term">@term</option>
-                        }
-                    </InputSelect>
+            <div class="card">
+                <div class="card-body">
+                    <EditForm Model="@supplier" OnSubmit="RegisterSupplierAsync">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="alert alert-danger" />
+
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Basic Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold" for="supplierName">
+                                            <i class="bi bi-building me-1"></i>Supplier Name <span class="text-danger">*</span>
+                                        </label>
+                                        <InputText id="supplierName" 
+                                                   class="form-control" 
+                                                   placeholder="Enter supplier name"
+                                                   @bind-Value="supplier.Name" />
+                                        <ValidationMessage For="@(() => supplier.Name)" />
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold" for="vatNumber">
+                                            <i class="bi bi-receipt me-1"></i>VAT Number <span class="text-danger">*</span>
+                                        </label>
+                                        <InputText id="vatNumber" 
+                                                   class="form-control" 
+                                                   placeholder="e.g., BG123456789"
+                                                   @bind-Value="supplier.VatNumber" />
+                                        <ValidationMessage For="@(() => supplier.VatNumber)" />
+                                    </div>
+
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-semibold" for="paymentTerms">
+                                            <i class="bi bi-credit-card me-1"></i>Payment Terms <span class="text-danger">*</span>
+                                        </label>
+                                        <InputSelect id="paymentTerms" 
+                                                     class="form-select" 
+                                                     @bind-Value="supplier.PaymentTerms">
+                                            @foreach (PaymentTermsUI term in Enum.GetValues<PaymentTermsUI>())
+                                            {
+                                                <option value="@term">@term</option>
+                                            }
+                                        </InputSelect>
+                                        <ValidationMessage For="@(() => supplier.PaymentTerms)" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="bi bi-telephone me-2"></i>Contact Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold" for="email">
+                                            <i class="bi bi-envelope me-1"></i>Email
+                                        </label>
+                                        <InputText id="email" 
+                                                   class="form-control" 
+                                                   type="email"
+                                                   placeholder="supplier@example.com"
+                                                   @bind-Value="supplier.Email" />
+                                        <ValidationMessage For="@(() => supplier.Email)" />
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold" for="phone">
+                                            <i class="bi bi-phone me-1"></i>Phone
+                                        </label>
+                                        <InputText id="phone" 
+                                                   class="form-control" 
+                                                   placeholder="+359 XXX XXX XXX"
+                                                   @bind-Value="supplier.Phone" />
+                                        <ValidationMessage For="@(() => supplier.Phone)" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="bi bi-geo-alt me-2"></i>Address Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-semibold" for="streetAddress">
+                                            <i class="bi bi-signpost me-1"></i>Street Address
+                                        </label>
+                                        <InputText id="streetAddress" 
+                                                   class="form-control" 
+                                                   placeholder="Street name and number"
+                                                   @bind-Value="supplier.StreetAddress" />
+                                        <ValidationMessage For="@(() => supplier.StreetAddress)" />
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold" for="city">
+                                            <i class="bi bi-building me-1"></i>City
+                                        </label>
+                                        <InputText id="city" 
+                                                   class="form-control" 
+                                                   placeholder="e.g., Sofia"
+                                                   @bind-Value="supplier.City" />
+                                        <ValidationMessage For="@(() => supplier.City)" />
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold" for="postalCode">
+                                            <i class="bi bi-mailbox me-1"></i>Postal Code
+                                        </label>
+                                        <InputText id="postalCode" 
+                                                   class="form-control" 
+                                                   placeholder="e.g., 1000"
+                                                   @bind-Value="supplier.PostalCode" />
+                                        <ValidationMessage For="@(() => supplier.PostalCode)" />
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold" for="country">
+                                            <i class="bi bi-globe me-1"></i>Country
+                                        </label>
+                                        <InputText id="country" 
+                                                   class="form-control" 
+                                                   placeholder="e.g., Bulgaria"
+                                                   @bind-Value="supplier.Country" />
+                                        <ValidationMessage For="@(() => supplier.Country)" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary px-4" @onclick="ResetForm">
+                                <i class="bi bi-x-circle me-2"></i>Reset
+                            </button>
+                            <button type="submit" class="btn btn-primary px-4" disabled="@IsSubmitting">
+                                @if (IsSubmitting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                    <span>Registering...</span>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-check-circle me-2"></i>
+                                    <span>Register Supplier</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
                 </div>
-
-                <button type="submit" class="btn btn-primary" disabled="@IsSubmitting">
-                    @if (IsSubmitting)
-                    {
-                        <span>Registering...</span>
-                    }
-                    else
-                    {
-                        <span>Register Supplier</span>
-                    }
-                </button>
-            </ChildContent>
-
-        </EditForm>
-
-        @if (!string.IsNullOrEmpty(SuccessMessage))
-        {
-            <p class="text-success mt-2">@SuccessMessage</p>
-        }
-        @if (!string.IsNullOrEmpty(ErrorMessage))
-        {
-            <p class="text-danger mt-2">@ErrorMessage</p>
-        }
+            </div>
+        </div>
     </Authorized>
     <NotAuthorized>
         <RedirectToLogin />

@@ -14,9 +14,9 @@ namespace WebApp.Pages.Menus;
 
 public class UploadMenuBase : ComponentBase
 {
-    [Inject] protected IMenuDataService MenuService { get; set; } = default!;
-    [Inject] protected ISupplierDataService SupplierService { get; set; } = default!;
-    [Inject] protected NavigationManager Navigation { get; set; } = default!;
+    [Inject] protected IMenuDataService MenuService { get; set; } = null!;
+    [Inject] protected ISupplierDataService SupplierService { get; set; } = null!;
+    [Inject] protected NavigationManager Navigation { get; set; } = null!;
 
     protected List<SupplierDto> Suppliers { get; set; } = [];
     protected List<CsvMealRow> ParsedMeals { get; set; } = [];
@@ -64,8 +64,6 @@ public class UploadMenuBase : ComponentBase
     protected async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
         IBrowserFile? file = e.File;
-        if (file is null)
-            return;
 
         try
         {

@@ -3,247 +3,293 @@
 @using Shared.DTOs.Orders
 @inherits OrderMealsBase
 
-<h3 class="mb-3"><i class="bi bi-cart-fill me-2"></i>Order Meals</h3>
-
-@if (IsLoading)
-{
-    <p>Loading menus...</p>
-}
-else if (ErrorMessage is not null)
-{
-    <div class="alert alert-danger">@ErrorMessage</div>
-}
-else if (Menus is null || !Menus.Any())
-{
-    <p>No menus available.</p>
-}
-else
-{
-    <div class="row mb-3">
-        <div class="col-md-4">
-            <label class="form-label">Filter by Date</label>
-            <input type="date" class="form-control"
-                   @bind="FilterDate"
-                   @bind:format="yyyy-MM-dd" />
-        </div>
-        <div class="col-md-4">
-            <label class="form-label">Filter by Supplier</label>
-            <select class="form-select" @bind="SelectedSupplierId">
-                <option value="">-- All suppliers --</option>
-                @foreach ((Guid Id, string Name) s in SuppliersForFilter)
-                {
-                    <option value="@s.Id">@s.Name</option>
-                }
-            </select>
-        </div>
-        <div class="col-md-4 d-flex align-items-end justify-content-end">
-            <div class="text-end">
-                <div>
-                    <strong>Total items:</strong> @SelectedItemsCount
-                </div>
-                <div class="text-muted">Selected meals across menus</div>
-            </div>
-        </div>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0"><i class="bi bi-cart-fill me-2"></i>Order Meals</h3>
     </div>
 
-    <div class="row g-3">
-        <div class="col-lg-8">
-            @foreach (MenuDto menu in FilteredMenus)
-            {
-                <div class="card mb-3 shadow-sm">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>@menu.SupplierName</strong>
-                            <div class="text-muted small">Menu: @FormatBulgarianDate(menu.Date)</div>
-                        </div>
-                        <div class="small text-muted">@menu.Meals.Count meal(s)</div>
+    @if (IsLoading)
+    {
+        <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading menus...</span>
+            </div>
+        </div>
+    }
+    else if (ErrorMessage is not null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@ErrorMessage
+            <button type="button" class="btn-close" @onclick="@(() => ErrorMessage = null)"></button>
+        </div>
+    }
+    else if (Menus is null || !Menus.Any())
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>No menus available.
+        </div>
+    }
+    else
+    {
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="bi bi-funnel me-2"></i>Filters
+                </h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-calendar-event me-1"></i>Filter by Date
+                        </label>
+                        <input type="date" class="form-control"
+                               @bind="FilterDate"
+                               @bind:format="yyyy-MM-dd" />
                     </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-shop me-1"></i>Filter by Supplier
+                        </label>
+                        <select class="form-select" @bind="SelectedSupplierId">
+                            <option value="">-- All suppliers --</option>
+                            @foreach ((Guid Id, string Name) s in SuppliersForFilter)
+                            {
+                                <option value="@s.Id">@s.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <div class="card w-100 bg-light">
+                            <div class="card-body p-2 text-center">
+                                <div class="fw-bold text-primary fs-4">@SelectedItemsCount</div>
+                                <small class="text-muted">Selected items</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
+        <div class="row g-3">
+            <div class="col-lg-8">
+                @foreach (MenuDto menu in FilteredMenus)
+                {
+                    <div class="card mb-3 shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-shop-window me-2"></i>
+                                <strong>@menu.SupplierName</strong>
+                                <div class="text-muted small mt-1">
+                                    <i class="bi bi-calendar-event me-1"></i>Menu: @FormatBulgarianDate(menu.Date)
+                                </div>
+                            </div>
+                            <span class="badge bg-primary rounded-pill">@menu.Meals.Count meal(s)</span>
+                        </div>
+
+                        <div class="card-body">
+                            @if (!menu.Meals.Any())
+                            {
+                                <div class="text-muted text-center py-3">
+                                    <i class="bi bi-inbox me-2"></i>No meals available
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-sm mb-0 align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width:36px"></th>
+                                                <th><i class="bi bi-egg-fried me-1"></i>Meal</th>
+                                                <th class="text-end"><i class="bi bi-tag me-1"></i>Price</th>
+                                                <th style="width:180px"><i class="bi bi-hash me-1"></i>Quantity</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (MealDto meal in menu.Meals)
+                                            {
+                                                (Guid Id, DateTime Date) key = (meal.Id, menu.Date);
+                                                <tr>
+                                                    <td>
+                                                        <input type="checkbox"
+                                                               class="form-check-input"
+                                                               @onchange='e => ToggleSelection(key, e.Value is bool and true)'
+                                                               checked="@IsSelected(key)" />
+                                                    </td>
+                                                    <td class="fw-semibold">@meal.Name</td>
+                                                    <td class="text-end">@meal.Price.ToString("C", CultureInfo.CurrentCulture)</td>
+                                                    <td>
+                                                        <div class="input-group input-group-sm">
+                                                            <button class="btn btn-outline-secondary" type="button"
+                                                                    @onclick="() => UpdateQuantity(key, Math.Max(0, GetQuantity(key) - 1).ToString())"
+                                                                    disabled="@(GetQuantity(key) <= 0)"
+                                                                    @onclick:preventDefault="true"
+                                                                    @onclick:stopPropagation="true">
+                                                                <i class="bi bi-dash"></i>
+                                                            </button>
+                                                            <input type="number"
+                                                                   min="0"
+                                                                   class="form-control text-center"
+                                                                   value="@GetQuantity(key)"
+                                                                   @oninput="@(e => UpdateQuantity(key, e.Value?.ToString() ?? "0"))" />
+                                                            <button class="btn btn-outline-secondary" type="button"
+                                                                    @onclick="() => UpdateQuantity(key, (GetQuantity(key) + 1).ToString())"
+                                                                    @onclick:preventDefault="true"
+                                                                    @onclick:stopPropagation="true">
+                                                                <i class="bi bi-plus"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card mb-3 sticky-top" style="top:1rem;">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <strong><i class="bi bi-list-check me-2"></i>Order summary</strong>
+                        <span class="text-muted small">Portion applied once per day</span>
+                    </div>
                     <div class="card-body">
-                        @if (!menu.Meals.Any())
+                        @if (SelectedItemsCount == 0)
                         {
-                            <div class="text-muted">No meals</div>
+                            <div class="text-muted text-center py-3">
+                                <i class="bi bi-cart-x me-2"></i>No items selected
+                            </div>
                         }
                         else
                         {
-                            <table class="table table-sm mb-0 align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th style="width:36px"></th>
-                                        <th>Meal</th>
-                                        <th class="text-end">Price</th>
-                                        <th style="width:140px">Qty</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (MealDto meal in menu.Meals)
+                            var summary = BuildSummaryFromSelection();
+                            var perDateTotals = ComputePerDateTotalsWithPortion(summary, PortionAmount);
+
+                            decimal totalPrice = perDateTotals.Sum(x => x.Total);
+                            decimal totalPortionApplied = perDateTotals.Sum(x => x.PortionApplied);
+
+                            <ul class="list-group mb-2">
+                                @foreach (var day in perDateTotals)
+                                {
+                                    <li class="list-group-item">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <div class="fw-bold">
+                                                <i class="bi bi-calendar3 me-1"></i>@FormatBulgarianDate(day.Date)
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="small">Subtotal: @day.Subtotal.ToString("C", CultureInfo.CurrentCulture)</div>
+                                                <div class="small text-success">- Portion: @day.PortionApplied.ToString("C", CultureInfo.CurrentCulture)</div>
+                                                <div class="fw-bold">Total: @day.Total.ToString("C", CultureInfo.CurrentCulture)</div>
+                                            </div>
+                                        </div>
+                                        <ul class="list-group list-group-flush">
+                                            @foreach (SummaryItem item in day.Items)
+                                            {
+                                                <li class="list-group-item d-flex justify-content-between align-items-start px-2 py-1">
+                                                    <div class="ms-2 me-auto">
+                                                        <div class="fw-bold small">@item.Name</div>
+                                                        <small class="text-muted">@item.SupplierName</small>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <div class="small">@item.Quantity × @item.Price.ToString("C", CultureInfo.CurrentCulture)</div>
+                                                        <div class="fw-bold small">@((item.Price * item.Quantity).ToString("C", CultureInfo.CurrentCulture))</div>
+                                                    </div>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </li>
+                                }
+                            </ul>
+
+                            <div class="border-top pt-2 mb-2">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="fw-bold">Total portion applied</div>
+                                    <div class="fw-bold text-success">-@totalPortionApplied.ToString("C", CultureInfo.CurrentCulture)</div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="fw-bold fs-5">Total</div>
+                                    <div class="fw-bold text-primary fs-5">@totalPrice.ToString("C", CultureInfo.CurrentCulture)</div>
+                                </div>
+                            </div>
+                        }
+
+                        <button class="btn btn-primary w-100 mb-3" @onclick="PlaceOrdersAsync" disabled="@(!CanPlaceOrder)">
+                            <i class="bi bi-send-fill me-2"></i>Place Order
+                        </button>
+
+                        @if (MyOrders.Any())
+                        {
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <strong><i class="bi bi-clock-history me-2"></i>Your Orders</strong>
+                                    <div class="small text-muted">Today + Future</div>
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    @foreach (UserOrderItemDto item in MyOrders)
                                     {
-                                        (Guid Id, DateTime Date) key = (meal.Id, menu.Date);
-                                        <tr>
-                                            <td>
-                                                <input type="checkbox"
-                                                       @onchange='e => ToggleSelection(key, e.Value is bool and true)'
-                                                       checked="@IsSelected(key)" />
-                                            </td>
-                                            <td>@meal.Name</td>
-                                            <td class="text-end">@meal.Price.ToString("C", CultureInfo.CurrentCulture)</td>
-                                            <td>
-                                                <div class="input-group" style="width:180px; flex-wrap:nowrap;">
-                                                    <input type="number"
-                                                           min="0"
-                                                           style="width:80px; text-align:center;"
-                                                           class="form-control quantity-input"
-                                                           value="@GetQuantity(key)"
-                                                           @oninput="@(e => UpdateQuantity(key, e.Value?.ToString() ?? "0"))" />
-                                                    <button class="btn btn-outline-secondary" type="button" style="width:50px"
-                                                            @onclick="() => UpdateQuantity(key, (GetQuantity(key) + 1).ToString())"
-                                                            @onclick:preventDefault="true"
-                                                            @onclick:stopPropagation="true">
-                                                        <i class="bi bi-plus"></i>
-                                                    </button>
-                                                    <button class="btn btn-outline-secondary" type="button" style="width:50px"
-                                                            @onclick="() => UpdateQuantity(key, Math.Max(0, GetQuantity(key) - 1).ToString())"
-                                                            disabled="@(GetQuantity(key) <= 0)"
-                                                            @onclick:preventDefault="true"
-                                                            @onclick:stopPropagation="true">
-                                                        <i class="bi bi-dash"></i>
+                                        bool canDelete = !string.Equals(item.Status, "Completed", StringComparison.OrdinalIgnoreCase)
+                                        && !string.Equals(item.Status, "Cancelled", StringComparison.OrdinalIgnoreCase)
+                                        && !item.IsDeleted;
+
+                                        <li class="list-group-item">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <div class="fw-bold small">
+                                                        @item.MealName
+                                                        @if (item.IsDeleted)
+                                                        {
+                                                            <span class="badge text-bg-secondary ms-1">Deleted</span>
+                                                        }
+                                                        else if (string.Equals(item.Status, "Completed", StringComparison.OrdinalIgnoreCase))
+                                                        {
+                                                            <span class="badge text-bg-success ms-1">Completed</span>
+                                                        }
+                                                        else if (string.Equals(item.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
+                                                        {
+                                                            <span class="badge text-bg-warning ms-1">Cancelled</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge text-bg-info ms-1">Pending</span>
+                                                        }
+                                                    </div>
+                                                    <small class="text-muted d-block">
+                                                        <i class="bi bi-shop-window me-1"></i>@item.SupplierName
+                                                    </small>
+                                                    <small class="text-muted d-block">
+                                                        <i class="bi bi-calendar-event me-1"></i>@FormatBulgarianDate(item.MenuDate)
+                                                    </small>
+                                                </div>
+                                                <div class="text-end">
+                                                    <div class="fw-bold small mb-2">@item.Price.ToString("C", CultureInfo.CurrentCulture)</div>
+                                                    <button class="btn btn-sm btn-outline-danger"
+                                                            @onclick="() => OnDeleteOrderItem(item)"
+                                                            disabled="@(!canDelete)">
+                                                        <i class="bi bi-trash"></i>
                                                     </button>
                                                 </div>
-                                            </td>
-                                        </tr>
+                                            </div>
+                                        </li>
                                     }
-                                </tbody>
-                            </table>
+                                </ul>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(SuccessMessage))
+                        {
+                            <div class="alert alert-success mt-3 mb-0">
+                                <i class="bi bi-check-circle me-2"></i>@SuccessMessage
+                            </div>
                         }
                     </div>
                 </div>
-            }
-        </div>
-
-        <div class="col-lg-4">
-            <div class="card mb-3 sticky-top" style="top:1rem;">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <strong><i class="bi bi-list-check me-2"></i>Order summary</strong>
-                    <span class="text-muted small">Portion applied once per day</span>
-                </div>
-                <div class="card-body">
-                    @if (SelectedItemsCount == 0)
-                    {
-                        <div class="text-muted">No items selected</div>
-                    }
-                    else
-                    {
-                        var summary = BuildSummaryFromSelection();
-                        var perDateTotals = ComputePerDateTotalsWithPortion(summary, PortionAmount);
-
-                        decimal totalPrice = perDateTotals.Sum(x => x.Total);
-                        decimal totalPortionApplied = perDateTotals.Sum(x => x.PortionApplied);
-
-                        <ul class="list-group mb-2">
-                            @foreach (var day in perDateTotals)
-                            {
-                                <li class="list-group-item">
-                                    <div class="d-flex justify-content-between">
-                                        <div class="fw-bold">Date: @FormatBulgarianDate(day.Date)</div>
-                                        <div class="text-end">
-                                            <div>Subtotal: @day.Subtotal.ToString("C", CultureInfo.CurrentCulture)</div>
-                                            <div class="text-success">- Portion: @day.PortionApplied.ToString("C", CultureInfo.CurrentCulture)</div>
-                                            <div class="fw-bold">Total: @day.Total.ToString("C", CultureInfo.CurrentCulture)</div>
-                                        </div>
-                                    </div>
-                                    <ul class="list-group list-group-flush mt-2">
-                                        @foreach (SummaryItem item in day.Items)
-                                        {
-                                            <li class="list-group-item d-flex justify-content-between align-items-start">
-                                                <div class="ms-2 me-auto">
-                                                    <div class="fw-bold">@item.Name</div>
-                                                    <small class="text-muted">@item.SupplierName — Menu: @FormatBulgarianDate(item.MenuDate)</small>
-                                                </div>
-                                                <div class="text-end">
-                                                    <div>@item.Quantity × @item.Price.ToString("C", CultureInfo.CurrentCulture)</div>
-                                                    <div class="fw-bold">@((item.Price * item.Quantity).ToString("C", CultureInfo.CurrentCulture))</div>
-                                                </div>
-                                            </li>
-                                        }
-                                    </ul>
-                                </li>
-                            }
-                        </ul>
-
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="fw-bold">Total portion applied</div>
-                            <div class="fw-bold text-success">-@totalPortionApplied.ToString("C", CultureInfo.CurrentCulture)</div>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="fw-bold">Total</div>
-                            <div class="fw-bold">@totalPrice.ToString("C", CultureInfo.CurrentCulture)</div>
-                        </div>
-                    }
-
-                    <button class="btn btn-primary w-100" @onclick="PlaceOrdersAsync" disabled="@(!CanPlaceOrder)">
-                        <i class="bi bi-send-fill me-2"></i>Place Order
-                    </button>
-
-                    @if (MyOrders.Any())
-                    {
-                        <hr />
-                        <div class="mt-2 mb-1">
-                            <strong>Your persisted orders (today + future)</strong>
-                        </div>
-                        <ul class="list-group mb-2">
-                            @foreach (UserOrderItemDto item in MyOrders)
-                            {
-                                bool canDelete = !string.Equals(item.Status, "Completed", StringComparison.OrdinalIgnoreCase)
-                                && !string.Equals(item.Status, "Cancelled", StringComparison.OrdinalIgnoreCase)
-                                && !item.IsDeleted;
-
-                                <li class="list-group-item d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <div class="fw-bold">
-                                            @item.MealName
-                                            @if (item.IsDeleted)
-                                            {
-                                                <span class="badge text-bg-secondary ms-2">Deleted</span>
-                                            }
-                                            else if (string.Equals(item.Status, "Completed", StringComparison.OrdinalIgnoreCase))
-                                            {
-                                                <span class="badge text-bg-success ms-2">Completed</span>
-                                            }
-                                            else if (string.Equals(item.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
-                                            {
-                                                <span class="badge text-bg-warning ms-2">Cancelled</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge text-bg-info ms-2">Pending</span>
-                                            }
-                                        </div>
-                                        <small class="text-muted">@item.SupplierName — Menu date: @FormatBulgarianDate(item.MenuDate) • Order at: @FormatBulgarianDate(item.OrderedAt) • @item.Status</small>
-                                    </div>
-                                    <div class="text-end">
-                                        <div class="fw-bold">@item.Price.ToString("C", CultureInfo.CurrentCulture)</div>
-                                        <div class="mt-2">
-                                            <button class="btn btn-sm btn-outline-danger"
-                                                    @onclick="() => OnDeleteOrderItem(item)"
-                                                    disabled="@(!canDelete)">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </li>
-                            }
-                        </ul>
-                    }
-
-                    @if (!string.IsNullOrEmpty(SuccessMessage))
-                    {
-                        <div class="alert alert-success mt-3 mb-0">@SuccessMessage</div>
-                    }
-                </div>
             </div>
         </div>
-    </div>
-}
+    }
+</div>
 
 @code {
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
@@ -262,5 +308,4 @@ else
             await InvokeAsync(StateHasChanged);
         }
     }
-
 }

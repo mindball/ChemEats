@@ -24,16 +24,30 @@ public class MenuRepository : IMenuRepository
 
     public async Task<IReadOnlyList<Menu>> GetAllAsync(bool includeDeleted = false, CancellationToken cancellationToken = default)
     {
+        // IQueryable<Menu> query = _context.Menus
+        //     .Include(m => m.Supplier)
+        //     .Include(m => m.Meals);
+        //
+        // if (!includeDeleted)
+        //     query = query.Where(m => !m.IsDeleted);
+        //
+        // return await query
+        //     .OrderByDescending(m => m.Date)
+        //     .ToListAsync(cancellationToken);
+
+        cancellationToken.ThrowIfCancellationRequested();
+
         IQueryable<Menu> query = _context.Menus
             .Include(m => m.Supplier)
-            .Include(m => m.Meals);
+            .Include(m => m.Meals)
+            .AsNoTracking();
 
-        if (!includeDeleted)
-            query = query.Where(m => !m.IsDeleted);
+        if (includeDeleted)
+        {
+            query = query.IgnoreQueryFilters();
+        }
 
-        return await query
-            .OrderByDescending(m => m.Date)
-            .ToListAsync(cancellationToken);
+        return await query.ToListAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<Menu>> GetBySupplierAsync(Guid supplierId, CancellationToken cancellationToken = default)

@@ -78,10 +78,10 @@ public static class MenuEndpoints
     }
 
     private static async Task<IResult> GetAllMenusAsync(
-        [FromQuery] bool includeDeleted,
         IMenuRepository menuRepository,
         IMapper mapper,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        [FromQuery] bool includeDeleted = false)
     {
         IReadOnlyList<Menu> menus = await menuRepository.GetAllAsync(includeDeleted, cancellationToken);
         List<MenuDto> dtos = mapper.Map<List<MenuDto>>(menus);

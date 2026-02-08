@@ -109,7 +109,7 @@ public class MyOrdersBase : ComponentBase
     {
         CultureInfo bgCulture = new("bg-BG");
         string dayName = date.ToString("dddd", bgCulture);
-        string capitalizedDay = char.ToUpper(dayName[0], bgCulture) + dayName.Substring(1);
+        string capitalizedDay = char.ToUpper(dayName[0], bgCulture) + dayName[1..];
         return $"{capitalizedDay} {date:dd.MM.yyyy'г.'}";
     }
 

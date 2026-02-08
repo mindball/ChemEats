@@ -3,139 +3,207 @@
 @inherits ViewMenusBase
 @inject IJSRuntime JSRuntime
 
-<h3>Menus List</h3>
-
-<div class="row mb-3">
-    <div class="col-md-3">
-        <label class="form-label">Supplier:</label>
-        <select class="form-select" @bind="SelectedSupplierId">
-            <option value="">All</option>
-            @foreach (SupplierDto supplier in Suppliers)
-            {
-                <option value="@supplier.Id">@supplier.Name</option>
-            }
-        </select>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Menus List</h3>
     </div>
 
-    <div class="col-md-3">
-        <label class="form-label">Start Date:</label>
-        <input type="date" class="form-control" @bind="StartDate"/>
-    </div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">
+                <i class="bi bi-funnel me-2"></i>Filters
+            </h5>
 
-    <div class="col-md-3">
-        <label class="form-label">End Date:</label>
-        <input type="date" class="form-control" @bind="EndDate"/>
-    </div>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">
+                        <i class="bi bi-shop me-1"></i>Supplier
+                    </label>
+                    <select class="form-select" @bind="SelectedSupplierId">
+                        <option value="">All suppliers</option>
+                        @foreach (SupplierDto supplier in Suppliers)
+                        {
+                            <option value="@supplier.Id">@supplier.Name</option>
+                        }
+                    </select>
+                </div>
 
-    <div class="col-md-3 d-flex align-items-end">
-        <div class="form-check me-3">
-            <input class="form-check-input" type="checkbox" id="includeDeleted" @bind="IncludeDeleted"/>
-            <label class="form-check-label" for="includeDeleted">deleted</label>
-        </div>
-        <button class="btn btn-primary w-100" @onclick="OnSearchClickedAsync">
-            <i class="bi bi-search"></i> Search
-        </button>
-    </div>
-</div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">
+                        <i class="bi bi-calendar-range me-1"></i>Start Date
+                    </label>
+                    <input type="date" class="form-control" @bind="StartDate" />
+                </div>
 
-@if (ErrorMessage is not null)
-{
-    <div class="alert alert-danger">@ErrorMessage</div>
-}
-else if (IsLoading)
-{
-    <p>Loading menus...</p>
-}
-else if (Menus is null || !Menus.Any())
-{
-    <p>No menus found for the selected filters.</p>
-}
-else
-{
-    <table class="table table-sm table-striped table-bordered w-100">
-        <thead class="table-light">
-        <tr class="align-middle text-center">
-            <th>Supplier</th>
-            <th>Date</th>
-            <th>Meals</th>
-            @if (IsAdmin)
-            {
-                <th style="width: 220px">Actions</th>
-            }
-        </tr>
-        </thead>
-        <tbody>
-        @foreach (MenuDto menu in Menus)
-        {
-            <tr class="align-middle @(menu.IsDeleted ? "table-danger text-decoration-line-through" : "")">
-                <td>@menu.SupplierName</td>
-                <td>@FormatBulgarianDate(menu.Date)</td>
-                <td>
-                    @if (menu.Meals.Any())
-                    {
-                        <ul class="mb-0">
-                            @foreach (MealDto meal in menu.Meals)
-                            {
-                                <li>
-                                    <span>@meal.Name</span>
-                                    <span class="text-muted"> — @meal.Price.ToString("C", CultureInfo.CurrentCulture)</span>
-                                </li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        <span>No meals</span>
-                    }
-                </td>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">
+                        <i class="bi bi-calendar-check me-1"></i>End Date
+                    </label>
+                    <input type="date" class="form-control" @bind="EndDate" />
+                </div>
 
-                @if (IsAdmin)
-                {
-                    <td class="text-end">
-                        <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-primary" disabled="@menu.IsDeleted"
-                                    @onclick="() => EditDateAsync(menu.Id, menu.Date)">
-                                Edit Date
-                            </button>
-                            <button class="btn btn-outline-danger" disabled="@menu.IsDeleted"
-                                    @onclick="() => SoftDeleteAsync(menu.Id)">
-                                Soft Delete
-                            </button>
+                <div class="col-md-3 d-flex align-items-end">
+                    <div class="w-100">
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" role="switch" id="includeDeleted" @bind="IncludeDeleted" />
+                            <label class="form-check-label" for="includeDeleted">
+                                <i class="bi bi-trash me-1"></i>Include deleted
+                            </label>
                         </div>
-                    </td>
-                }
-            </tr>
-        }
-        </tbody>
-    </table>
-
-    <nav class="mt-3 d-flex justify-content-between align-items-center">
-        <div>
-            Showing @((CurrentPage - 1) * PageSize + 1)
-            -
-            @(Math.Min(CurrentPage * PageSize, TotalMenus))
-            of @TotalMenus menus
+                        <button class="btn btn-primary w-100" @onclick="OnSearchClickedAsync">
+                            <i class="bi bi-search me-2"></i>Search
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
 
-        <ul class="pagination mb-0">
-            <li class="page-item @(CurrentPage == 1 ? "disabled" : "")">
-                <button class="page-link" @onclick="() => GoToPageAsync(CurrentPage - 1)">Previous</button>
-            </li>
+    @if (ErrorMessage is not null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@ErrorMessage
+            <button type="button" class="btn-close" @onclick="@(() => ErrorMessage = null)"></button>
+        </div>
+    }
+    else if (IsLoading)
+    {
+        <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading menus...</span>
+            </div>
+        </div>
+    }
+    else if (Menus is null || !Menus.Any())
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>No menus found for the selected filters.
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-header bg-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">
+                        <i class="bi bi-list-check me-2"></i>Found Menus (@TotalMenus)
+                    </span>
+                    <span class="text-muted small">
+                        Showing @((CurrentPage - 1) * PageSize + 1) - @(Math.Min(CurrentPage * PageSize, TotalMenus))
+                    </span>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr class="text-center">
+                                <th class="text-start ps-3">
+                                    <i class="bi bi-shop me-1"></i>Supplier
+                                </th>
+                                <th>
+                                    <i class="bi bi-calendar3 me-1"></i>Date
+                                </th>
+                                <th class="text-start">
+                                    <i class="bi bi-egg-fried me-1"></i>Meals
+                                </th>
+                                @if (IsAdmin)
+                                {
+                                    <th style="width: 220px">
+                                        <i class="bi bi-gear me-1"></i>Actions
+                                    </th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (MenuDto menu in Menus)
+                            {
+                                <tr class="@(menu.IsDeleted ? "table-danger" : "")">
+                                    <td class="fw-semibold ps-3 @(menu.IsDeleted ? "text-decoration-line-through" : "")">
+                                        @menu.SupplierName
+                                    </td>
+                                    <td class="text-center @(menu.IsDeleted ? "text-decoration-line-through" : "")">
+                                        @FormatBulgarianDate(menu.Date)
+                                    </td>
+                                    <td>
+                                        @if (menu.Meals.Any())
+                                        {
+                                            <ul class="list-unstyled mb-0">
+                                                @foreach (MealDto meal in menu.Meals)
+                                                {
+                                                    <li class="mb-1 @(menu.IsDeleted ? "text-decoration-line-through" : "")">
+                                                        <i class="bi bi-egg-fried me-2 text-primary"></i>
+                                                        <span>@meal.Name</span>
+                                                        <span class="text-muted ms-2">@meal.Price.ToString("C", CultureInfo.CurrentCulture)</span>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                <i class="bi bi-inbox me-1"></i>No meals
+                                            </span>
+                                        }
+                                    </td>
 
-            @for (int i = 1; i <= TotalPages; i++)
-            {
-                int pageNumber = i;
+                                    @if (IsAdmin)
+                                    {
+                                        <td class="text-center">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button class="btn btn-outline-primary"
+                                                        disabled="@menu.IsDeleted"
+                                                        @onclick="() => EditDateAsync(menu.Id, menu.Date)"
+                                                        title="Edit date">
+                                                    <i class="bi bi-pencil-fill me-1"></i>Edit Date
+                                                </button>
+                                                <button class="btn btn-outline-danger"
+                                                        disabled="@menu.IsDeleted"
+                                                        @onclick="() => SoftDeleteAsync(menu.Id)"
+                                                        title="Soft delete">
+                                                    <i class="bi bi-trash-fill me-1"></i>Delete
+                                                </button>
+                                            </div>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-light">
+                <nav class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Page @CurrentPage of @TotalPages
+                    </div>
 
-                <li class="page-item @(CurrentPage == pageNumber ? "active" : "")">
-                    <button type="button" class="page-link" @onclick="async () => await GoToPageAsync(pageNumber)">
-                        @pageNumber
-                    </button>
-                </li>
-            }
+                    <ul class="pagination mb-0">
+                        <li class="page-item @(CurrentPage == 1 ? "disabled" : "")">
+                            <button class="page-link" @onclick="() => GoToPageAsync(CurrentPage - 1)">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                        </li>
 
-            <li class="page-item @(CurrentPage == TotalPages ? "disabled" : "")">
-                <button class="page-link" @onclick="() => GoToPageAsync(CurrentPage + 1)">Next</button>
-            </li>
-        </ul>
-    </nav>
-}
+                        @for (int i = 1; i <= TotalPages; i++)
+                        {
+                            int pageNumber = i;
+                            <li class="page-item @(CurrentPage == pageNumber ? "active" : "")">
+                                <button type="button" class="page-link" @onclick="async () => await GoToPageAsync(pageNumber)">
+                                    @pageNumber
+                                </button>
+                            </li>
+                        }
+
+                        <li class="page-item @(CurrentPage == TotalPages ? "disabled" : "")">
+                            <button class="page-link" @onclick="() => GoToPageAsync(CurrentPage + 1)">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    }
+</div>

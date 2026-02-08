@@ -3,115 +3,211 @@
 
 <AuthorizeView>
     <Authorized>
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="mb-0"><i class="bi bi-shop me-2"></i>Suppliers List</h3>
+            </div>
 
-        <h3>Suppliers List</h3>
-
-        @if (Suppliers.Count == 0)
-        {
-            <p>Loading suppliers...</p>
-        }
-        else
-        {
-            <table class="table table-sm table-striped table-bordered w-full">
-                <colgroup>
-                    <col style="width: 25%"/> <!-- Name -->
-                    <col style="width: 15%"/> <!-- VAT Number -->
-                    <col style="width: 15%"/> <!-- Payment Terms -->
-                    <col style="width: 25%"/> <!-- Email -->
-                    <col style="width: 20%"/> <!-- Actions -->
-                </colgroup>
-
-                <thead class="table-light">
-                <tr class="align-middle text-center">
-                    <th>Name</th>
-                    <th>VAT Number</th>
-                    <th>Payment Terms</th>
-                    <th>Email</th>
-                    <th>Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                @foreach (SupplierDto supplier in Suppliers)
-                {
-                    <tr class="align-middle">
-                        <td>@supplier.Name</td>
-                        <td>@supplier.VatNumber</td>
-                        <td>@supplier.PaymentTerms</td>
-                        <td>@supplier.Email</td>
-                        <td class="text-center">
-                            <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => ViewSupplier(supplier)">
-                                <i class="bi bi-eye-fill"></i>
-                            </button>
-                            <button class="btn btn-outline-warning btn-sm me-1" @onclick="() => UpdateSupplier(supplier)">
-                                <i class="bi bi-pencil-fill"></i>
-                            </button>
-                            <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteSupplierAsync(supplier)">
-                                <i class="bi bi-trash-fill"></i>
-                            </button>
-                        </td>
-                    </tr>
-                }
-                </tbody>
-            </table>
-        }
-
-        <!-- Quick View Modal -->
-        @if (IsViewModalOpen && SelectedSupplier != null)
-        {
-            <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5);">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">@SelectedSupplier.Name</h5>
-                            <button type="button" class="btn-close" @onclick="CloseViewModal"></button>
+            @if (Suppliers.Count == 0)
+            {
+                <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading suppliers...</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-semibold">
+                                <i class="bi bi-list-check me-2"></i>All Suppliers (@Suppliers.Count)
+                            </span>
                         </div>
-                        <div class="modal-body">
-                            <dl class="row">
-                                <dt class="col-sm-3">VAT Number</dt>
-                                <dd class="col-sm-9">@SelectedSupplier.VatNumber</dd>
-
-                                <dt class="col-sm-3">Email</dt>
-                                <dd class="col-sm-9">@SelectedSupplier.Email</dd>
-
-                                <dt class="col-sm-3">Phone</dt>
-                                <dd class="col-sm-9">@SelectedSupplier.Phone</dd>
-
-                                <dt class="col-sm-3">Address</dt>
-                                <dd class="col-sm-9">
-                                    @SelectedSupplier.StreetAddress <br/>
-                                    @SelectedSupplier.City, @SelectedSupplier.PostalCode <br/>
-                                    @SelectedSupplier.Country
-                                </dd>
-
-                                <dt class="col-sm-3">Payment Terms</dt>
-                                <dd class="col-sm-9">@SelectedSupplier.PaymentTerms</dd>
-
-                                <dt class="col-sm-3">Menus</dt>
-                                <dd class="col-sm-9">
-                                    @if (SelectedSupplier.Menus?.Any() == true)
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 align-middle">
+                                <thead class="table-light">
+                                    <tr class="text-center">
+                                        <th class="text-start ps-3">
+                                            <i class="bi bi-building me-1"></i>Name
+                                        </th>
+                                        <th>
+                                            <i class="bi bi-receipt me-1"></i>VAT Number
+                                        </th>
+                                        <th>
+                                            <i class="bi bi-credit-card me-1"></i>Payment Terms
+                                        </th>
+                                        <th>
+                                            <i class="bi bi-envelope me-1"></i>Email
+                                        </th>
+                                        <th style="width: 200px">
+                                            <i class="bi bi-gear me-1"></i>Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (SupplierDto supplier in Suppliers)
                                     {
-                                        <ul class="mb-0">
-                                            @foreach (MenuDto menu in SelectedSupplier.Menus)
-                                            {
-                                                <li>@menu.Date.ToShortDateString() - @menu.Meals.Count meals</li>
-                                            }
-                                        </ul>
+                                        <tr>
+                                            <td class="fw-semibold ps-3">@supplier.Name</td>
+                                            <td class="text-center">@supplier.VatNumber</td>
+                                            <td class="text-center">
+                                                <span class="badge bg-info text-dark">@supplier.PaymentTerms</span>
+                                            </td>
+                                            <td class="text-center">@supplier.Email</td>
+                                            <td class="text-center">
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <button class="btn btn-outline-primary"
+                                                            @onclick="() => ViewSupplier(supplier)"
+                                                            title="View details">
+                                                        <i class="bi bi-eye-fill"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-warning"
+                                                            @onclick="() => UpdateSupplier(supplier)"
+                                                            title="Edit supplier">
+                                                        <i class="bi bi-pencil-fill"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-danger"
+                                                            @onclick="() => DeleteSupplierAsync(supplier)"
+                                                            title="Delete supplier">
+                                                        <i class="bi bi-trash-fill"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     }
-                                    else
-                                    {
-                                        <span>No menus</span>
-                                    }
-                                </dd>
-                            </dl>
-                        </div>
-                        <div class="modal-footer">
-                            <button class="btn btn-secondary" @onclick="CloseViewModal">Close</button>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
-            </div>
-        }
+            }
 
+            @if (IsViewModalOpen && SelectedSupplier != null)
+            {
+                <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5);">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header bg-light">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-building me-2"></i>@SelectedSupplier.Name
+                                </h5>
+                                <button type="button" class="btn-close" @onclick="CloseViewModal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Basic Information</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <dl class="row mb-0">
+                                            <dt class="col-sm-4">
+                                                <i class="bi bi-receipt me-1"></i>VAT Number
+                                            </dt>
+                                            <dd class="col-sm-8">@SelectedSupplier.VatNumber</dd>
+
+                                            <dt class="col-sm-4">
+                                                <i class="bi bi-credit-card me-1"></i>Payment Terms
+                                            </dt>
+                                            <dd class="col-sm-8">
+                                                <span class="badge bg-info text-dark">@SelectedSupplier.PaymentTerms</span>
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
+
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0"><i class="bi bi-telephone me-2"></i>Contact Information</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <dl class="row mb-0">
+                                            <dt class="col-sm-4">
+                                                <i class="bi bi-envelope me-1"></i>Email
+                                            </dt>
+                                            <dd class="col-sm-8">@SelectedSupplier.Email</dd>
+
+                                            <dt class="col-sm-4">
+                                                <i class="bi bi-phone me-1"></i>Phone
+                                            </dt>
+                                            <dd class="col-sm-8">@SelectedSupplier.Phone</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0"><i class="bi bi-geo-alt me-2"></i>Address Information</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <dl class="row mb-0">
+                                            <dt class="col-sm-4">
+                                                <i class="bi bi-signpost me-1"></i>Street Address
+                                            </dt>
+                                            <dd class="col-sm-8">@SelectedSupplier.StreetAddress</dd>
+
+                                            <dt class="col-sm-4">
+                                                <i class="bi bi-building me-1"></i>City
+                                            </dt>
+                                            <dd class="col-sm-8">@SelectedSupplier.City</dd>
+
+                                            <dt class="col-sm-4">
+                                                <i class="bi bi-mailbox me-1"></i>Postal Code
+                                            </dt>
+                                            <dd class="col-sm-8">@SelectedSupplier.PostalCode</dd>
+
+                                            <dt class="col-sm-4">
+                                                <i class="bi bi-globe me-1"></i>Country
+                                            </dt>
+                                            <dd class="col-sm-8">@SelectedSupplier.Country</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+
+                                <div class="card">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Menus</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        @if (SelectedSupplier.Menus?.Any() == true)
+                                        {
+                                            <ul class="list-group list-group-flush">
+                                                @foreach (MenuDto menu in SelectedSupplier.Menus)
+                                                {
+                                                    <li class="list-group-item">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                <i class="bi bi-calendar3 me-2 text-primary"></i>
+                                                                <strong>@menu.Date.ToShortDateString()</strong>
+                                                            </div>
+                                                            <span class="badge bg-primary rounded-pill">@menu.Meals.Count meals</span>
+                                                        </div>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        }
+                                        else
+                                        {
+                                            <div class="text-muted text-center py-3">
+                                                <i class="bi bi-inbox me-2"></i>No menus available
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary" @onclick="CloseViewModal">
+                                    <i class="bi bi-x-circle me-2"></i>Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
     </Authorized>
     <NotAuthorized>
         <RedirectToLogin />
