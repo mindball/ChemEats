@@ -48,19 +48,13 @@ public class MealOrderRepository : IMealOrderRepository
                 MealName = meal.Name,
                 SupplierId = supplier.Id,
                 SupplierName = supplier.Name,
-                MenuDate = mo.MenuDate,          // ✅ Changed
-                OrderedAt = mo.OrderedAt,    // ✅ New
-
-                // Use price snapshot from the order
+                MenuDate = mo.MenuDate,
+                OrderedAt = mo.OrderedAt,
                 Price = mo.PriceAmount,
-
                 Status = mo.Status,
                 IsDeleted = mo.IsDeleted,
-
                 PaymentStatus = mo.PaymentStatus,
                 PaidOn = mo.PaidOn,
-                
-                // New: portion flags from the order
                 PortionApplied = mo.PortionApplied,
                 PortionAmount = mo.PortionAmount
             };
@@ -319,7 +313,7 @@ public class MealOrderRepository : IMealOrderRepository
 
         return await query
             .Where(x => x.PaymentStatus == PaymentStatus.Unpaid)
-            .OrderBy(x => x.OrderedAt) // oldest first
+            .OrderBy(x => x.OrderedAt)
             .Select(x => new UserOrderPaymentItem(
                 x.OrderId,
                 x.MealId,
@@ -357,18 +351,48 @@ public class MealOrderRepository : IMealOrderRepository
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+        public async Task<(int PaidCount, decimal TotalPaid)> MarkOrderAsPaidAsync(
+        string userId,
+        IReadOnlyList<Guid> orderIds,
+        DateTime paidOn,
+        CancellationToken cancellationToken = default)
+    {
+        List<MealOrder> orders = await _dbContext.MealOrders
+            .Where(x => x.UserId == userId && orderIds.Contains(x.Id))
+            .ToListAsync(cancellationToken);
+
+        decimal totalPaid = 0m;
+        int paidCount = 0;
+
+        foreach (MealOrder order in orders)
+        {
+            if (order.PaymentStatus == PaymentStatus.Paid)
+                continue;
+
+            if (order.Status == MealOrderStatus.Cancelled)
+                continue;
+
+            order.MarkAsPaid(paidOn);
+            totalPaid += order.GetNetAmount();
+            paidCount++;
+        }
+
+        if (paidCount > 0)
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return (paidCount, totalPaid);
+    }
+
     public Task<bool> HasAppliedPortionAsync(string userId, Guid menuId, DateOnly date, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
 
-    // New: per-user per-date portion consumption check across all suppliers/menus
     public async Task<bool> HasPortionAppliedOnDateAsync(
         string userId,
         DateOnly date,
         CancellationToken cancellationToken = default)
     {
-        // Compare by calendar day
         DateTime start = date.ToDateTime(TimeOnly.MinValue);
         DateTime endExclusive = date.ToDateTime(TimeOnly.MinValue).AddDays(1);
 
@@ -378,9 +402,49 @@ public class MealOrderRepository : IMealOrderRepository
                 mo.UserId == userId
                 && !mo.IsDeleted
                 && mo.PortionApplied,
-                // && mo.Date >= start
-                // && mo.Date < endExclusive,
                 cancellationToken);
+    }
+
+    #endregion
+
+    #region Queries - Payments
+
+    public async Task<IReadOnlyList<UserOrderPaymentItem>> GetAllOrdersForPeriodAsync(
+        string userId,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        Guid? supplierId = null,
+        CancellationToken cancellationToken = default)
+    {
+        IQueryable<OrderJoinRow> query = BuildBaseQuery(userId);
+
+        if (startDate.HasValue)
+            query = query.Where(x => x.OrderedAt >= startDate.Value.Date);
+
+        if (endDate.HasValue)
+            query = query.Where(x => x.OrderedAt < endDate.Value.Date.AddDays(1));
+
+        if (supplierId.HasValue)
+            query = query.Where(x => x.SupplierId == supplierId.Value);
+
+        return await query
+            .OrderBy(x => x.OrderedAt)
+            .Select(x => new UserOrderPaymentItem(
+                x.OrderId,
+                x.MealId,
+                x.MealName,
+                x.SupplierId,
+                x.SupplierName,
+                x.OrderedAt,
+                x.MenuDate,
+                x.Price,
+                x.PaymentStatus,
+                x.PaidOn,
+                x.PortionApplied,
+                x.PortionAmount,
+                Math.Max(0m, x.Price - (x.PortionApplied ? x.PortionAmount : 0m))
+            ))
+            .ToListAsync(cancellationToken);
     }
 
     #endregion

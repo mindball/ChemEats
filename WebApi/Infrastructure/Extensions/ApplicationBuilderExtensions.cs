@@ -57,6 +57,7 @@ public static class ApplicationBuilderExtensions
         app.MapSupplierEndpoints();
         app.MapEmployeeEndpoints();
         app.MapMealOrderEndpoints();
+        app.MapAdminMealOrderEndpoints();
         app.EmailEndpoints();
         app.MapSettingsEndpoints();
         return app;

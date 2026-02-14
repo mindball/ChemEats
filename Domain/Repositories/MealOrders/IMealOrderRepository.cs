@@ -18,7 +18,7 @@ public interface IMealOrderRepository
 
     Task SoftDeleteAsync(Guid orderId, CancellationToken cancellationToken = default);
 
-    
+        
     Task<IReadOnlyList<UserOrderItem>> GetUserOrderItemsAsync(
         string userId,
         Guid? supplierId = null,
@@ -57,9 +57,22 @@ public interface IMealOrderRepository
         Guid? supplierId = null,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<UserOrderPaymentItem>> GetAllOrdersForPeriodAsync(
+        string userId,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        Guid? supplierId = null,
+        CancellationToken cancellationToken = default);
+
     Task MarkAsPaidAsync(
         Guid orderId,
         string userId,
+        DateTime paidOn,
+        CancellationToken cancellationToken = default);
+
+    Task<(int PaidCount, decimal TotalPaid)> MarkOrderAsPaidAsync(
+        string userId,
+        IReadOnlyList<Guid> orderIds,
         DateTime paidOn,
         CancellationToken cancellationToken = default);
 

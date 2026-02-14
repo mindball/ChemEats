@@ -18,7 +18,7 @@ public static class EmployeeEndPoints
             {
                 try
                 {
-                    logger.LogInformation("Starting employee synchronization process");
+                        logger.LogInformation("Starting employee synchronization process");
                     System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
                     
                     await syncService.SyncEmployeesAsync();
@@ -36,6 +36,39 @@ public static class EmployeeEndPoints
             })
             .RequireAuthorization("AdminPolicy") 
             .WithTags("System Maintenance")
+            .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
+
+        app.MapGet("/api/employees", async (
+                IUserRepository userRepository,
+                ILogger<Program> logger,
+                CancellationToken cancellationToken) =>
+            {
+                try
+                {
+                    logger.LogInformation("Retrieving all employees for admin dropdown");
+
+                    List<ApplicationUser> employees = await userRepository.GetAllUsersAsync(cancellationToken);
+
+                    var dtos = employees.Select(e => new
+                    {
+                        UserId = e.Id,
+                        FullName = e.FullName,
+                        Email = e.Email,
+                        Abbreviation = e.Abbreviation
+                    }).ToList();
+
+                    logger.LogInformation("Retrieved {EmployeeCount} employees", dtos.Count);
+
+                    return Results.Ok(dtos);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error retrieving employees: {ErrorMessage}", ex.Message);
+                    throw;
+                }
+            })
+            .RequireAuthorization("AdminPolicy")
+            .WithTags("Employees")
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
 
         app.MapPost("/api/login", async (

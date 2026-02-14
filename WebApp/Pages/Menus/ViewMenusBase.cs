@@ -44,7 +44,7 @@ public class ViewMenusBase : ComponentBase
 
         // Default: today only
         StartDate = DateTime.Today;
-        EndDate = DateTime.Today;
+        EndDate = DateTime.Today.AddDays(1);
     }
 
     protected async Task OnSearchClickedAsync()

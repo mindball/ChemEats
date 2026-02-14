@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using System.Globalization;
 using WebApp;
 using WebApp.Infrastructure.States;
+using WebApp.Services.Employees;
 using WebApp.Services.Menus;
 using WebApp.Services.Orders;
 using WebApp.Services.Settings;
@@ -19,6 +20,7 @@ builder.Services.AddScoped<ISupplierDataService, SupplierDataService>();
 builder.Services.AddScoped<IMenuDataService, MenuDataService>();
 builder.Services.AddScoped<IOrderDataService, OrderDataService>();
 builder.Services.AddScoped<ISettingsDataService, SettingsDataService>();
+builder.Services.AddScoped<IEmployeeDataService, EmployeeDataService>();
 
 builder.Services.AddScoped((sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) }));
 

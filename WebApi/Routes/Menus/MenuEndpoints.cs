@@ -1,13 +1,9 @@
 ﻿using Domain.Entities;
 using Domain.Infrastructure.Exceptions;
-using Domain.Repositories.MealOrders;
 using Domain.Repositories.Menus;
 using Domain.Repositories.Suppliers;
 using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
-using Services.Repositories.MealOrders;
-using Services.Repositories.Menus;
-using Services.Repositories.Suppliers;
 using Shared.DTOs.Menus;
 using WebApi.Infrastructure.Filters;
 

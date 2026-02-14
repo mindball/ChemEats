@@ -208,7 +208,7 @@ public class OrderMealsBase : ComponentBase
     {
         try
         {
-            bool ok = false; // placeholder if implementing batch delete
+            bool ok = false; 
             if (ok)
                 await LoadMyOrdersAsync();
             return ok;

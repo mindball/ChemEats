@@ -14,17 +14,15 @@ public class OrderDataService : IOrderDataService
 
     public async Task<PlaceOrdersResponse?> PlaceOrdersAsync(PlaceOrdersRequestDto requestDto)
     {
-        if (requestDto is null) throw new ArgumentNullException(nameof(requestDto));
+        ArgumentNullException.ThrowIfNull(requestDto);
 
         HttpResponseMessage response = await _httpClient.PostAsJsonAsync("api/mealorders", requestDto);
 
         if (!response.IsSuccessStatusCode)
             return null;
 
-        // server returns { Created = n, Ids = [...] }
         return await response.Content.ReadFromJsonAsync<PlaceOrdersResponse>();
     }
-
 
     public async Task<List<UserOrderDto>> GetMyOrdersAsync(Guid? supplierId = null, DateTime? startDate = null,
         DateTime? endDate = null)
@@ -33,43 +31,20 @@ public class OrderDataService : IOrderDataService
         if (supplierId.HasValue)
             query.Add($"supplierId={supplierId.Value}");
         if (startDate.HasValue)
-        {
-            // query.Add($"startDate={Uri.EscapeDataString(startDate.Value.ToString("o"))}");
-            // query.Add($"startDate={Uri.EscapeDataString(startDate.Value.ToUniversalTime().ToString("o"))}"); //Not working
-            query.Add($"startDate={startDate.Value:yyyy-MM-dd}"); //Working
-            // query.Add($"startDate={ToQueryParam(startDate)}");    //Not working
-        }
-
+            query.Add($"startDate={startDate.Value:yyyy-MM-dd}");
         if (endDate.HasValue)
-        {
-            // query.Add($"endDate={Uri.EscapeDataString(endDate.Value.ToString("o"))}");
-            // query.Add($"endDate={Uri.EscapeDataString(endDate.Value.ToUniversalTime().ToString("o"))}");  //Not working
-            query.Add($"endDate={endDate.Value:yyyy-MM-dd}"); //Working
-            // query.Add($"endDate={ToQueryParam(endDate)}");  //Not working
-        }
+            query.Add($"endDate={endDate.Value:yyyy-MM-dd}");
 
         string url = "api/mealorders/me" + (query.Count > 0 ? "?" + string.Join("&", query) : string.Empty);
 
         List<UserOrderDto>? orders = await _httpClient.GetFromJsonAsync<List<UserOrderDto>>(url);
-        return orders ?? new List<UserOrderDto>();
+        return orders ?? [];
     }
 
     public async Task<bool> DeleteOrderAsync(Guid orderId)
     {
         HttpResponseMessage response = await _httpClient.DeleteAsync($"api/mealorders/{orderId}");
         return response.IsSuccessStatusCode;
-    }
-
-    private static string? ToQueryParam(DateTime? dateTime)
-    {
-        if (!dateTime.HasValue)
-            return null;
-
-        // Конвертирай към UTC, за да избегнеш timezone разлики
-        DateTime utc = DateTime.SpecifyKind(dateTime.Value, DateTimeKind.Local).ToUniversalTime();
-
-        // ISO 8601 формат ("o") + Escape за безопасен URL
-        return Uri.EscapeDataString(utc.ToString("o"));
     }
 
     public async Task<List<UserOrderItemDto>> GetMyOrderItemsAsync(
@@ -106,7 +81,7 @@ public class OrderDataService : IOrderDataService
             url += $"?supplierId={supplierId.Value}";
 
         List<UserOrderPaymentItemDto>? items = await _httpClient.GetFromJsonAsync<List<UserOrderPaymentItemDto>>(url);
-        return items ?? new List<UserOrderPaymentItemDto>();
+        return items ?? [];
     }
 
     public async Task<UserOutstandingSummaryDto?> GetMyPaymentsSummaryAsync()
@@ -118,5 +93,46 @@ public class OrderDataService : IOrderDataService
     {
         HttpResponseMessage response = await _httpClient.PatchAsync($"api/mealorders/{orderId}/pay", null);
         return response.IsSuccessStatusCode;
+    }
+
+    public async Task<List<UserOrderPaymentItemDto>> GetUnpaidOrdersByUserAsync(string userId, Guid? supplierId = null)
+    {
+        string url = $"api/admin/mealorders/unpaid/{Uri.EscapeDataString(userId)}";
+        if (supplierId.HasValue)
+            url += $"?supplierId={supplierId.Value}";
+
+        List<UserOrderPaymentItemDto>? items = await _httpClient.GetFromJsonAsync<List<UserOrderPaymentItemDto>>(url);
+        return items ?? [];
+    }
+
+    public async Task<List<UserOrderPaymentItemDto>> GetOrdersByUserForPeriodAsync(string userId, DateTime? startDate = null, DateTime? endDate = null, Guid? supplierId = null)
+    {
+        List<string> query = [];
+
+        if (startDate.HasValue)
+            query.Add($"startDate={startDate.Value:yyyy-MM-dd}");
+
+        if (endDate.HasValue)
+            query.Add($"endDate={endDate.Value:yyyy-MM-dd}");
+
+        if (supplierId.HasValue)
+            query.Add($"supplierId={supplierId.Value}");
+
+        string url = $"api/admin/mealorders/period/{Uri.EscapeDataString(userId)}" + (query.Count > 0 ? "?" + string.Join("&", query) : string.Empty);
+
+        List<UserOrderPaymentItemDto>? items = await _httpClient.GetFromJsonAsync<List<UserOrderPaymentItemDto>>(url);
+        return items ?? [];
+    }
+
+    public async Task<OrderPayResponseDto?> OrderMarkAsPaidAsync(OrderPayRequestDto requestDto)
+    {
+        ArgumentNullException.ThrowIfNull(requestDto);
+
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync("api/admin/mealorders/order-pay", requestDto);
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await response.Content.ReadFromJsonAsync<OrderPayResponseDto>();
     }
 }
