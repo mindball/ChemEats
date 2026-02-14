@@ -24,17 +24,6 @@ public class MenuRepository : IMenuRepository
 
     public async Task<IReadOnlyList<Menu>> GetAllAsync(bool includeDeleted = false, CancellationToken cancellationToken = default)
     {
-        // IQueryable<Menu> query = _context.Menus
-        //     .Include(m => m.Supplier)
-        //     .Include(m => m.Meals);
-        //
-        // if (!includeDeleted)
-        //     query = query.Where(m => !m.IsDeleted);
-        //
-        // return await query
-        //     .OrderByDescending(m => m.Date)
-        //     .ToListAsync(cancellationToken);
-
         cancellationToken.ThrowIfCancellationRequested();
 
         IQueryable<Menu> query = _context.Menus
@@ -95,6 +84,16 @@ public class MenuRepository : IMenuRepository
 
     public async Task UpdateAsync(Menu menu, CancellationToken cancellationToken = default)
     {
+        Menu? existingMenu = await _context.Menus
+            .AsNoTracking()
+            .FirstOrDefaultAsync(m => m.Id == menu.Id, cancellationToken);
+
+        if (existingMenu is null)
+            throw new InvalidOperationException($"Menu with ID {menu.Id} not found.");
+
+        if (!existingMenu.IsActive())
+            throw new InvalidOperationException("Cannot update inactive menu.");
+
         _context.Menus.Update(menu);
         await _context.SaveChangesAsync(cancellationToken);
     }

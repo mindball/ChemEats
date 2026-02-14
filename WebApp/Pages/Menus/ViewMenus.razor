@@ -181,15 +181,15 @@
                                         <td class="text-center">
                                             <div class="btn-group btn-group-sm" role="group">
                                                 <button class="btn btn-outline-primary"
-                                                        disabled="@menu.IsDeleted"
+                                                        disabled="@(menu.IsDeleted || isExpired)"
                                                         @onclick="() => EditDateAsync(menu.Id, menu.Date)"
-                                                        title="Edit date">
+                                                        title="@(isExpired ? "Cannot edit expired menu" : "Edit date")">
                                                     <i class="bi bi-pencil-fill me-1"></i>Edit Date
                                                 </button>
                                                 <button class="btn btn-outline-danger"
-                                                        disabled="@menu.IsDeleted"
+                                                        disabled="@(menu.IsDeleted || isExpired)"
                                                         @onclick="() => SoftDeleteAsync(menu.Id)"
-                                                        title="Soft delete">
+                                                        title="@(isExpired ? "Cannot delete expired menu" : "Soft delete")">
                                                     <i class="bi bi-trash-fill me-1"></i>Delete
                                                 </button>
                                             </div>

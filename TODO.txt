@@ -47,6 +47,9 @@
 07.02.2026
 - добавяне на поле 
 - рефактурирал съм MenuEdnpoint направи и останалите така
-- An unhandled exception has occurred while executing the request.
-Microsoft.AspNetCore.Http.BadHttpRequestException: Required parameter "bool includeDeleted" was not provided from query string.
-           
+- Трябва да може да се редактира и Active till в момента го има заредено в copilot, трябва да се имплментира
+- трябва да имаме и логика за деактивиране на менюто
+- Роли основани на доставчик как ?
+
+13.2.2026 
+- не активно меню не може да се трие и да му се сменя датата

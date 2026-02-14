@@ -124,6 +124,12 @@ public static class MenuEndpoints
             return Results.NotFound();
         }
 
+        if (!menu.IsActive())
+        {
+            logger.LogWarning("Cannot update inactive menu {MenuId}", menuId);
+            return Results.BadRequest(new { Message = "Cannot update date of inactive menu" });
+        }
+
         try
         {
             logger.LogWarning(
@@ -134,12 +140,14 @@ public static class MenuEndpoints
             menu.UpdateDate(newDate);
             await menuRepository.UpdateAsync(menu, cancellationToken);
 
-            logger.LogInformation("Menu {MenuId} date updated to {NewDate} by {User}", menuId, newDate, context.User.Identity?.Name);
+            logger.LogInformation("Menu {MenuId} date updated to {NewDate} by {User}", menuId, newDate,
+                context.User.Identity?.Name);
             return Results.NoContent();
         }
         catch (DomainException ex)
         {
-            logger.LogWarning(ex, "Failed to update menu {MenuId} date by {User}: {ErrorMessage}", menuId, context.User.Identity?.Name, ex.Message);
+            logger.LogWarning(ex, "Failed to update menu {MenuId} date by {User}: {ErrorMessage}", menuId,
+                context.User.Identity?.Name, ex.Message);
             return Results.BadRequest(new { Message = ex.Message });
         }
     }
@@ -159,6 +167,12 @@ public static class MenuEndpoints
             return Results.NotFound();
         }
 
+        if (!menu.IsActive())
+        {
+            logger.LogWarning("Cannot update inactive menu {MenuId}", menuId);
+            return Results.BadRequest(new { Message = "Cannot update ActiveUntil of inactive menu" });
+        }
+
         try
         {
             logger.LogWarning(
@@ -169,13 +183,15 @@ public static class MenuEndpoints
             menu.UpdateActiveUntil(newActiveUntil);
             await menuRepository.UpdateAsync(menu, cancellationToken);
 
-            logger.LogInformation("Menu {MenuId} ActiveUntil updated to {NewActiveUntil} by {User}", menuId, newActiveUntil, context.User.Identity?.Name);
-          
+            logger.LogInformation("Menu {MenuId} ActiveUntil updated to {NewActiveUntil} by {User}", menuId,
+                newActiveUntil, context.User.Identity?.Name);
+
             return Results.NoContent();
         }
         catch (DomainException ex)
         {
-            logger.LogWarning(ex, "Failed to update menu {MenuId} ActiveUntil by {User}: {ErrorMessage}", menuId, context.User.Identity?.Name, ex.Message);
+            logger.LogWarning(ex, "Failed to update menu {MenuId} ActiveUntil by {User}: {ErrorMessage}", menuId,
+                context.User.Identity?.Name, ex.Message);
             return Results.BadRequest(new { Message = ex.Message });
         }
     }
@@ -210,6 +226,24 @@ public static class MenuEndpoints
                 menuId,
                 context.User.Identity?.Name);
             return Results.NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+            logger.LogWarning(ex,
+                "Cannot delete menu {MenuId} by {User}: {ErrorMessage}",
+                menuId,
+                context.User.Identity?.Name,
+                ex.Message);
+            return Results.BadRequest(new { Message = ex.Message });
+        }
+        catch (DomainException ex)
+        {
+            logger.LogWarning(ex,
+                "Domain validation failed for menu {MenuId} by {User}: {ErrorMessage}",
+                menuId,
+                context.User.Identity?.Name,
+                ex.Message);
+            return Results.BadRequest(new { Message = ex.Message });
         }
         catch (Exception ex)
         {

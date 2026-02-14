@@ -22,12 +22,33 @@ public class UploadMenuBase : ComponentBase
     protected List<CsvMealRow> ParsedMeals { get; set; } = [];
 
     protected Guid SelectedSupplierId { get; set; }
-    protected DateTime SelectedDate { get; set; } = DateTime.Today.AddDays(1);
+    private DateTime _selectedDate = DateTime.Today;
+    protected DateTime SelectedDate
+    {
+        get => _selectedDate;
+        set
+        {
+            if (value.Date < DateTime.Today)
+            {
+                ErrorMessage = "Menu date cannot be in the past.";
+                _selectedDate = DateTime.Today;
+            }
+            else
+            {
+                ErrorMessage = null;
+                _selectedDate = value;
+            }
+            StateHasChanged();
+        }
+    }
 
     protected bool IsLoading { get; set; }
     protected bool IsSubmitting { get; set; }
     protected string? ErrorMessage { get; set; }
     protected string? SuccessMessage { get; set; }
+
+    protected bool IsRedirecting { get; set; }
+    protected int RedirectCountdown { get; set; }
 
     private string _activeUntilTimeString = "12:00";
 
@@ -62,11 +83,11 @@ public class UploadMenuBase : ComponentBase
                 return fallbackResult;
             }
 
-            return new TimeOnly(12, 0);
+            return new TimeOnly(12, 0); 
         }
     }
 
-    protected DateTime ComputedActiveUntil => DateTime.Today.Add(ActiveUntilTime.ToTimeSpan());
+    protected DateTime ActiveUntil => SelectedDate.Date.Add(ActiveUntilTime.ToTimeSpan());
 
     protected override async Task OnInitializedAsync()
     {
@@ -150,6 +171,8 @@ public class UploadMenuBase : ComponentBase
         ParsedMeals.Clear();
         ErrorMessage = null;
         SuccessMessage = null;
+        IsRedirecting = false;
+        RedirectCountdown = 0;
     }
 
     protected async Task HandleUploadAsync()
@@ -159,6 +182,7 @@ public class UploadMenuBase : ComponentBase
             IsSubmitting = true;
             ErrorMessage = null;
             SuccessMessage = null;
+            IsRedirecting = false;
 
             if (SelectedSupplierId == Guid.Empty)
             {
@@ -186,19 +210,16 @@ public class UploadMenuBase : ComponentBase
 
             TimeOnly minTime = new(8, 0);
             TimeOnly maxTime = new(16, 0);
-            TimeOnly activeTime = ActiveUntilTime;
 
-            if (activeTime < minTime || activeTime > maxTime)
+            if (ActiveUntilTime < minTime || ActiveUntilTime > maxTime)
             {
                 ErrorMessage = $"Active Until time must be between {minTime:HH:mm} and {maxTime:HH:mm}.";
                 return;
             }
 
-            DateTime activeUntil = ComputedActiveUntil;
-
-            if (activeUntil <= DateTime.Now)
+            if (SelectedDate.Date == DateTime.Today && ActiveUntil <= DateTime.Now)
             {
-                ErrorMessage = "Active Until time must be in the future.";
+                ErrorMessage = "Active Until time must be in the future for today's menu.";
                 return;
             }
 
@@ -209,7 +230,7 @@ public class UploadMenuBase : ComponentBase
             CreateMenuDto dto = new(
                 SelectedSupplierId,
                 SelectedDate,
-                activeUntil,
+                ActiveUntil,
                 mealDtos
             );
 
@@ -217,10 +238,19 @@ public class UploadMenuBase : ComponentBase
 
             if (result is not null)
             {
-                SuccessMessage = $"Menu uploaded successfully! {ParsedMeals.Count} meal(s) added. Active until {result.ActiveUntil:HH:mm}";
+                SuccessMessage = $"Menu uploaded successfully! {ParsedMeals.Count} meal(s) added. Active until {result.ActiveUntil:dd.MM.yyyy HH:mm}";
                 ResetForm();
 
-                await Task.Delay(2000);
+                IsRedirecting = true;
+                RedirectCountdown = 3;
+
+                for (int i = RedirectCountdown; i > 0; i--)
+                {
+                    RedirectCountdown = i;
+                    await InvokeAsync(StateHasChanged);
+                    await Task.Delay(1000);
+                }
+
                 Navigation.NavigateTo("/menus");
             }
         }

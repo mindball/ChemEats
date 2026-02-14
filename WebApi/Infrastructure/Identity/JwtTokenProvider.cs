@@ -42,7 +42,7 @@ public class JwtTokenProvider
             _settings.Issuer,
             _settings.Audience,
             claims,
-            expires: DateTime.UtcNow.AddMinutes(_settings.ExpiryMinutes),
+            expires: DateTime.Now.AddMinutes(_settings.ExpiryMinutes),
             signingCredentials: creds);
 
         JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
