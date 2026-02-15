@@ -215,8 +215,8 @@
                                         </td>
                                         <td class="fw-semibold">@item.MealName</td>
                                         <td>@item.SupplierName</td>
-                                        <td><small>@FormatBulgarianDate(item.OrderDate)</small></td>
-                                        <td><small>@FormatBulgarianDate(item.OrderDate)</small></td>
+                                        <td><small>@FormatBulgarianDate(item.MenuDate)</small></td>
+                                        <td><small>@FormatBulgarianDate(item.OrderedAt)</small></td>
                                         <td class="text-end">@item.Price.ToString("F2") лв.</td>
                                         <td class="text-end">
                                             @if (item.PortionApplied)

@@ -53,7 +53,6 @@ public class AdminPaymentsBase : ComponentBase
         {
             List<EmployeeDto> employees = await EmployeeDataService.GetAllEmployeesAsync();
             
-            // Подреждане по азбучен ред (FullName)
             AllEmployees = employees.OrderBy(e => e.FullName).ToList();
 
             // Default: current month

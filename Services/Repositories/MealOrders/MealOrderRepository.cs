@@ -383,6 +383,33 @@ public class MealOrderRepository : IMealOrderRepository
         return (paidCount, totalPaid);
     }
 
+    public async Task<(int CompletedCount, decimal TotalAmount)> MarkPendingOrdersAsCompletedForMenuAsync(
+        Guid menuId,
+        CancellationToken cancellationToken = default)
+    {
+        List<MealOrder> pendingOrders = await _dbContext.MealOrders
+            .Include(mo => mo.Meal)
+            .Where(mo => mo.Meal.MenuId == menuId
+                         && mo.Status == MealOrderStatus.Pending
+                         && !mo.IsDeleted)
+            .ToListAsync(cancellationToken);
+
+        int completedCount = 0;
+        decimal totalAmount = 0m;
+
+        foreach (MealOrder order in pendingOrders)
+        {
+            order.MarkAsCompleted();
+            totalAmount += order.GetNetAmount();
+            completedCount++;
+        }
+
+        if (completedCount > 0)
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return (completedCount, totalAmount);
+    }
+
     public Task<bool> HasAppliedPortionAsync(string userId, Guid menuId, DateOnly date, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
@@ -427,7 +454,7 @@ public class MealOrderRepository : IMealOrderRepository
         if (supplierId.HasValue)
             query = query.Where(x => x.SupplierId == supplierId.Value);
 
-        return await query
+        var result = await query
             .OrderBy(x => x.OrderedAt)
             .Select(x => new UserOrderPaymentItem(
                 x.OrderId,
@@ -445,6 +472,8 @@ public class MealOrderRepository : IMealOrderRepository
                 Math.Max(0m, x.Price - (x.PortionApplied ? x.PortionAmount : 0m))
             ))
             .ToListAsync(cancellationToken);
+
+        return result;
     }
 
     #endregion

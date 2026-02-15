@@ -143,4 +143,18 @@ public class Menu
             order.SoftDelete();
         }
     }
+
+    public void FinalizeMenu()
+    {
+        if (IsDeleted)
+            throw new DomainException("Cannot finalize deleted menu.");
+
+        if (!IsActive())
+            throw new DomainException("Menu is already inactive.");
+
+        if (Date.Date <= DateTime.Today)
+            throw new DomainException("Can only finalize future menu.");
+
+        ActiveUntil = DateTime.Now;
+    }
 }

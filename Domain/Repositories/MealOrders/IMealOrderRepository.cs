@@ -76,6 +76,10 @@ public interface IMealOrderRepository
         DateTime paidOn,
         CancellationToken cancellationToken = default);
 
+    Task<(int CompletedCount, decimal TotalAmount)> MarkPendingOrdersAsCompletedForMenuAsync(
+        Guid menuId,
+        CancellationToken cancellationToken = default);
+
     Task<bool> HasPortionAppliedOnDateAsync(
         string userId,
         DateOnly date,
