@@ -1,5 +1,6 @@
 ﻿using Domain.Common.Enums;
 using Domain.Infrastructure.Exceptions;
+using Domain.Infrastructure.Identity;
 
 namespace Domain.Entities;
 
@@ -47,7 +48,27 @@ public class Supplier
     public string? PostalCode { get; private set; }
     public string? Country { get; private set; }
 
+    public string? SupervisorId { get; private set; }
+    public ApplicationUser? Supervisor { get; private set; }
+
     public IReadOnlyCollection<Menu> Menus => _menus.AsReadOnly();
+
+    public void AssignSupervisor(string userId)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new DomainException("Supervisor user ID is required");
+
+        SupervisorId = userId;
+    }
+
+    public void RemoveSupervisor()
+    {
+        SupervisorId = null;
+        Supervisor = null;
+    }
+
+    public bool IsSupervisor(string userId) =>
+        !string.IsNullOrEmpty(SupervisorId) && SupervisorId == userId;
 
     public void AddMenu(Menu menu)
     {

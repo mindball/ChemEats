@@ -224,24 +224,24 @@ else
                                     </div>
                                 </td>
                             }
-                            else
-                            {
-                                <td class="text-center">
-                                    <button class="btn btn-outline-info btn-sm"
-                                            disabled="@(menu.IsDeleted || isReportLoading)"
-                                            @onclick="() => DownloadReportAsync(menu.Id)"
-                                            title="Download my orders report for this menu">
-                                        @if (isReportLoading)
-                                        {
-                                            <span class="spinner-border spinner-border-sm" role="status"></span>
-                                        }
-                                        else
-                                        {
-                                            <i class="bi bi-file-earmark-pdf me-1"></i>
-                                        }
-                                    </button>
-                                </td>
-                            }
+                            @* else *@
+                            @* { *@
+                            @*     <td class="text-center"> *@
+                            @*         <button class="btn btn-outline-info btn-sm" *@
+                            @*                 disabled="@(menu.IsDeleted || isReportLoading)" *@
+                            @*                 @onclick="() => DownloadReportAsync(menu.Id)" *@
+                            @*                 title="Download my orders report for this menu"> *@
+                            @*             @if (isReportLoading) *@
+                            @*             { *@
+                            @*                 <span class="spinner-border spinner-border-sm" role="status"></span> *@
+                            @*             } *@
+                            @*             else *@
+                            @*             { *@
+                            @*                 <i class="bi bi-file-earmark-pdf me-1"></i> *@
+                            @*             } *@
+                            @*         </button> *@
+                            @*     </td> *@
+                            @* } *@
                         </tr>
                     }
                     </tbody>

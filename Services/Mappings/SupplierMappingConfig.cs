@@ -8,6 +8,10 @@ public class SupplierMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
+        config.NewConfig<Supplier, SupplierDto>()
+            .Map(dest => dest.SupervisorId, src => src.SupervisorId)
+            .Map(dest => dest.SupervisorName, src => src.Supervisor != null ? src.Supervisor.FullName : null);
+
         config.NewConfig<CreateSupplierDto, Supplier>()
             .Map(dest => dest.Name, src => src.Name)
             .Map(dest => dest.VatNumber, src => src.VatNumber)

@@ -94,6 +94,10 @@ public static class SupplierEndpoints
                     dto.Name);
 
                 Supplier entity = mapper.Map<Supplier>(dto);
+
+                if (!string.IsNullOrEmpty(dto.SupervisorId))
+                    entity.AssignSupervisor(dto.SupervisorId);
+
                 await repo.AddAsync(entity, cancellationToken);
 
                 logger.LogInformation(
@@ -143,6 +147,12 @@ public static class SupplierEndpoints
 
                 string oldName = existing.Name;
                 mapper.Map(dto, existing);
+
+                if (!string.IsNullOrEmpty(dto.SupervisorId))
+                    existing.AssignSupervisor(dto.SupervisorId);
+                else
+                    existing.RemoveSupervisor();
+
                 await repo.UpdateAsync(existing, cancellationToken);
 
                 logger.LogInformation(

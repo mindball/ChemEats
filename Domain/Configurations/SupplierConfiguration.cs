@@ -1,4 +1,5 @@
 using Domain.Entities;
+using Domain.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -18,6 +19,16 @@ public class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
         builder.Property(s => s.Name)
             .IsRequired()
             .HasMaxLength(100);
+
+        builder.Property(s => s.SupervisorId)
+            .HasMaxLength(450);
+
+        builder.HasOne(s => s.Supervisor)
+            .WithMany(u => u.SupervisedSuppliers)
+            .HasForeignKey(s => s.SupervisorId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasIndex(s => s.SupervisorId);
 
         builder.Metadata.FindNavigation(nameof(Supplier.Menus))!
             .SetPropertyAccessMode(PropertyAccessMode.Field);

@@ -19,7 +19,16 @@ public class SupplierRepository : ISupplierRepository
     {
         return await _db.Suppliers
             .Include(s => s.Menus)
+            .Include(s => s.Supervisor)
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+    }
+
+    public async Task<Supplier?> GetBySupervisorIdAsync(string supervisorId, CancellationToken cancellationToken = default)
+    {
+        return await _db.Suppliers
+            .Include(s => s.Menus)
+            .Include(s => s.Supervisor)
+            .FirstOrDefaultAsync(s => s.SupervisorId == supervisorId, cancellationToken);
     }
 
     public async Task<Supplier?> DeleteAsync(Supplier supplier, CancellationToken cancellationToken = default)
@@ -44,6 +53,7 @@ public class SupplierRepository : ISupplierRepository
 
         List<Supplier> suppliers = await _db.Suppliers
             .Include(s => s.Menus.Where(m => m.Date >= startDate))
+            .Include(s => s.Supervisor)
             .ToListAsync(cancellationToken);
 
         return suppliers;

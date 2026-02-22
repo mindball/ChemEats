@@ -54,26 +54,6 @@ namespace WebApi.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Suppliers",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "VARCHAR(36)", nullable: false),
-                    Name = table.Column<string>(type: "VARCHAR(100)", maxLength: 100, nullable: false),
-                    VatNumber = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: false),
-                    PaymentTerms = table.Column<int>(type: "INTEGER", nullable: false),
-                    Email = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: true),
-                    Phone = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: true),
-                    StreetAddress = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: true),
-                    City = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: true),
-                    PostalCode = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: true),
-                    Country = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Suppliers", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
@@ -177,6 +157,33 @@ namespace WebApi.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Suppliers",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "VARCHAR(36)", nullable: false),
+                    Name = table.Column<string>(type: "VARCHAR(100)", maxLength: 100, nullable: false),
+                    VatNumber = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: false),
+                    PaymentTerms = table.Column<int>(type: "INTEGER", nullable: false),
+                    Email = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: true),
+                    Phone = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: true),
+                    StreetAddress = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: true),
+                    City = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: true),
+                    PostalCode = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: true),
+                    Country = table.Column<string>(type: "BLOB SUB_TYPE TEXT", nullable: true),
+                    SupervisorId = table.Column<string>(type: "VARCHAR(450)", maxLength: 450, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Suppliers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Suppliers_AspNetUsers_Super~",
+                        column: x => x.SupervisorId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -336,6 +343,11 @@ namespace WebApi.Migrations
                 name: "IX_Menus_SupplierId_Date",
                 table: "Menus",
                 columns: new[] { "SupplierId", "Date" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Suppliers_SupervisorId",
+                table: "Suppliers",
+                column: "SupervisorId");
         }
 
         /// <inheritdoc />
@@ -363,9 +375,6 @@ namespace WebApi.Migrations
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
-
-            migrationBuilder.DropTable(
                 name: "Meals");
 
             migrationBuilder.DropTable(
@@ -373,6 +382,9 @@ namespace WebApi.Migrations
 
             migrationBuilder.DropTable(
                 name: "Suppliers");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
         }
     }
 }

@@ -16,6 +16,9 @@ public record SupplierDto
     public string? PostalCode { get; init; }
     public string? Country { get; init; }
 
+    public string? SupervisorId { get; init; }
+    public string? SupervisorName { get; init; }
+
     public PaymentTermsUI PaymentTerms { get; init; }
 
     public List<MenuDto> Menus { get; init; } = [];

@@ -13,7 +13,8 @@ public static class AdminMenuEndpoints
     public static void MapAdminMenuEndpoints(this IEndpointRouteBuilder app)
     {
         RouteGroupBuilder group = app.MapGroup("/api/admin/menus")
-            .RequireAuthorization("AdminPolicy");
+            .RequireAuthorization()
+            .AddEndpointFilter<SupplierSupervisorFilter>();
 
         group.MapPost("/{menuId:guid}/finalize", async (
                 Guid menuId,

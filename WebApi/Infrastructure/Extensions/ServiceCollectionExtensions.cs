@@ -73,6 +73,8 @@ public static class ServiceCollectionExtensions
         services.AddAuthorization(options =>
         {
             options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
+            options.AddPolicy("SupplierManagementPolicy", policy =>
+                policy.RequireRole("Admin", "Supervisor"));
         });
 
         return services;

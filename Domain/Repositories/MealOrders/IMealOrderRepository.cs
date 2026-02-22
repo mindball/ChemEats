@@ -52,6 +52,10 @@ public interface IMealOrderRepository
         Guid menuId,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<UserOrderItem>> GetAllOrdersByMenuAsync(
+        Guid menuId,
+        CancellationToken cancellationToken = default);
+
     Task<UserOutstandingSummary> GetUserOutstandingSummaryAsync(
         string userId,
         CancellationToken cancellationToken = default);

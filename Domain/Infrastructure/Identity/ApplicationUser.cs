@@ -6,11 +6,14 @@ namespace Domain.Infrastructure.Identity;
 public class ApplicationUser : IdentityUser
 {
     private readonly List<MealOrder> _orders = [];
+    private readonly List<Supplier> _supervisedSuppliers = [];
 
     public string Abbreviation { get; private set; } = null!;
     public string FullName { get; private set; } = null!;
 
     public IReadOnlyCollection<MealOrder> Orders => _orders.AsReadOnly();
+
+    public IReadOnlyCollection<Supplier> SupervisedSuppliers => _supervisedSuppliers.AsReadOnly();
 
 
     public void AddOrder(MealOrder order)

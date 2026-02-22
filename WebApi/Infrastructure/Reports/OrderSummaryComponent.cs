@@ -17,10 +17,7 @@ public sealed class OrderSummaryComponent : IComponent
 
     public void Compose(IContainer container)
     {
-        decimal totalGross = _orders.Sum(o => o.Price);
-        decimal totalPortion = _orders.Sum(o => o.PortionApplied ? o.PortionAmount : 0m);
-        decimal totalNet = _orders.Sum(o => o.NetAmount);
-
+        decimal totalAmount = _orders.Sum(o => o.Price);
         CultureInfo bgCulture = CultureInfo.GetCultureInfo("bg-BG");
 
         container.Background(Colors.Blue.Lighten4)
@@ -37,23 +34,9 @@ public sealed class OrderSummaryComponent : IComponent
 
                 column.Item().Row(row =>
                 {
-                    row.RelativeItem().Text("Gross Amount:").Bold();
-                    row.RelativeItem().AlignRight().Text(totalGross.ToString("C", bgCulture));
-                });
-
-                column.Item().Row(row =>
-                {
-                    row.RelativeItem().Text("Company Portion:").Bold();
+                    row.RelativeItem().Text("Total Amount:").Bold().FontSize(14);
                     row.RelativeItem().AlignRight()
-                        .Text(totalPortion.ToString("C", bgCulture))
-                        .FontColor(Colors.Green.Darken2);
-                });
-
-                column.Item().Row(row =>
-                {
-                    row.RelativeItem().Text("Net Payable:").Bold().FontSize(14);
-                    row.RelativeItem().AlignRight()
-                        .Text(totalNet.ToString("C", bgCulture))
+                        .Text(totalAmount.ToString("C", bgCulture))
                         .Bold()
                         .FontSize(14)
                         .FontColor(Colors.Red.Darken1);

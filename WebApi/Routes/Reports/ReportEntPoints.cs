@@ -4,10 +4,6 @@ using Domain.Models.Orders;
 using Domain.Repositories.MealOrders;
 using Domain.Repositories.Menus;
 using Microsoft.AspNetCore.Identity;
-using QuestPDF.Fluent;
-using QuestPDF.Helpers;
-using QuestPDF.Infrastructure;
-using Shared.DTOs.Menus;
 using WebApi.Infrastructure.Filters;
 using WebApi.Infrastructure.Reports;
 
@@ -18,7 +14,7 @@ public static class ReportEndpoints
     public static void MapReportEndpoints(this IEndpointRouteBuilder app)
     {
         RouteGroupBuilder group = app.MapGroup("api/reports")
-            .RequireAuthorization()
+            .RequireAuthorization("AdminPolicy")
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
 
         group.MapGet("/menu/{menuId:guid}", async (
@@ -42,15 +38,15 @@ public static class ReportEndpoints
                 Menu? menu = await menuRepository.GetByIdAsync(menuId, cancellationToken);
                 if (menu is null)
                 {
-                    logger.LogWarning("Report request - menu {MenuId} not found", menuId);
+                    logger.LogWarning("Report request - menu {MenuId} not found by {UserId}", menuId, user.Id);
                     return Results.NotFound(new { Message = $"Menu with id '{menuId}' not found." });
                 }
 
                 IReadOnlyList<UserOrderItem> orders =
-                    await orderRepository.GetOrdersByMenuAsync(user.Id, menuId, cancellationToken);
+                        await orderRepository.GetAllOrdersByMenuAsync(menuId, cancellationToken);
 
                 logger.LogInformation(
-                    "Generating PDF report for user {UserId} on menu {MenuId} with {OrderCount} orders",
+                    "Admin {UserId} generating PDF report for menu {MenuId} — {OrderCount} total orders",
                     user.Id,
                     menuId,
                     orders.Count);

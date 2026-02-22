@@ -17,14 +17,14 @@ public static class MenuEndpoints
             .WithTags("Menus")
             .RequireAuthorization().AddEndpointFilter<AuthorizedRequestLoggingFilter>();
 
-        group.MapPost("", CreateMenuAsync);
+        group.MapPost("", CreateMenuAsync).AddEndpointFilter<SupplierSupervisorFilter>();
         group.MapGet("", GetAllMenusAsync);
         group.MapGet("active", GetActiveMenusAsync);
         group.MapGet("{menuId:guid}", GetMenuByIdAsync);
         group.MapGet("supplier/{supplierId:guid}", GetMenusBySupplierAsync);
-        group.MapPut("{menuId:guid}/date", UpdateMenuDateAsync);
-        group.MapPut("{menuId:guid}/active-until", UpdateMenuActiveUntilAsync);
-        group.MapDelete("{menuId:guid}", SoftDeleteMenuAsync);
+        group.MapPut("{menuId:guid}/date", UpdateMenuDateAsync).AddEndpointFilter<SupplierSupervisorFilter>();
+        group.MapPut("{menuId:guid}/active-until", UpdateMenuActiveUntilAsync).AddEndpointFilter<SupplierSupervisorFilter>();
+        group.MapDelete("{menuId:guid}", SoftDeleteMenuAsync).AddEndpointFilter<SupplierSupervisorFilter>();
     }
 
     private static async Task<IResult> GetMenuByIdAsync(

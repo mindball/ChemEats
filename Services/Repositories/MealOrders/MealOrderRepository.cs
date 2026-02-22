@@ -39,11 +39,14 @@ public class MealOrderRepository : IMealOrderRepository
                 on meal.MenuId equals menu.Id
             join supplier in _dbContext.Suppliers.AsNoTracking()
                 on menu.SupplierId equals supplier.Id
+            join user in _dbContext.Users.AsNoTracking()
+                on mo.UserId equals user.Id
             where mo.UserId == userId
             select new OrderJoinRow
             {
                 OrderId = mo.Id,
                 UserId = mo.UserId,
+                EmployeeName = user.FullName,
                 MealId = meal.Id,
                 MealName = meal.Name,
                 SupplierId = supplier.Id,
@@ -222,17 +225,63 @@ public class MealOrderRepository : IMealOrderRepository
         return await (
                 from mo in _dbContext.MealOrders.AsNoTracking()
                     .Where(mo => mo.UserId == userId)
+
+                join user in _dbContext.Users.AsNoTracking()
+                    on mo.UserId equals user.Id
+
+                join meal in _dbContext.Meals.AsNoTracking()
+                    on mo.MealId equals meal.Id
+
+                join menu in _dbContext.Menus.AsNoTracking()
+                    on meal.MenuId equals menu.Id
+
+                join supplier in _dbContext.Suppliers.AsNoTracking()
+                    on menu.SupplierId equals supplier.Id
+
+                where menu.Id == menuId
+                orderby mo.OrderedAt
+
+                select new UserOrderItem(
+                    mo.Id,
+                    mo.UserId,
+                    user.FullName,  
+                    meal.Id,
+                    meal.Name,
+                    supplier.Id,
+                    supplier.Name,
+                    mo.OrderedAt,
+                    mo.MenuDate,
+                    mo.PriceAmount,
+                    mo.Status.ToString(),
+                    mo.PortionApplied,
+                    mo.IsDeleted,
+                    mo.PortionAmount,
+                    Math.Max(0m, mo.PriceAmount -
+                                 (mo.PortionApplied ? mo.PortionAmount : 0m))
+                ))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<UserOrderItem>> GetAllOrdersByMenuAsync(
+        Guid menuId,
+        CancellationToken cancellationToken = default)
+    {
+        return await (
+                from mo in _dbContext.MealOrders.AsNoTracking()
                 join meal in _dbContext.Meals.AsNoTracking()
                     on mo.MealId equals meal.Id
                 join menu in _dbContext.Menus.AsNoTracking()
                     on meal.MenuId equals menu.Id
                 join supplier in _dbContext.Suppliers.AsNoTracking()
                     on menu.SupplierId equals supplier.Id
+                join user in _dbContext.Users.AsNoTracking()
+                    on mo.UserId equals user.Id
                 where menu.Id == menuId
-                orderby mo.OrderedAt
+                orderby user.FullName, mo.OrderedAt
                 select new UserOrderItem(
                     mo.Id,
                     mo.UserId,
+                    user.FullName,
                     meal.Id,
                     meal.Name,
                     supplier.Id,
@@ -248,6 +297,7 @@ public class MealOrderRepository : IMealOrderRepository
                 ))
             .ToListAsync(cancellationToken);
     }
+
 
     public async Task<IReadOnlyList<UserOrderItem>> GetUserOrderItemsAsync(
         string userId,
@@ -266,6 +316,7 @@ public class MealOrderRepository : IMealOrderRepository
             .Select(x => new UserOrderItem(
                 x.OrderId,
                 x.UserId,
+                x.EmployeeName,
                 x.MealId,
                 x.MealName,
                 x.SupplierId,
@@ -300,6 +351,7 @@ public class MealOrderRepository : IMealOrderRepository
             .Select(x => new UserOrderItem(
                 x.OrderId,
                 x.UserId,
+                x.EmployeeName,
                 x.MealId,
                 x.MealName,
                 x.SupplierId,
@@ -518,6 +570,7 @@ public class MealOrderRepository : IMealOrderRepository
     {
         public Guid OrderId { get; init; }
         public string UserId { get; init; } = string.Empty;
+        public string EmployeeName { get; init; } = string.Empty;
         public Guid MealId { get; init; }
         public string MealName { get; init; } = string.Empty;
         public Guid SupplierId { get; init; }

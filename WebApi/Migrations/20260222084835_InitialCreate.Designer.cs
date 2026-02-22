@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260207074231_InitialCreate")]
+    [Migration("20260222084835_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -168,11 +168,17 @@ namespace WebApi.Migrations
                     b.Property<string>("StreetAddress")
                         .HasColumnType("BLOB SUB_TYPE TEXT");
 
+                    b.Property<string>("SupervisorId")
+                        .HasMaxLength(450)
+                        .HasColumnType("VARCHAR(450)");
+
                     b.Property<string>("VatNumber")
                         .IsRequired()
                         .HasColumnType("BLOB SUB_TYPE TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("SupervisorId");
 
                     b.ToTable("Suppliers");
                 });
@@ -442,6 +448,16 @@ namespace WebApi.Migrations
                     b.Navigation("Supplier");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Supplier", b =>
+                {
+                    b.HasOne("Domain.Infrastructure.Identity.ApplicationUser", "Supervisor")
+                        .WithMany("SupervisedSuppliers")
+                        .HasForeignKey("SupervisorId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Supervisor");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -506,6 +522,8 @@ namespace WebApi.Migrations
             modelBuilder.Entity("Domain.Infrastructure.Identity.ApplicationUser", b =>
                 {
                     b.Navigation("Orders");
+
+                    b.Navigation("SupervisedSuppliers");
                 });
 #pragma warning restore 612, 618
         }

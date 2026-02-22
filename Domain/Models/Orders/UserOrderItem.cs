@@ -1,8 +1,9 @@
-﻿namespace Domain.Models.Orders;
+﻿    namespace Domain.Models.Orders;
 
 public sealed record UserOrderItem(
     Guid OrderId,
     string UserId,
+    string EmployeeName,
     Guid MealId,
     string MealName,
     Guid SupplierId,

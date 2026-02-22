@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Components;
+using Shared.DTOs.Employees;
 using Shared.DTOs.Suppliers;
+using WebApp.Services.Employees;
 using WebApp.Services.Suppliers;
 
 namespace WebApp.Pages.Suppliers;
@@ -11,14 +13,18 @@ public class EditSupplierBase : ComponentBase
     protected string? SuccessMessage;
 
     protected UpdateSupplierDto Supplier { get; set; } = new();
+    protected List<EmployeeDto> AvailableUsers { get; set; } = [];
 
     [Inject] protected ISupplierDataService SupplierService { get; set; } = null!;
+    [Inject] protected IEmployeeDataService EmployeeService { get; set; } = null!;
     [Parameter] public Guid SupplierId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            AvailableUsers = await EmployeeService.GetAllEmployeesAsync();
+
             SupplierDto? existing = await SupplierService.GetSupplierDetailsAsync(SupplierId);
             if (existing != null)
                 Supplier = new UpdateSupplierDto
@@ -33,6 +39,7 @@ public class EditSupplierBase : ComponentBase
                     Phone = existing.Phone,
                     PostalCode = existing.PostalCode,
                     StreetAddress = existing.StreetAddress,
+                    SupervisorId = existing.SupervisorId,
                     Menus = existing.Menus
                 };
         }

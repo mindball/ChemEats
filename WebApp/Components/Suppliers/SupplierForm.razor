@@ -1,3 +1,4 @@
+@using Shared.DTOs.Employees
 
 <EditForm Model="@Supplier" OnValidSubmit="@OnValidSubmit">
     <DataAnnotationsValidator />
@@ -53,7 +54,16 @@
         </InputSelect>
     </div>
 
-    <!-- Optional: Menus editor could go here -->
+    <div class="mb-3">
+        <label class="form-label"><i class="bi bi-person-badge me-1"></i>Supervisor</label>
+        <InputSelect class="form-select" @bind-Value="Supplier.SupervisorId">
+            <option value="">-- No Supervisor --</option>
+            @foreach (EmployeeDto employee in AvailableUsers)
+            {
+                <option value="@employee.UserId">@employee.FullName (@employee.Email)</option>
+            }
+        </InputSelect>
+    </div>
 
     <button type="submit" class="btn btn-primary" disabled="@IsSubmitting">
         @if (IsSubmitting)
@@ -84,4 +94,5 @@
     [Parameter] public string SubmitButtonText { get; set; } = "Save";
     [Parameter] public string DefaultButtonText { get; set; } = "Save";
     [Parameter] public UpdateSupplierDto Supplier { get; set; } = new UpdateSupplierDto();
+    [Parameter] public List<EmployeeDto> AvailableUsers { get; set; } = [];
 }

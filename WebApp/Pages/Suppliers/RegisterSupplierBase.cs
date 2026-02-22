@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Shared.DTOs.Employees;
 using Shared.DTOs.Suppliers;
+using WebApp.Services.Employees;
 using WebApp.Services.Suppliers;
 
 namespace WebApp.Pages.Suppliers;
@@ -7,6 +9,7 @@ namespace WebApp.Pages.Suppliers;
 public class RegisterSupplierBase : ComponentBase
 {
     [Inject] protected ISupplierDataService SupplierService { get; set; } = default!;
+    [Inject] protected IEmployeeDataService EmployeeService { get; set; } = default!;
     [Inject] protected NavigationManager Navigation { get; set; } = default!;
 
     protected CreateSupplierDto supplier = new()
@@ -15,9 +18,22 @@ public class RegisterSupplierBase : ComponentBase
         VatNumber = string.Empty
     };
 
+    protected List<EmployeeDto> AvailableUsers { get; set; } = [];
     protected bool IsSubmitting { get; set; }
     protected string? SuccessMessage { get; set; }
     protected string? ErrorMessage { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            AvailableUsers = await EmployeeService.GetAllEmployeesAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error loading users: {ex.Message}";
+        }
+    }
 
     protected async Task RegisterSupplierAsync()
     {

@@ -1,5 +1,6 @@
 @page "/register-supplier"
 @using Shared.Common.Enums
+@using Shared.DTOs.Employees
 @inherits RegisterSupplierBase
 
 <AuthorizeView>
@@ -71,6 +72,21 @@
                                             }
                                         </InputSelect>
                                         <ValidationMessage For="@(() => supplier.PaymentTerms)" />
+                                    </div>
+
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-semibold" for="supervisorId">
+                                            <i class="bi bi-person-badge me-1"></i>Supervisor
+                                        </label>
+                                        <InputSelect id="supervisorId"
+                                                     class="form-select"
+                                                     @bind-Value="supplier.SupervisorId">
+                                            <option value="">-- No Supervisor --</option>
+                                            @foreach (EmployeeDto employee in AvailableUsers)
+                                            {
+                                                <option value="@employee.UserId">@employee.FullName (@employee.Email)</option>
+                                            }
+                                        </InputSelect>
                                     </div>
                                 </div>
                             </div>
