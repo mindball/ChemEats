@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿    using System.Diagnostics;
 using Domain.Entities;
 using Domain.Infrastructure.Identity;
 using Domain.Models.Orders;
@@ -553,5 +553,55 @@ public static class OrdersEndpoints
             })
             .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
+
+        group.MapGet("/me/menu/{menuId:guid}", async (
+                Guid menuId,
+                IMealOrderRepository orderRepository,
+                UserManager<ApplicationUser> userManager,
+                HttpContext httpContext,
+                IMapper mapper,
+                ILogger<Program> logger,
+                CancellationToken cancellationToken) =>
+            {
+                try
+                {
+                    ApplicationUser? user = await userManager.GetUserAsync(httpContext.User);
+                    if (user is null)
+                    {
+                        logger.LogWarning("Get orders by menu {MenuId} request rejected - unauthorized", menuId);
+                        return Results.Unauthorized();
+                    }
+
+                    logger.LogInformation(
+                        "Retrieving orders for user {UserName} ({UserId}) on menu {MenuId}",
+                        user.UserName,
+                        user.Id,
+                        menuId);
+
+                    IReadOnlyList<UserOrderItem> items =
+                        await orderRepository.GetOrdersByMenuAsync(user.Id, menuId, cancellationToken);
+
+                    List<UserOrderItemDto> dtos = items.Select(mapper.Map<UserOrderItemDto>).ToList();
+
+                    logger.LogInformation(
+                        "Retrieved {ItemCount} orders for user {UserId} on menu {MenuId}",
+                        dtos.Count,
+                        user.Id,
+                        menuId);
+
+                    return Results.Ok(dtos);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex,
+                        "Error retrieving orders for menu {MenuId}: {ErrorMessage}",
+                        menuId,
+                        ex.Message);
+                    throw;
+                }
+            })
+            .RequireAuthorization()
+            .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
     }
 }
+

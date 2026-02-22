@@ -2,6 +2,7 @@ using WebApi.Routes.Emails;
 using WebApi.Routes.Employees;
 using WebApi.Routes.Menus;
 using WebApi.Routes.Orders;
+using WebApi.Routes.Reports;
 using WebApi.Routes.Settings;
 using WebApi.Routes.Suppliers;
 
@@ -60,6 +61,8 @@ public static class ApplicationBuilderExtensions
         app.MapAdminMealOrderEndpoints();
         app.EmailEndpoints();
         app.MapSettingsEndpoints();
+        app.MapAdminMenuEndpoints();
+        app.MapReportEndpoints();
         return app;
     }
 

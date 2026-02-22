@@ -15,12 +15,15 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
+
 // HttpClients
 builder.Services.AddScoped<ISupplierDataService, SupplierDataService>();
 builder.Services.AddScoped<IMenuDataService, MenuDataService>();
 builder.Services.AddScoped<IOrderDataService, OrderDataService>();
 builder.Services.AddScoped<ISettingsDataService, SettingsDataService>();
 builder.Services.AddScoped<IEmployeeDataService, EmployeeDataService>();
+builder.Services.AddScoped<IMenuReportService, MenuReportService>();
+
 
 builder.Services.AddScoped((sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) }));
 

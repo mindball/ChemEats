@@ -14,6 +14,19 @@ public class MenuDataService : IMenuDataService
         _httpClient = httpClient;
     }
 
+    public async Task<MenuDto?> GetMenuByIdAsync(Guid menuId)
+    {
+        HttpResponseMessage response = await _httpClient.GetAsync($"api/menus/{menuId}");
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return null;
+
+        if (!response.IsSuccessStatusCode)
+            await ThrowDetailedExceptionAsync(response, $"Failed to get menu {menuId}");
+
+        return await response.Content.ReadFromJsonAsync<MenuDto>();
+    }
+
     public async Task<MenuDto?> AddMenuAsync(CreateMenuDto menu)
     {
         ArgumentNullException.ThrowIfNull(menu);
@@ -89,6 +102,19 @@ public class MenuDataService : IMenuDataService
             await ThrowDetailedExceptionAsync(response, $"Failed to delete menu {menuId}");
 
         return true;
+    }
+
+    public async Task<FinalizeMenuResponseDto?> FinalizeMenuAsync(Guid menuId)
+    {
+        HttpResponseMessage response = await _httpClient.PostAsync($"api/admin/menus/{menuId}/finalize", null);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            await ThrowDetailedExceptionAsync(response, $"Failed to finalize menu {menuId}");
+            return null;
+        }
+
+        return await response.Content.ReadFromJsonAsync<FinalizeMenuResponseDto>();
     }
 
     private static async Task ThrowDetailedExceptionAsync(HttpResponseMessage response, string defaultMessage)

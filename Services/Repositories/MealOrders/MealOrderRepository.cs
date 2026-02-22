@@ -214,6 +214,41 @@ public class MealOrderRepository : IMealOrderRepository
 
     #region Queries – Items
 
+    public async Task<IReadOnlyList<UserOrderItem>> GetOrdersByMenuAsync(
+        string userId,
+        Guid menuId,
+        CancellationToken cancellationToken = default)
+    {
+        return await (
+                from mo in _dbContext.MealOrders.AsNoTracking()
+                    .Where(mo => mo.UserId == userId)
+                join meal in _dbContext.Meals.AsNoTracking()
+                    on mo.MealId equals meal.Id
+                join menu in _dbContext.Menus.AsNoTracking()
+                    on meal.MenuId equals menu.Id
+                join supplier in _dbContext.Suppliers.AsNoTracking()
+                    on menu.SupplierId equals supplier.Id
+                where menu.Id == menuId
+                orderby mo.OrderedAt
+                select new UserOrderItem(
+                    mo.Id,
+                    mo.UserId,
+                    meal.Id,
+                    meal.Name,
+                    supplier.Id,
+                    supplier.Name,
+                    mo.OrderedAt,
+                    mo.MenuDate,
+                    mo.PriceAmount,
+                    mo.Status.ToString(),
+                    mo.PortionApplied,
+                    mo.IsDeleted,
+                    mo.PortionAmount,
+                    Math.Max(0m, mo.PriceAmount - (mo.PortionApplied ? mo.PortionAmount : 0m))
+                ))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<UserOrderItem>> GetUserOrderItemsAsync(
         string userId,
         Guid? supplierId = null,

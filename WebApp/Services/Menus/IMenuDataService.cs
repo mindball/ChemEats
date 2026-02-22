@@ -4,6 +4,7 @@ namespace WebApp.Services.Menus;
 
 public interface IMenuDataService
 {
+    Task<MenuDto?> GetMenuByIdAsync(Guid menuId);
     Task<MenuDto?> AddMenuAsync(CreateMenuDto menu);
     Task<IEnumerable<MenuDto>> GetAllMenusAsync(bool includeDeleted = false);
     Task<IEnumerable<MenuDto>> GetActiveMenusAsync();
@@ -11,4 +12,5 @@ public interface IMenuDataService
     Task<bool> UpdateMenuDateAsync(Guid menuId, DateTime newDate);
     Task<bool> UpdateMenuActiveUntilAsync(Guid menuId, DateTime newActiveUntil);
     Task<bool> SoftDeleteMenuAsync(Guid menuId);
+    Task<FinalizeMenuResponseDto?> FinalizeMenuAsync(Guid menuId);
 }

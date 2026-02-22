@@ -39,6 +39,15 @@ public class MenuRepository : IMenuRepository
         return await query.ToListAsync(cancellationToken);
     }
 
+    public async Task<Menu?> GetForUpdateAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Menus
+            .Include(m => m.Supplier)
+            .Include(m => m.Meals)
+            .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
+    }
+
+
     public async Task<IReadOnlyList<Menu>> GetBySupplierAsync(Guid supplierId, CancellationToken cancellationToken = default)
     {
         return await _context.Menus

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿    using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Shared.DTOs.Menus;
 using Shared.DTOs.Suppliers;
@@ -10,12 +10,13 @@ using WebApp.Services.Suppliers;
 
 namespace WebApp.Pages.Menus;
 
-public class ViewMenusBase : ComponentBase
+public partial class ViewMenusBase : ComponentBase
 {
     [Inject] protected IMenuDataService MenuDataService { get; init; } = null!;
     [Inject] protected IJSRuntime JsRuntime { get; set; } = null!;
     [Inject] protected ISupplierDataService SupplierDataService { get; init; } = null!;
     [Inject] protected CustomAuthStateProvider AuthProvider { get; init; } = null!;
+    [Inject] protected IMenuReportService MenuReportService { get; set; } = null!;
 
     protected IReadOnlyList<MenuDto>? Menus { get; private set; }
     protected List<SupplierDto> Suppliers { get; private set; } = [];
@@ -28,6 +29,7 @@ public class ViewMenusBase : ComponentBase
 
     protected string? ErrorMessage { get; set; }
     protected bool IsLoading { get; private set; }
+    protected Guid? ReportLoadingMenuId { get; private set; }
 
     protected int CurrentPage { get; private set; } = 1;
     protected int PageSize { get; } = 5;
@@ -49,7 +51,7 @@ public class ViewMenusBase : ComponentBase
 
     protected async Task OnSearchClickedAsync()
     {
-        CurrentPage = 1; // reset to first page when new filters applied
+        CurrentPage = 1;
         await LoadMenusAsync();
     }
 
@@ -116,6 +118,37 @@ public class ViewMenusBase : ComponentBase
         return $"{capitalizedDay} {date:dd.MM.yyyy'г.'}";
     }
 
+    protected async Task DownloadReportAsync(Guid menuId)
+    {
+        try
+        {
+            ReportLoadingMenuId = menuId;
+            ErrorMessage = null;
+
+            byte[] pdfBytes = await MenuReportService.GenerateMenuReportAsync(menuId);
+
+            string fileName = $"menu-report-{menuId:N}-{DateTime.Now:yyyyMMdd}.pdf";
+
+            await JsRuntime.InvokeVoidAsync(
+                "downloadFile",
+                fileName,
+                Convert.ToBase64String(pdfBytes),
+                "application/pdf");
+        }
+        catch (ApplicationException ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        catch (Exception)
+        {
+            ErrorMessage = "Unexpected error while generating report.";
+        }
+        finally
+        {
+            ReportLoadingMenuId = null;
+        }
+    }
+
     protected async Task EditDateAsync(Guid id, DateTime current)
     {
         string? newDateStr = await JsRuntime.InvokeAsync<string>("prompt", $"New date (yyyy-MM-dd)", current.ToString("yyyy-MM-dd"));
@@ -146,6 +179,31 @@ public class ViewMenusBase : ComponentBase
         catch (Exception)
         {
             ErrorMessage = "Unexpected error while deleting menu.";
+        }
+    }
+
+    protected async Task FinalizeMenuAsync(Guid menuId)
+    {
+        if (!await JsRuntime.InvokeAsync<bool>("confirm", "Finalize this menu? All pending orders will be marked as completed and ordering will be stopped."))
+            return;
+
+        try
+        {
+            FinalizeMenuResponseDto? result = await MenuDataService.FinalizeMenuAsync(menuId);
+            if (result is not null)
+            {
+                await JsRuntime.InvokeVoidAsync("alert",
+                    $"Menu finalized successfully!\n{result.CompletedOrdersCount} orders completed.\nTotal amount: {result.TotalAmount:C}");
+                await OnSearchClickedAsync();
+            }
+        }
+        catch (ApplicationException ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        catch (Exception)
+        {
+            ErrorMessage = "Unexpected error while finalizing menu.";
         }
     }
 }

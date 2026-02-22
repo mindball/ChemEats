@@ -135,4 +135,11 @@ public class OrderDataService : IOrderDataService
 
         return await response.Content.ReadFromJsonAsync<OrderPayResponseDto>();
     }
+
+    public async Task<List<UserOrderItemDto>> GetMyOrdersByMenuAsync(Guid menuId)
+    {
+        List<UserOrderItemDto>? items =
+            await _httpClient.GetFromJsonAsync<List<UserOrderItemDto>>($"api/mealorders/me/menu/{menuId}");
+        return items ?? [];
+    }
 }

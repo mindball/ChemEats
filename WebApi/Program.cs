@@ -1,11 +1,13 @@
 ﻿using Domain.Infrastructure.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
+using QuestPDF.Infrastructure;
 using Serilog;
 using Shared.DTOs.Errors;
 using WebApi.Infrastructure.Employees;
 using WebApi.Infrastructure.Extensions;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+QuestPDF.Settings.License = LicenseType.Community;
 
 // Logging
 Log.Logger = new LoggerConfiguration()

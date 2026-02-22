@@ -18,7 +18,6 @@ public interface IMealOrderRepository
 
     Task SoftDeleteAsync(Guid orderId, CancellationToken cancellationToken = default);
 
-        
     Task<IReadOnlyList<UserOrderItem>> GetUserOrderItemsAsync(
         string userId,
         Guid? supplierId = null,
@@ -28,7 +27,7 @@ public interface IMealOrderRepository
         MealOrderStatus? status = null,
         CancellationToken cancellationToken = default);
 
-    //when create admin panel then admin must see delete orders 
+    //when create admin panel then admin must see delete orders
     Task<IReadOnlyList<UserOrderSummary>> GetUserOrdersAsync(
         string userId,
         Guid? supplierId = null,
@@ -46,6 +45,11 @@ public interface IMealOrderRepository
         bool includeDeleted = false,
         bool onlyDeleted = false,
         MealOrderStatus? status = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<UserOrderItem>> GetOrdersByMenuAsync(
+        string userId,
+        Guid menuId,
         CancellationToken cancellationToken = default);
 
     Task<UserOutstandingSummary> GetUserOutstandingSummaryAsync(

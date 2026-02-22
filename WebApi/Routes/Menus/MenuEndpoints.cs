@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+﻿    using Domain.Entities;
 using Domain.Infrastructure.Exceptions;
 using Domain.Repositories.Menus;
 using Domain.Repositories.Suppliers;
@@ -20,10 +20,31 @@ public static class MenuEndpoints
         group.MapPost("", CreateMenuAsync);
         group.MapGet("", GetAllMenusAsync);
         group.MapGet("active", GetActiveMenusAsync);
+        group.MapGet("{menuId:guid}", GetMenuByIdAsync);
         group.MapGet("supplier/{supplierId:guid}", GetMenusBySupplierAsync);
         group.MapPut("{menuId:guid}/date", UpdateMenuDateAsync);
         group.MapPut("{menuId:guid}/active-until", UpdateMenuActiveUntilAsync);
         group.MapDelete("{menuId:guid}", SoftDeleteMenuAsync);
+    }
+
+    private static async Task<IResult> GetMenuByIdAsync(
+        Guid menuId,
+        IMenuRepository menuRepository,
+        IMapper mapper,
+        ILogger<Program> logger,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInformation("Retrieving menu by ID: {MenuId}", menuId);
+
+        Menu? menu = await menuRepository.GetByIdAsync(menuId, cancellationToken);
+        if (menu is null)
+        {
+            logger.LogWarning("Menu {MenuId} not found", menuId);
+            return Results.NotFound(new { Message = $"Menu with id '{menuId}' not found" });
+        }
+
+        MenuDto dto = mapper.Map<MenuDto>(menu);
+        return Results.Ok(dto);
     }
 
     private static async Task<IResult> CreateMenuAsync(
