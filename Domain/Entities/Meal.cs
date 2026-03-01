@@ -1,4 +1,6 @@
-﻿namespace Domain.Entities;
+﻿using Domain.Infrastructure.Exceptions;
+
+namespace Domain.Entities;
 
 public class Meal 
 {
@@ -17,20 +19,22 @@ public class Meal
     public Guid MenuId { get; private set; }
     public Menu Menu { get; private set; } = null!;
 
-    public string Name { get; private set; }
-    public Price Price { get; private set; }
+    public string Name { get; private set; } = null!;
+    public Price Price { get; private set; } = null!;
 
     public static Meal Create(Guid menuId, string name, Price price)
     {
-
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Meal name is required");
+            throw new DomainException("Meal name is required.");
 
-        return price is null ? throw new ArgumentNullException(nameof(price)) : new Meal(Guid.NewGuid(), menuId, name.Trim(), price);
+        ArgumentNullException.ThrowIfNull(price);
+
+        return new Meal(Guid.NewGuid(), menuId, name.Trim(), price);
     }
 
     public void ChangePrice(Price newPrice)
     {
+        ArgumentNullException.ThrowIfNull(newPrice);
         Price = newPrice;
     }
 }

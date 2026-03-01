@@ -6,17 +6,17 @@ namespace Domain.Entities;
 
 public class Supplier
 {
-    private readonly List<Menu> _menus = new();
+    private readonly List<Menu> _menus = [];
 
     private Supplier() { }
 
     public Supplier(Guid id, string name, string vatNumber, PaymentTerms paymentTerms)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new DomainException("Supplier name is required");
+            throw new DomainException("Supplier name is required.");
 
         if (string.IsNullOrWhiteSpace(vatNumber))
-            throw new DomainException("VAT number is required");
+            throw new DomainException("VAT number is required.");
 
         Id = id;
         Name = name;
@@ -38,8 +38,8 @@ public class Supplier
     }
 
     public Guid Id { get; private set; }
-    public string Name { get; private set; }
-    public string VatNumber { get; private set; }
+    public string Name { get; private set; } = null!;
+    public string VatNumber { get; private set; } = null!;
     public PaymentTerms PaymentTerms { get; private set; }
     public string? Email { get; private set; }
     public string? Phone { get; private set; }
@@ -56,7 +56,7 @@ public class Supplier
     public void AssignSupervisor(string userId)
     {
         if (string.IsNullOrWhiteSpace(userId))
-            throw new DomainException("Supervisor user ID is required");
+            throw new DomainException("Supervisor user ID is required.");
 
         SupervisorId = userId;
     }
@@ -74,7 +74,7 @@ public class Supplier
     {
         if (_menus.Any(m => m.Date == menu.Date))
             throw new DomainException(
-                $"Menu for {menu.Date:d} already exists for this supplier");
+                $"Menu for {menu.Date:d} already exists for this supplier.");
 
         _menus.Add(menu);
     }

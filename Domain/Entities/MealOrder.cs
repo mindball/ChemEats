@@ -1,6 +1,6 @@
 ﻿using Domain.Common.Enums;
+using Domain.Infrastructure.Exceptions;
 using Domain.Infrastructure.Identity;
-using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Entities;
 
@@ -20,7 +20,7 @@ public enum PaymentStatus
 public class MealOrder
 {
     public Guid Id { get; private set; }
-    public string UserId { get; private set; }
+    public string UserId { get; private set; } = null!;
     public ApplicationUser? User { get; private set; }
 
     public Guid MealId { get; private set; }
@@ -29,7 +29,6 @@ public class MealOrder
     public DateTime MenuDate { get; private set; }     
     public DateTime OrderedAt { get; private set; }    
 
-
     public MealOrderStatus Status { get; private set; }
 
     public PaymentStatus PaymentStatus { get; private set; }
@@ -37,10 +36,8 @@ public class MealOrder
 
     public bool IsDeleted { get; private set; }
 
-    // New: snapshot of the meal price at order time (immutable snapshot)
     public decimal PriceAmount { get; private set; }
 
-    // New: portion application flags on this order
     public bool PortionApplied { get; private set; }
     public decimal PortionAmount { get; private set; }
 
@@ -57,7 +54,7 @@ public class MealOrder
         Status = MealOrderStatus.Pending;
         PaymentStatus = PaymentStatus.Unpaid;
 
-        PriceAmount = 0m;
+        PriceAmount = priceSnapshot;
         PortionApplied = false;
         PortionAmount = 0m;
     }
@@ -68,25 +65,33 @@ public class MealOrder
         DateTime menuDate,
         decimal priceSnapshot)
     {
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new DomainException("User ID is required to create an order.");
+
+        if (mealId == Guid.Empty)
+            throw new DomainException("Meal ID is required to create an order.");
+
         if (priceSnapshot < 0)
-            throw new ArgumentOutOfRangeException(nameof(priceSnapshot));
+            throw new DomainException("Price snapshot cannot be negative.");
 
         return new MealOrder(Guid.NewGuid(), userId, mealId, menuDate, priceSnapshot);
     }
 
     public void SetPriceSnapshot(decimal priceAmount)
     {
-        if (priceAmount < 0) throw new ArgumentOutOfRangeException(nameof(priceAmount));
+        if (priceAmount < 0)
+            throw new DomainException("Price amount cannot be negative.");
+
         PriceAmount = priceAmount;
     }
 
     public void ApplyPortion(decimal portionAmount)
     {
         if (portionAmount < 0)
-            throw new ArgumentOutOfRangeException(nameof(portionAmount));
+            throw new DomainException("Portion amount cannot be negative.");
 
         if (portionAmount > PriceAmount)
-            throw new InvalidOperationException("Portion cannot exceed price.");
+            throw new DomainException("Portion cannot exceed price.");
 
         PortionApplied = portionAmount > 0m;
         PortionAmount = portionAmount;
@@ -98,10 +103,10 @@ public class MealOrder
     public void MarkAsPaid(DateTime paidOn)
     {
         if (Status == MealOrderStatus.Cancelled)
-            throw new InvalidOperationException("Cancelled orders cannot be paid.");
+            throw new DomainException("Cancelled orders cannot be paid.");
 
         if (PaymentStatus == PaymentStatus.Paid)
-            throw new InvalidOperationException("Order already paid.");
+            throw new DomainException("Order is already paid.");
 
         PaymentStatus = PaymentStatus.Paid;
         PaidOn = paidOn;
@@ -110,7 +115,7 @@ public class MealOrder
     public void MarkAsCompleted()
     {
         if (Status != MealOrderStatus.Pending)
-            throw new InvalidOperationException("Only pending orders can be completed.");
+            throw new DomainException("Only pending orders can be completed.");
 
         Status = MealOrderStatus.Completed;
     }
@@ -118,21 +123,25 @@ public class MealOrder
     public void Cancel()
     {
         if (PaymentStatus == PaymentStatus.Paid)
-            throw new InvalidOperationException("Paid orders cannot be cancelled");
+            throw new DomainException("Paid orders cannot be cancelled.");
 
         if (Status == MealOrderStatus.Completed)
-            throw new InvalidOperationException("Completed orders cannot be cancelled.");
+            throw new DomainException("Completed orders cannot be cancelled.");
 
         Status = MealOrderStatus.Cancelled;
     }
 
-    public void SoftDelete() => IsDeleted = true;
-}
-
-public static class PaymentTermsExtensions
-{
-    public static DateTime CalculateDueDate(this PaymentTerms terms, DateTime orderDate)
+    public void SoftDelete()
     {
-        return orderDate.Date.AddDays((int)terms);
+        if (IsDeleted)
+            throw new DomainException("Order is already deleted.");
+
+        if (Status == MealOrderStatus.Completed)
+            throw new DomainException("Completed orders cannot be deleted.");
+
+        if (Status == MealOrderStatus.Cancelled)
+            throw new DomainException("Cancelled orders cannot be deleted.");
+
+        IsDeleted = true;
     }
 }

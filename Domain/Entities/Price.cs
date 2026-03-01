@@ -1,33 +1,50 @@
-﻿using System.Globalization;
+using System.Globalization;
 
 namespace Domain.Entities;
 
-public sealed class Price
+public sealed class Price : IEquatable<Price>, IComparable<Price>
 {
     public decimal Amount { get; }
 
     public Price(decimal amount)
     {
-        if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));
+        if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount), "Price cannot be negative.");
         Amount = amount;
     }
 
-    public IEnumerable<object> GetEqualityComponents()
+    public static Price Zero => new(0m);
+
+    public Price Add(Price other) => new(Amount + other.Amount);
+
+    public Price Subtract(Price other)
     {
-        yield return Amount;
+        decimal result = Amount - other.Amount;
+        return new(Math.Max(0m, result));
     }
 
-    // Use current culture currency formatting (will show € because Program.cs sets it)
     public override string ToString() => Amount.ToString("C", CultureInfo.CurrentCulture);
 
-    // Implicit conversion from decimal to Price
     public static implicit operator Price(decimal amount) => new(amount);
 
-    // Explicit conversion from Price to decimal
     public static explicit operator decimal(Price price) => price.Amount;
 
-    public override bool Equals(object? obj) =>
-        obj is Price other && Amount == other.Amount;
+    public bool Equals(Price? other) => other is not null && Amount == other.Amount;
+
+    public override bool Equals(object? obj) => Equals(obj as Price);
 
     public override int GetHashCode() => Amount.GetHashCode();
+
+    public int CompareTo(Price? other) => other is null ? 1 : Amount.CompareTo(other.Amount);
+
+    public static bool operator ==(Price? left, Price? right) => Equals(left, right);
+
+    public static bool operator !=(Price? left, Price? right) => !Equals(left, right);
+
+    public static bool operator >(Price left, Price right) => left.Amount > right.Amount;
+
+    public static bool operator <(Price left, Price right) => left.Amount < right.Amount;
+
+    public static bool operator >=(Price left, Price right) => left.Amount >= right.Amount;
+
+    public static bool operator <=(Price left, Price right) => left.Amount <= right.Amount;
 }

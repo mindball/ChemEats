@@ -15,17 +15,20 @@ public class Menu
         Id = id;
 
         if (supplierId == Guid.Empty)
-            throw new DomainException("Supplier is required");
+            throw new DomainException("Supplier is required.");
 
-        //We cannot added a menu with date today!
-        if (date <= DateTime.Now)
-            throw new DomainException("Menu date must be in the future");
+        if (date.Date <= DateTime.Today)
+            throw new DomainException("Menu date must be in the future.");
+
+        List<Meal> mealList = meals.ToList();
+        if (mealList.Count == 0)
+            throw new DomainException("Menu must contain at least one meal.");
 
         SupplierId = supplierId;
         Date = date;
         ActiveUntil = activeUntil;
         RegisterDate = DateTime.Now;
-        _meals = meals.ToList();    
+        _meals = mealList;
         IsDeleted = false;
 
         ValidateActiveUntil();
@@ -67,9 +70,9 @@ public class Menu
         if (!IsActive())
             throw new DomainException("Cannot update date of inactive menu.");
 
-        if (newDate < DateTime.Now.Date)
-            throw new DomainException("Menu date cannot be in the past.");
-        
+        if (newDate.Date <= DateTime.Today)
+            throw new DomainException("Menu date must be in the future.");
+
         Date = newDate;
     }
 
@@ -94,19 +97,11 @@ public class Menu
 
     public bool IsActive()
     {
-        DateTime now = DateTime.Now;
-        // bool checkDate = Date.Date;
-
-        return !IsDeleted &&
-               now <= ActiveUntil;
+        return !IsDeleted && DateTime.Now <= ActiveUntil;
     }
 
     private void ValidateActiveUntil()
     {
-        // Potentially we could allow setting ActiveUntil before the menu date, but it would be a bit weird and bug.
-        // if (ActiveUntil >= Date)
-        //     throw new DomainException("ActiveUntil must be before the menu fulfillment date.");
-
         if (ActiveUntil <= DateTime.Now)
             throw new DomainException("ActiveUntil must be in the future.");
 
@@ -124,7 +119,7 @@ public class Menu
             throw new DomainException("Cannot delete inactive menu.");
 
         if (Date < DateTime.Today)
-            throw new DomainException("Past menus cannot be deleted");
+            throw new DomainException("Past menus cannot be deleted.");
 
         if (orders.Any(o =>
                 o is { IsDeleted: false, Status: MealOrderStatus.Completed }))

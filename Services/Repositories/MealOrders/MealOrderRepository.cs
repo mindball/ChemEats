@@ -124,9 +124,6 @@ public class MealOrderRepository : IMealOrderRepository
         if (order is null)
             return;
 
-        if (order.Status is MealOrderStatus.Completed or MealOrderStatus.Cancelled)
-            return;
-
         order.SoftDelete();
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -455,9 +452,9 @@ public class MealOrderRepository : IMealOrderRepository
         {
             if (order.PaymentStatus == PaymentStatus.Paid)
                 continue;
-
-            if (order.Status == MealOrderStatus.Cancelled)
-                continue;
+            
+            // if (order.Status == MealOrderStatus.Cancelled)
+            //     continue;
 
             order.MarkAsPaid(paidOn);
             totalPaid += order.GetNetAmount();
