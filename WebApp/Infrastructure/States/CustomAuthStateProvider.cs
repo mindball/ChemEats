@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Json;
+using Shared;
 using WebApp.Infrastructure.Helpers;
 
 namespace WebApp.Infrastructure.States;
@@ -41,7 +42,7 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
 
     public async Task<FormResult> LoginAsync(string email, string password)
     {
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync("api/login", new { email, password });
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync(ApiRoutes.Employees.Login, new { email, password });
         if (!response.IsSuccessStatusCode)
             return new FormResult { Succeeded = false, Errors = ["Bad Email or Password"] };
 

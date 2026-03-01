@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Json;
 using System.Text.Json;
+using Shared;
 using Shared.DTOs.Errors;
 using Shared.DTOs.Menus;
 
@@ -16,7 +17,7 @@ public class MenuDataService : IMenuDataService
 
     public async Task<MenuDto?> GetMenuByIdAsync(Guid menuId)
     {
-        HttpResponseMessage response = await _httpClient.GetAsync($"api/menus/{menuId}");
+        HttpResponseMessage response = await _httpClient.GetAsync(ApiRoutes.Menus.ById(menuId));
 
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             return null;
@@ -31,7 +32,7 @@ public class MenuDataService : IMenuDataService
     {
         ArgumentNullException.ThrowIfNull(menu);
 
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync("api/menus", menu);
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync(ApiRoutes.Menus.Base, menu);
 
         if (response.IsSuccessStatusCode)
             return await response.Content.ReadFromJsonAsync<MenuDto>();
@@ -42,7 +43,7 @@ public class MenuDataService : IMenuDataService
 
     public async Task<IEnumerable<MenuDto>> GetAllMenusAsync(bool includeDeleted = false)
     {
-        string url = includeDeleted ? "api/menus?includeDeleted=true" : "api/menus";
+        string url = includeDeleted ? $"{ApiRoutes.Menus.Base}?includeDeleted=true" : ApiRoutes.Menus.Base;
         HttpResponseMessage response = await _httpClient.GetAsync(url);
 
         if (!response.IsSuccessStatusCode)
@@ -54,7 +55,7 @@ public class MenuDataService : IMenuDataService
 
     public async Task<IEnumerable<MenuDto>> GetActiveMenusAsync()
     {
-        HttpResponseMessage response = await _httpClient.GetAsync("api/menus/active");
+        HttpResponseMessage response = await _httpClient.GetAsync($"{ApiRoutes.Menus.Base}/{ApiRoutes.Menus.Active}");
 
         if (!response.IsSuccessStatusCode)
             await ThrowDetailedExceptionAsync(response, "Failed to get active menus");
@@ -65,7 +66,7 @@ public class MenuDataService : IMenuDataService
 
     public async Task<IEnumerable<MenuDto>> GetMenusBySupplierAsync(Guid supplierId)
     {
-        HttpResponseMessage response = await _httpClient.GetAsync($"api/menus/supplier/{supplierId}");
+        HttpResponseMessage response = await _httpClient.GetAsync(ApiRoutes.Menus.BySupplierId(supplierId));
 
         if (!response.IsSuccessStatusCode)
             await ThrowDetailedExceptionAsync(response, "Failed to get menus by supplier");
@@ -76,7 +77,7 @@ public class MenuDataService : IMenuDataService
 
     public async Task<bool> UpdateMenuDateAsync(Guid menuId, DateTime newDate)
     {
-        HttpResponseMessage response = await _httpClient.PutAsJsonAsync($"api/menus/{menuId}/date", newDate);
+        HttpResponseMessage response = await _httpClient.PutAsJsonAsync(ApiRoutes.Menus.UpdateDate(menuId), newDate);
 
         if (!response.IsSuccessStatusCode)
             await ThrowDetailedExceptionAsync(response, $"Failed to update menu {menuId} date");
@@ -86,7 +87,7 @@ public class MenuDataService : IMenuDataService
 
     public async Task<bool> UpdateMenuActiveUntilAsync(Guid menuId, DateTime newActiveUntil)
     {
-        HttpResponseMessage response = await _httpClient.PutAsJsonAsync($"api/menus/{menuId}/active-until", newActiveUntil);
+        HttpResponseMessage response = await _httpClient.PutAsJsonAsync(ApiRoutes.Menus.UpdateActiveUntil(menuId), newActiveUntil);
 
         if (!response.IsSuccessStatusCode)
             await ThrowDetailedExceptionAsync(response, $"Failed to update menu {menuId} active until");
@@ -96,7 +97,7 @@ public class MenuDataService : IMenuDataService
 
     public async Task<bool> SoftDeleteMenuAsync(Guid menuId)
     {
-        HttpResponseMessage response = await _httpClient.DeleteAsync($"api/menus/{menuId}");
+        HttpResponseMessage response = await _httpClient.DeleteAsync(ApiRoutes.Menus.Delete(menuId));
 
         if (!response.IsSuccessStatusCode)
             await ThrowDetailedExceptionAsync(response, $"Failed to delete menu {menuId}");
@@ -106,7 +107,7 @@ public class MenuDataService : IMenuDataService
 
     public async Task<FinalizeMenuResponseDto?> FinalizeMenuAsync(Guid menuId)
     {
-        HttpResponseMessage response = await _httpClient.PostAsync($"api/admin/menus/{menuId}/finalize", null);
+        HttpResponseMessage response = await _httpClient.PostAsync(ApiRoutes.AdminMenus.Finalize(menuId), null);
 
         if (!response.IsSuccessStatusCode)
         {

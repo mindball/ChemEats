@@ -22,16 +22,16 @@ public class UploadMenuBase : ComponentBase
     protected List<CsvMealRow> ParsedMeals { get; set; } = [];
 
     protected Guid SelectedSupplierId { get; set; }
-    private DateTime _selectedDate = DateTime.Today;
+    private DateTime _selectedDate = DateTime.Today.AddDays(1);
     protected DateTime SelectedDate
     {
         get => _selectedDate;
         set
         {
-            if (value.Date < DateTime.Today)
+            if (value.Date <= DateTime.Today)
             {
-                ErrorMessage = "Menu date cannot be in the past.";
-                _selectedDate = DateTime.Today;
+                ErrorMessage = "Menu date must be in the future.";
+                _selectedDate = DateTime.Today.AddDays(1);
             }
             else
             {
@@ -87,7 +87,7 @@ public class UploadMenuBase : ComponentBase
         }
     }
 
-    protected DateTime ActiveUntil => SelectedDate.Date.Add(ActiveUntilTime.ToTimeSpan());
+    protected DateTime ActiveUntil => DateTime.Today.Add(ActiveUntilTime.ToTimeSpan());
 
     protected override async Task OnInitializedAsync()
     {
@@ -217,9 +217,9 @@ public class UploadMenuBase : ComponentBase
                 return;
             }
 
-            if (SelectedDate.Date == DateTime.Today && ActiveUntil <= DateTime.Now)
+            if (ActiveUntil <= DateTime.Now)
             {
-                ErrorMessage = "Active Until time must be in the future for today's menu.";
+                ErrorMessage = "Active Until time must be in the future.";
                 return;
             }
 
@@ -251,7 +251,7 @@ public class UploadMenuBase : ComponentBase
                     await Task.Delay(1000);
                 }
 
-                Navigation.NavigateTo("/menus");
+                Navigation.NavigateTo("/menus/order");
             }
         }
         catch (Exception ex)

@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using Shared;
 using Shared.DTOs.Suppliers;
 
 namespace WebApp.Services.Suppliers;
@@ -16,7 +17,7 @@ public class SupplierDataService : ISupplierDataService
     public async Task<IEnumerable<SupplierDto>> GetAllSuppliersAsync()
     {
         IEnumerable<SupplierDto>? suppliers =
-            await _httpClient.GetFromJsonAsync<IEnumerable<SupplierDto>>("api/suppliers");
+            await _httpClient.GetFromJsonAsync<IEnumerable<SupplierDto>>(ApiRoutes.Suppliers.Base);
         return suppliers ?? [];
     }
 
@@ -25,13 +26,13 @@ public class SupplierDataService : ISupplierDataService
         // if (string.IsNullOrWhiteSpace(id))
         //     return null;
 
-        SupplierDto? supplier = await _httpClient.GetFromJsonAsync<SupplierDto>($"/api/suppliers/{id}");
+        SupplierDto? supplier = await _httpClient.GetFromJsonAsync<SupplierDto>(ApiRoutes.Suppliers.ById(id));
         return supplier;
     }
 
     public async Task<CreateSupplierDto?> AddSupplierAsync(CreateSupplierDto supplier)
     {
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync("api/suppliers", supplier);
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync(ApiRoutes.Suppliers.Base, supplier);
 
         if (response.IsSuccessStatusCode) return await response.Content.ReadFromJsonAsync<CreateSupplierDto>();
 
@@ -48,7 +49,7 @@ public class SupplierDataService : ISupplierDataService
 
         if (existing is null) return null;
 
-        HttpResponseMessage response = await _httpClient.PutAsJsonAsync($"/api/suppliers/{supplier.Id}", supplier);
+        HttpResponseMessage response = await _httpClient.PutAsJsonAsync(ApiRoutes.Suppliers.ById(supplier.Id), supplier);
 
         if (!response.IsSuccessStatusCode)
             return null;
@@ -59,7 +60,7 @@ public class SupplierDataService : ISupplierDataService
 
     public async Task DeleteSupplierAsync(Guid id) // ✅ new
     {
-        HttpResponseMessage response = await _httpClient.DeleteAsync($"api/suppliers/{id}");
+        HttpResponseMessage response = await _httpClient.DeleteAsync(ApiRoutes.Suppliers.ById(id));
         response.EnsureSuccessStatusCode();
     }
 }

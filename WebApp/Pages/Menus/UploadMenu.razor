@@ -85,10 +85,10 @@
                         </label>
                         <input type="date" 
                                class="form-control" 
-                               min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                               min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")"
                                @bind="SelectedDate" />
                         <div class="form-text">
-                            <i class="bi bi-info-circle me-1"></i>Select today or a future date
+                            <i class="bi bi-info-circle me-1"></i>Select a future date (menu fulfillment date)
                         </div>
                     </div>
 

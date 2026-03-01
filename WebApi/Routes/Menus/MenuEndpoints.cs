@@ -4,6 +4,7 @@ using Domain.Repositories.Menus;
 using Domain.Repositories.Suppliers;
 using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
+using Shared;
 using Shared.DTOs.Menus;
 using WebApi.Infrastructure.Filters;
 
@@ -13,17 +14,17 @@ public static class MenuEndpoints
 {
     public static void MapMenuEndpoints(this IEndpointRouteBuilder app)
     {
-        RouteGroupBuilder group = app.MapGroup("api/menus")
+        RouteGroupBuilder group = app.MapGroup(ApiRoutes.Menus.Base)
             .WithTags("Menus")
             .RequireAuthorization().AddEndpointFilter<AuthorizedRequestLoggingFilter>();
 
         group.MapPost("", CreateMenuAsync).AddEndpointFilter<SupplierSupervisorFilter>();
         group.MapGet("", GetAllMenusAsync);
-        group.MapGet("active", GetActiveMenusAsync);
+        group.MapGet(ApiRoutes.Menus.Active, GetActiveMenusAsync);
         group.MapGet("{menuId:guid}", GetMenuByIdAsync);
-        group.MapGet("supplier/{supplierId:guid}", GetMenusBySupplierAsync);
-        group.MapPut("{menuId:guid}/date", UpdateMenuDateAsync).AddEndpointFilter<SupplierSupervisorFilter>();
-        group.MapPut("{menuId:guid}/active-until", UpdateMenuActiveUntilAsync).AddEndpointFilter<SupplierSupervisorFilter>();
+        group.MapGet($"{ApiRoutes.Menus.BySupplier}/{{supplierId:guid}}", GetMenusBySupplierAsync);
+        group.MapPut($"{{menuId:guid}}/{ApiRoutes.Menus.Date}", UpdateMenuDateAsync).AddEndpointFilter<SupplierSupervisorFilter>();
+        group.MapPut($"{{menuId:guid}}/{ApiRoutes.Menus.ActiveUntil}", UpdateMenuActiveUntilAsync).AddEndpointFilter<SupplierSupervisorFilter>();
         group.MapDelete("{menuId:guid}", SoftDeleteMenuAsync).AddEndpointFilter<SupplierSupervisorFilter>();
     }
 
@@ -184,10 +185,10 @@ public static class MenuEndpoints
             return Results.NotFound();
         }
 
-        if (!menu.IsActive())
+        if (menu.IsDeleted)
         {
-            logger.LogWarning("Cannot update inactive menu {MenuId}", menuId);
-            return Results.BadRequest(new { Message = "Cannot update ActiveUntil of inactive menu" });
+            logger.LogWarning("Cannot update deleted menu {MenuId}", menuId);
+            return Results.BadRequest(new { Message = "Cannot update ActiveUntil of deleted menu" });
         }
 
         try

@@ -194,6 +194,13 @@ else
                                             <i class="bi bi-check-circle me-1"></i>Finalize
                                         </button>
 
+                                        <button class="btn btn-outline-success"
+                                                disabled="@menu.IsDeleted"
+                                                @onclick="() => EditActiveUntilAsync(menu.Id, menu.ActiveUntil)"
+                                                title="Edit ActiveUntil time (reactivate menu)">
+                                            <i class="bi bi-clock-history me-1"></i>Extend
+                                        </button>
+
                                         <button class="btn btn-outline-primary"
                                                 disabled="@(menu.IsDeleted || isExpired)"
                                                 @onclick="() => EditDateAsync(menu.Id, menu.Date)"

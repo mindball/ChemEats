@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using Shared;
 using Shared.DTOs.Orders;
 
 namespace WebApp.Services.Orders;
@@ -16,7 +17,7 @@ public class OrderDataService : IOrderDataService
     {
         ArgumentNullException.ThrowIfNull(requestDto);
 
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync("api/mealorders", requestDto);
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync(ApiRoutes.Orders.Base, requestDto);
 
         if (!response.IsSuccessStatusCode)
             return null;
@@ -35,7 +36,7 @@ public class OrderDataService : IOrderDataService
         if (endDate.HasValue)
             query.Add($"endDate={endDate.Value:yyyy-MM-dd}");
 
-        string url = "api/mealorders/me" + (query.Count > 0 ? "?" + string.Join("&", query) : string.Empty);
+        string url = $"{ApiRoutes.Orders.Base}/{ApiRoutes.Orders.Me}" + (query.Count > 0 ? "?" + string.Join("&", query) : string.Empty);
 
         List<UserOrderDto>? orders = await _httpClient.GetFromJsonAsync<List<UserOrderDto>>(url);
         return orders ?? [];
@@ -43,7 +44,7 @@ public class OrderDataService : IOrderDataService
 
     public async Task<bool> DeleteOrderAsync(Guid orderId)
     {
-        HttpResponseMessage response = await _httpClient.DeleteAsync($"api/mealorders/{orderId}");
+        HttpResponseMessage response = await _httpClient.DeleteAsync(ApiRoutes.Orders.Delete(orderId));
         return response.IsSuccessStatusCode;
     }
 
@@ -68,7 +69,7 @@ public class OrderDataService : IOrderDataService
         if (!string.IsNullOrWhiteSpace(status))
             query.Add($"status={Uri.EscapeDataString(status)}");
 
-        string url = "api/mealorders/me/items?" + string.Join("&", query);
+        string url = $"{ApiRoutes.Orders.Base}/{ApiRoutes.Orders.MeItems}?" + string.Join("&", query);
 
         List<UserOrderItemDto>? items = await _httpClient.GetFromJsonAsync<List<UserOrderItemDto>>(url);
         return items ?? [];
@@ -76,7 +77,7 @@ public class OrderDataService : IOrderDataService
 
     public async Task<List<UserOrderPaymentItemDto>> GetMyUnpaidPaymentsAsync(Guid? supplierId = null)
     {
-        string url = "api/mealorders/me/payments";
+        string url = $"{ApiRoutes.Orders.Base}/{ApiRoutes.Orders.MePayments}";
         if (supplierId.HasValue)
             url += $"?supplierId={supplierId.Value}";
 
@@ -86,18 +87,18 @@ public class OrderDataService : IOrderDataService
 
     public async Task<UserOutstandingSummaryDto?> GetMyPaymentsSummaryAsync()
     {
-        return await _httpClient.GetFromJsonAsync<UserOutstandingSummaryDto>("api/mealorders/me/payments/summary");
+        return await _httpClient.GetFromJsonAsync<UserOutstandingSummaryDto>($"{ApiRoutes.Orders.Base}/{ApiRoutes.Orders.MePaymentsSummary}");
     }
 
     public async Task<bool> MarkOrderAsPaidAsync(Guid orderId)
     {
-        HttpResponseMessage response = await _httpClient.PatchAsync($"api/mealorders/{orderId}/pay", null);
+        HttpResponseMessage response = await _httpClient.PatchAsync(ApiRoutes.Orders.MarkAsPaid(orderId), null);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<List<UserOrderPaymentItemDto>> GetUnpaidOrdersByUserAsync(string userId, Guid? supplierId = null)
     {
-        string url = $"api/admin/mealorders/unpaid/{Uri.EscapeDataString(userId)}";
+        string url = ApiRoutes.AdminOrders.Unpaid(userId);
         if (supplierId.HasValue)
             url += $"?supplierId={supplierId.Value}";
 
@@ -118,7 +119,7 @@ public class OrderDataService : IOrderDataService
         if (supplierId.HasValue)
             query.Add($"supplierId={supplierId.Value}");
 
-        string url = $"api/admin/mealorders/period/{Uri.EscapeDataString(userId)}" + (query.Count > 0 ? "?" + string.Join("&", query) : string.Empty);
+        string url = ApiRoutes.AdminOrders.Period(userId) + (query.Count > 0 ? "?" + string.Join("&", query) : string.Empty);
 
         List<UserOrderPaymentItemDto>? items = await _httpClient.GetFromJsonAsync<List<UserOrderPaymentItemDto>>(url);
         return items ?? [];
@@ -128,7 +129,7 @@ public class OrderDataService : IOrderDataService
     {
         ArgumentNullException.ThrowIfNull(requestDto);
 
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync("api/admin/mealorders/order-pay", requestDto);
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"{ApiRoutes.AdminOrders.Base}/{ApiRoutes.AdminOrders.OrderPay}", requestDto);
 
         if (!response.IsSuccessStatusCode)
             return null;
@@ -139,7 +140,7 @@ public class OrderDataService : IOrderDataService
     public async Task<List<UserOrderItemDto>> GetMyOrdersByMenuAsync(Guid menuId)
     {
         List<UserOrderItemDto>? items =
-            await _httpClient.GetFromJsonAsync<List<UserOrderItemDto>>($"api/mealorders/me/menu/{menuId}");
+            await _httpClient.GetFromJsonAsync<List<UserOrderItemDto>>(ApiRoutes.Orders.MeByMenu(menuId));
         return items ?? [];
     }
 }

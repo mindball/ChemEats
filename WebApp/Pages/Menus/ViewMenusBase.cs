@@ -182,6 +182,34 @@ public partial class ViewMenusBase : ComponentBase
         }
     }
 
+    protected async Task EditActiveUntilAsync(Guid id, DateTime currentActiveUntil)
+    {
+        string? newDateTimeStr = await JsRuntime.InvokeAsync<string>(
+            "prompt",
+            "New ActiveUntil (yyyy-MM-dd HH:mm)",
+            currentActiveUntil.ToString("yyyy-MM-dd HH:mm"));
+
+        if (string.IsNullOrWhiteSpace(newDateTimeStr)) return;
+        if (!DateTime.TryParse(newDateTimeStr, out DateTime newActiveUntil)) return;
+
+        try
+        {
+            bool ok = await MenuDataService.UpdateMenuActiveUntilAsync(id, newActiveUntil);
+            if (ok)
+                await OnSearchClickedAsync();
+            else
+                ErrorMessage = "Failed to update ActiveUntil.";
+        }
+        catch (ApplicationException ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        catch (Exception)
+        {
+            ErrorMessage = "Unexpected error while updating ActiveUntil.";
+        }
+    }
+
     protected async Task FinalizeMenuAsync(Guid menuId)
     {
         if (!await JsRuntime.InvokeAsync<bool>("confirm", "Finalize this menu? All pending orders will be marked as completed and ordering will be stopped."))

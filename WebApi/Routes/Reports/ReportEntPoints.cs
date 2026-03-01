@@ -1,9 +1,10 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using Domain.Infrastructure.Identity;
 using Domain.Models.Orders;
 using Domain.Repositories.MealOrders;
 using Domain.Repositories.Menus;
 using Microsoft.AspNetCore.Identity;
+using Shared;
 using WebApi.Infrastructure.Filters;
 using WebApi.Infrastructure.Reports;
 
@@ -13,58 +14,60 @@ public static class ReportEndpoints
 {
     public static void MapReportEndpoints(this IEndpointRouteBuilder app)
     {
-        RouteGroupBuilder group = app.MapGroup("api/reports")
+        RouteGroupBuilder group = app.MapGroup(ApiRoutes.Reports.Base)
             .RequireAuthorization("AdminPolicy")
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
 
-        group.MapGet("/menu/{menuId:guid}", async (
-            Guid menuId,
-            IMenuRepository menuRepository,
-            IMealOrderRepository orderRepository,
-            UserManager<ApplicationUser> userManager,
-            HttpContext httpContext,
-            ILogger<Program> logger,
-            CancellationToken cancellationToken) =>
+        group.MapGet("/menu/{menuId:guid}", GenerateMenuReportAsync);
+    }
+
+    private static async Task<IResult> GenerateMenuReportAsync(
+        Guid menuId,
+        IMenuRepository menuRepository,
+        IMealOrderRepository orderRepository,
+        UserManager<ApplicationUser> userManager,
+        HttpContext httpContext,
+        ILogger<Program> logger,
+        CancellationToken cancellationToken)
+    {
+        try
         {
-            try
+            ApplicationUser? user = await userManager.GetUserAsync(httpContext.User);
+            if (user is null)
             {
-                ApplicationUser? user = await userManager.GetUserAsync(httpContext.User);
-                if (user is null)
-                {
-                    logger.LogWarning("Report request for menu {MenuId} rejected - unauthorized", menuId);
-                    return Results.Unauthorized();
-                }
-
-                Menu? menu = await menuRepository.GetByIdAsync(menuId, cancellationToken);
-                if (menu is null)
-                {
-                    logger.LogWarning("Report request - menu {MenuId} not found by {UserId}", menuId, user.Id);
-                    return Results.NotFound(new { Message = $"Menu with id '{menuId}' not found." });
-                }
-
-                IReadOnlyList<UserOrderItem> orders =
-                        await orderRepository.GetAllOrdersByMenuAsync(menuId, cancellationToken);
-
-                logger.LogInformation(
-                    "Admin {UserId} generating PDF report for menu {MenuId} — {OrderCount} total orders",
-                    user.Id,
-                    menuId,
-                    orders.Count);
-
-                byte[] pdfBytes = MenuReportDocument.Generate(menu, orders);
-
-                string fileName = $"menu-report-{menuId:N}-{DateTime.Now:yyyyMMdd}.pdf";
-
-                return Results.File(pdfBytes, "application/pdf", fileName);
+                logger.LogWarning("Report request for menu {MenuId} rejected - unauthorized", menuId);
+                return Results.Unauthorized();
             }
-            catch (Exception ex)
+
+            Menu? menu = await menuRepository.GetByIdAsync(menuId, cancellationToken);
+            if (menu is null)
             {
-                logger.LogError(ex,
-                    "Error generating report for menu {MenuId}: {ErrorMessage}",
-                    menuId,
-                    ex.Message);
-                throw;
+                logger.LogWarning("Report request - menu {MenuId} not found by {UserId}", menuId, user.Id);
+                return Results.NotFound(new { Message = $"Menu with id '{menuId}' not found." });
             }
-        });
+
+            IReadOnlyList<UserOrderItem> orders =
+                    await orderRepository.GetAllOrdersByMenuAsync(menuId, cancellationToken);
+
+            logger.LogInformation(
+                "Admin {UserId} generating PDF report for menu {MenuId} — {OrderCount} total orders",
+                user.Id,
+                menuId,
+                orders.Count);
+
+            byte[] pdfBytes = MenuReportDocument.Generate(menu, orders);
+
+            string fileName = $"menu-report-{menuId:N}-{DateTime.Now:yyyyMMdd}.pdf";
+
+            return Results.File(pdfBytes, "application/pdf", fileName);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex,
+                "Error generating report for menu {MenuId}: {ErrorMessage}",
+                menuId,
+                ex.Message);
+            throw;
+        }
     }
 }

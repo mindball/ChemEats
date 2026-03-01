@@ -61,13 +61,11 @@ public class MenuRepository : IMenuRepository
     public async Task<IReadOnlyList<Menu>> GetActiveMenusAsync(CancellationToken cancellationToken = default)
     {
         DateTime now = DateTime.Now;
-        DateTime today = DateTime.Today;
 
         return await _context.Menus
             .Include(m => m.Supplier)
             .Include(m => m.Meals)
             .Where(m => !m.IsDeleted && 
-                       m.Date.Date == today && 
                        m.ActiveUntil >= now)
             .OrderBy(m => m.ActiveUntil)
             .ToListAsync(cancellationToken);
@@ -100,8 +98,8 @@ public class MenuRepository : IMenuRepository
         if (existingMenu is null)
             throw new InvalidOperationException($"Menu with ID {menu.Id} not found.");
 
-        if (!existingMenu.IsActive())
-            throw new InvalidOperationException("Cannot update inactive menu.");
+        if (existingMenu.IsDeleted)
+            throw new InvalidOperationException("Cannot update deleted menu.");
 
         _context.Menus.Update(menu);
         await _context.SaveChangesAsync(cancellationToken);

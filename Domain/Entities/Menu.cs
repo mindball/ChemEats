@@ -78,9 +78,6 @@ public class Menu
         if (IsDeleted)
             throw new DomainException("Cannot update deleted menu.");
 
-        if (!IsActive())
-            throw new DomainException("Cannot update ActiveUntil of inactive menu.");
-
         DateTime oldActiveUntil = ActiveUntil;
         ActiveUntil = newActiveUntil;
 
@@ -106,11 +103,12 @@ public class Menu
 
     private void ValidateActiveUntil()
     {
-        if (ActiveUntil.Date != Date)
-            throw new DomainException("ActiveUntil must be on the same day as the register menu date.");
+        // Potentially we could allow setting ActiveUntil before the menu date, but it would be a bit weird and bug.
+        // if (ActiveUntil >= Date)
+        //     throw new DomainException("ActiveUntil must be before the menu fulfillment date.");
 
-        if (ActiveUntil <= DateTime.Now && Date.Date == DateTime.Today)
-            throw new DomainException("ActiveUntil must be in the future for today's menu.");
+        if (ActiveUntil <= DateTime.Now)
+            throw new DomainException("ActiveUntil must be in the future.");
 
         TimeSpan timeOfDay = ActiveUntil.TimeOfDay;
         if (timeOfDay < TimeSpan.FromHours(8) || timeOfDay > TimeSpan.FromHours(16))
