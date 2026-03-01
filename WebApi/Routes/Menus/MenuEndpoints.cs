@@ -91,7 +91,7 @@ public static class MenuEndpoints
         catch (DomainException ex)
         {
             logger.LogWarning(ex, "Domain validation failed while creating menu");
-            return Results.BadRequest(new { Message = ex.Message });
+            return Results.BadRequest(new { ex.Message });
         }
     }
 
@@ -142,12 +142,6 @@ public static class MenuEndpoints
             return Results.NotFound();
         }
 
-        if (!menu.IsActive())
-        {
-            logger.LogWarning("Cannot update inactive menu {MenuId}", menuId);
-            return Results.BadRequest(new { Message = "Cannot update date of inactive menu" });
-        }
-
         try
         {
             logger.LogWarning(
@@ -155,8 +149,7 @@ public static class MenuEndpoints
                 context.User.Identity?.Name,
                 menuId);
 
-            menu.UpdateDate(newDate);
-            await menuRepository.UpdateAsync(menu, cancellationToken);
+            await menuRepository.UpdateDateAsync(menu, newDate, cancellationToken);
 
             logger.LogInformation("Menu {MenuId} date updated to {NewDate} by {User}", menuId, newDate,
                 context.User.Identity?.Name);
@@ -166,7 +159,7 @@ public static class MenuEndpoints
         {
             logger.LogWarning(ex, "Failed to update menu {MenuId} date by {User}: {ErrorMessage}", menuId,
                 context.User.Identity?.Name, ex.Message);
-            return Results.BadRequest(new { Message = ex.Message });
+            return Results.BadRequest(new { ex.Message });
         }
     }
 
@@ -210,7 +203,7 @@ public static class MenuEndpoints
         {
             logger.LogWarning(ex, "Failed to update menu {MenuId} ActiveUntil by {User}: {ErrorMessage}", menuId,
                 context.User.Identity?.Name, ex.Message);
-            return Results.BadRequest(new { Message = ex.Message });
+            return Results.BadRequest(new { ex.Message });
         }
     }
 
@@ -252,7 +245,7 @@ public static class MenuEndpoints
                 menuId,
                 context.User.Identity?.Name,
                 ex.Message);
-            return Results.BadRequest(new { Message = ex.Message });
+            return Results.BadRequest(new { ex.Message });
         }
         catch (DomainException ex)
         {
@@ -261,7 +254,7 @@ public static class MenuEndpoints
                 menuId,
                 context.User.Identity?.Name,
                 ex.Message);
-            return Results.BadRequest(new { Message = ex.Message });
+            return Results.BadRequest(new { ex.Message });
         }
         catch (Exception ex)
         {

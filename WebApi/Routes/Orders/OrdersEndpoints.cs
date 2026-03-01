@@ -4,7 +4,6 @@ using Domain.Infrastructure.Identity;
 using Domain.Models.Orders;
 using Domain.Repositories.MealOrders;
 using Domain.Repositories.Meals;
-using Domain.Repositories.Settings;
 using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -51,10 +50,9 @@ public static class OrdersEndpoints
     }
 
     private static async Task<IResult> PlaceOrdersAsync(
-        PlaceOrdersRequestDto requestDto,
+        PlaceOrdersRequestDto? requestDto,
         IMealOrderRepository orderRepository,
         IMealRepository mealRepository,
-        ISettingsRepository settingsRepository,
         UserManager<ApplicationUser> userManager,
         HttpContext httpContext,
         IMapper mapper,
@@ -82,11 +80,7 @@ public static class OrdersEndpoints
                 user.Id,
                 requestDto.Items.Count);
 
-            decimal companyPortion = await settingsRepository.GetCompanyPortionAsync(cancellationToken);
-            logger.LogInformation("Company portion loaded: {CompanyPortion}", companyPortion);
-
             List<Guid> createdOrders = new();
-            HashSet<DateOnly> portionAppliedForDate = new();
             int totalQuantity = 0;
 
             foreach (OrderRequestItemDto item in requestDto.Items)
@@ -121,22 +115,6 @@ public static class OrdersEndpoints
                     item.OrderedAt,
                     meal.Price.Amount);
 
-                DateOnly dateOnly = DateOnly.FromDateTime(item.OrderedAt);
-
-                bool alreadyAppliedToday = await orderRepository.HasPortionAppliedOnDateAsync(
-                    user.Id, dateOnly, cancellationToken);
-
-                bool shouldApplyPortion = !alreadyAppliedToday && !portionAppliedForDate.Contains(dateOnly);
-
-                if (shouldApplyPortion && companyPortion > 0m)
-                {
-                    logger.LogInformation(
-                        "Company portion {CompanyPortion} will be applied for user {UserId} on {Date}",
-                        companyPortion,
-                        user.Id,
-                        dateOnly);
-                }
-
                 for (int i = 0; i < item.Quantity; i++)
                 {
                     MealOrder order = mapper.From(item)
@@ -144,18 +122,6 @@ public static class OrdersEndpoints
                         .AdaptToType<MealOrder>();
 
                     order.SetPriceSnapshot(meal.Price.Amount);
-
-                    if (shouldApplyPortion && companyPortion > 0m)
-                    {
-                        order.ApplyPortion(companyPortion);
-                        portionAppliedForDate.Add(dateOnly);
-                        logger.LogInformation(
-                            "Company portion applied to order {OrderId} for user {UserId} on {Date}",
-                            order.Id,
-                            user.Id,
-                            dateOnly);
-                        shouldApplyPortion = false;
-                    }
 
                     await orderRepository.AddAsync(order, cancellationToken);
                     createdOrders.Add(order.Id);
@@ -214,14 +180,12 @@ public static class OrdersEndpoints
                 order.MealId,
                 order.OrderedAt,
                 Status = order.Status.ToString(),
-                Meal = order.Meal is null
-                    ? null
-                    : new
-                    {
-                        order.Meal.Id,
-                        order.Meal.Name,
-                        Price = order.Meal.Price.Amount
-                    }
+                Meal = new
+                {
+                    order.Meal.Id,
+                    order.Meal.Name,
+                    Price = order.Meal.Price.Amount
+                }
             };
 
             return Results.Ok(dto);
@@ -376,7 +340,7 @@ public static class OrdersEndpoints
             }
 
             MealOrderStatus? orderStatus = null;
-            if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<MealOrderStatus>(status, true, out MealOrderStatus parsedStatus))
+            if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse(status, true, out MealOrderStatus parsedStatus))
             {
                 orderStatus = parsedStatus;
             }

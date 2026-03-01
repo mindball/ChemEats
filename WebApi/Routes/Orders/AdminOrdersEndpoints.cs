@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Shared;
 using Shared.DTOs.Orders;
 using System.Diagnostics;
+using Domain.Repositories.Settings;
 using WebApi.Infrastructure.Filters;
 
 namespace WebApi.Routes.Orders;
@@ -69,6 +70,7 @@ public static class AdminOrdersEndpoints
     private static async Task<IResult> OrderPayAsync(
         OrderPayRequestDto requestDto,
         IMealOrderRepository orderRepository,
+        ISettingsRepository settingsRepository,
         UserManager<ApplicationUser> userManager,
         HttpContext httpContext,
         ILogger<Program> logger,
@@ -78,7 +80,7 @@ public static class AdminOrdersEndpoints
         {
             ArgumentNullException.ThrowIfNull(requestDto);
 
-            if (requestDto.OrderIds is null || requestDto.OrderIds.Count == 0)
+            if (requestDto.OrderIds.Count == 0)
             {
                 logger.LogWarning("Order pay rejected - empty order IDs list");
                 return Results.BadRequest("At least one order ID is required.");
@@ -88,12 +90,15 @@ public static class AdminOrdersEndpoints
             if (admin is null)
                 return Results.Unauthorized();
 
+            decimal companyPortion = await settingsRepository.GetCompanyPortionAsync(cancellationToken);
+
             logger.LogInformation(
-                "Admin {AdminName} ({AdminId}) order-paying {OrderCount} for user {UserId}",
+                "Admin {AdminName} ({AdminId}) order-paying {OrderCount} for user {UserId} with portion {Portion}",
                 admin.UserName,
                 admin.Id,
                 requestDto.OrderIds.Count,
-                requestDto.UserId);
+                requestDto.UserId,
+                companyPortion);
 
             DateTime paidAt = DateTime.Now;
 
@@ -101,6 +106,7 @@ public static class AdminOrdersEndpoints
                 requestDto.UserId,
                 requestDto.OrderIds,
                 paidAt,
+                companyPortion,
                 cancellationToken);
 
             logger.LogInformation(
@@ -116,7 +122,7 @@ public static class AdminOrdersEndpoints
         {
             logger.LogError(ex,
                 "Error in order payment for user {UserId}: {ErrorMessage}",
-                requestDto?.UserId,
+                requestDto.UserId,
                 ex.Message);
             throw;
         }

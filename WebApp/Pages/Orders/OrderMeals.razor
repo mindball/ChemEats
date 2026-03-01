@@ -212,10 +212,9 @@
                         else
                         {
                             var summary = BuildSummaryFromSelection();
-                            var perDateTotals = ComputePerDateTotalsWithPortion(summary, PortionAmount);
+                            var perDateTotals = ComputePerDateTotals(summary);
 
                             decimal totalPrice = perDateTotals.Sum(x => x.Total);
-                            decimal totalPortionApplied = perDateTotals.Sum(x => x.PortionApplied);
 
                             <ul class="list-group mb-2">
                                 @foreach (var day in perDateTotals)
@@ -226,9 +225,7 @@
                                                 <i class="bi bi-calendar3 me-1"></i>@FormatBulgarianDate(day.Date)
                                             </div>
                                             <div class="text-end">
-                                                <div class="small">Subtotal: @day.Subtotal.ToString("C", CultureInfo.CurrentCulture)</div>
-                                                <div class="small text-success">- Portion: @day.PortionApplied.ToString("C", CultureInfo.CurrentCulture)</div>
-                                                <div class="fw-bold">Total: @day.Total.ToString("C", CultureInfo.CurrentCulture)</div>
+                                                <div class="fw-bold">@day.Total.ToString("C", CultureInfo.CurrentCulture)</div>
                                             </div>
                                         </div>
                                         <ul class="list-group list-group-flush">
@@ -251,14 +248,11 @@
                             </ul>
 
                             <div class="border-top pt-2 mb-2">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <div class="fw-bold">Total portion applied</div>
-                                    <div class="fw-bold text-success">-@totalPortionApplied.ToString("C", CultureInfo.CurrentCulture)</div>
-                                </div>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="fw-bold fs-5">Total</div>
                                     <div class="fw-bold text-primary fs-5">@totalPrice.ToString("C", CultureInfo.CurrentCulture)</div>
                                 </div>
+                                <small class="text-muted">Company portion will be applied at payment.</small>
                             </div>
                         }
 
@@ -338,15 +332,15 @@
 </div>
 
 @code {
-    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
+    [Inject] private IJSRuntime JsRuntime { get; set; } = null!;
 
-    private System.Threading.Timer? _timer;
+    private Timer? _timer;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
 
-        _timer = new System.Threading.Timer(_ =>
+        _timer = new Timer(_ =>
         {
             InvokeAsync(StateHasChanged);
         }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
@@ -354,7 +348,7 @@
 
     private async Task OnDeleteOrderItem(UserOrderItemDto item)
     {
-        if (!await JSRuntime.InvokeAsync<bool>("confirm",
+        if (!await JsRuntime.InvokeAsync<bool>("confirm",
             $"Delete order '{item.MealName}' (Menu: {item.MenuDate:dd.MM.yyyy}, Order: {item.OrderedAt:dd.MM.yyyy})?"))
             return;
 

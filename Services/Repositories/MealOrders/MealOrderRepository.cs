@@ -3,7 +3,6 @@ using Domain.Entities;
 using Domain.Models.Orders;
 using Domain.Repositories.MealOrders;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
 
 namespace Services.Repositories.MealOrders;
 
@@ -159,7 +158,7 @@ public class MealOrderRepository : IMealOrderRepository
                 g.Key.MealId,
                 g.Key.MealName,
                 g.Key.SupplierId,
-                g.Key.SupplierName ?? string.Empty,
+                g.Key.SupplierName,
                 g.Key.OrderedAt,
                 g.Key.MenuDate,
                 g.Count(),
@@ -199,7 +198,7 @@ public class MealOrderRepository : IMealOrderRepository
                 g.Key.MealId,
                 g.Key.MealName,
                 g.Key.SupplierId,
-                g.Key.SupplierName ?? string.Empty,
+                g.Key.SupplierName,
                 g.Key.OrderedAt,
                 g.Key.MenuDate,
                 g.Count(),
@@ -317,7 +316,7 @@ public class MealOrderRepository : IMealOrderRepository
                 x.MealId,
                 x.MealName,
                 x.SupplierId,
-                x.SupplierName ?? string.Empty,
+                x.SupplierName,
                 x.OrderedAt,
                 x.MenuDate,
                 x.Price,
@@ -352,7 +351,7 @@ public class MealOrderRepository : IMealOrderRepository
                 x.MealId,
                 x.MealName,
                 x.SupplierId,
-                x.SupplierName ?? string.Empty,
+                x.SupplierName,
                 x.OrderedAt,
                 x.MenuDate,
                 x.Price,
@@ -439,11 +438,39 @@ public class MealOrderRepository : IMealOrderRepository
         string userId,
         IReadOnlyList<Guid> orderIds,
         DateTime paidOn,
+        decimal companyPortion,
         CancellationToken cancellationToken = default)
     {
         List<MealOrder> orders = await _dbContext.MealOrders
             .Where(x => x.UserId == userId && orderIds.Contains(x.Id))
             .ToListAsync(cancellationToken);
+
+        if (companyPortion > 0m)
+        {
+            HashSet<DateOnly> datesWithPortionApplied = (await _dbContext.MealOrders
+                .AsNoTracking()
+                .Where(x => x.UserId == userId && x.PortionApplied && !x.IsDeleted)
+                .Select(x => x.MenuDate)
+                .Distinct()
+                .ToListAsync(cancellationToken))
+                .Select(d => DateOnly.FromDateTime(d))
+                .ToHashSet();
+
+            foreach (IGrouping<DateOnly, MealOrder> group in orders
+                .Where(o => o.PaymentStatus != PaymentStatus.Paid)
+                .GroupBy(o => DateOnly.FromDateTime(o.MenuDate)))
+            {
+                if (datesWithPortionApplied.Contains(group.Key))
+                    continue;
+
+                MealOrder? firstOrder = group.FirstOrDefault();
+                if (firstOrder is not null)
+                {
+                    firstOrder.ApplyPortion(Math.Min(companyPortion, firstOrder.PriceAmount));
+                    datesWithPortionApplied.Add(group.Key);
+                }
+            }
+        }
 
         decimal totalPaid = 0m;
         int paidCount = 0;
@@ -452,9 +479,6 @@ public class MealOrderRepository : IMealOrderRepository
         {
             if (order.PaymentStatus == PaymentStatus.Paid)
                 continue;
-            
-            // if (order.Status == MealOrderStatus.Cancelled)
-            //     continue;
 
             order.MarkAsPaid(paidOn);
             totalPaid += order.GetNetAmount();
@@ -504,8 +528,8 @@ public class MealOrderRepository : IMealOrderRepository
         DateOnly date,
         CancellationToken cancellationToken = default)
     {
-        DateTime start = date.ToDateTime(TimeOnly.MinValue);
-        DateTime endExclusive = date.ToDateTime(TimeOnly.MinValue).AddDays(1);
+        // DateTime start = date.ToDateTime(TimeOnly.MinValue);
+        // DateTime endExclusive = date.ToDateTime(TimeOnly.MinValue).AddDays(1);
 
         return await _dbContext.MealOrders
             .AsNoTracking()

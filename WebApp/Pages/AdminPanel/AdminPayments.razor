@@ -1,6 +1,5 @@
 ﻿@page "/admin/payments"
 @using Shared.DTOs.Orders
-@using Shared.Common.Enums
 @using Shared.DTOs.Employees
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inherits AdminPaymentsBase
@@ -37,14 +36,11 @@
                                @bind:event="oninput" />
                         <select class="form-select" @bind="SelectedUserId" size="5">
                             <option value="">-- Select employee --</option>
-                            @if (FilteredEmployees is not null)
+                            @foreach (EmployeeDto emp in FilteredEmployees)
                             {
-                                @foreach (EmployeeDto emp in FilteredEmployees)
-                                {
-                                    <option value="@emp.UserId">
-                                        @emp.FullName (@emp.Abbreviation)
-                                    </option>
-                                }
+                                <option value="@emp.UserId">
+                                    @emp.FullName (@emp.Abbreviation)
+                                </option>
                             }
                         </select>
                     </div>
@@ -204,6 +200,9 @@
                                 {
                                     bool isSelected = SelectedOrderIds.Contains(item.OrderId);
                                     bool isPaid = item.PaymentStatus == PaymentStatusDto.Paid;
+                                    decimal estimatedPortion = GetEstimatedPortionForOrder(item);
+                                    decimal estimatedNet = GetEstimatedNetForOrder(item);
+                                    bool hasPortion = isPaid ? item.PortionApplied : (isSelected && estimatedPortion > 0);
                                     string rowClass = isPaid ? "table-success" : (isSelected ? "table-primary" : "");
 
                                     <tr class="@rowClass">
@@ -219,16 +218,16 @@
                                         <td><small>@FormatBulgarianDate(item.OrderedAt)</small></td>
                                         <td class="text-end">@item.Price.ToString("F2") лв.</td>
                                         <td class="text-end">
-                                            @if (item.PortionApplied)
+                                            @if (hasPortion)
                                             {
-                                                <span class="text-success">-@item.PortionAmount.ToString("F2") лв.</span>
+                                                <span class="text-success fw-bold">-@estimatedPortion.ToString("F2") лв.</span>
                                             }
                                             else
                                             {
                                                 <span class="text-muted">—</span>
                                             }
                                         </td>
-                                        <td class="text-end fw-bold">@item.NetAmount.ToString("F2") лв.</td>
+                                        <td class="text-end fw-bold">@estimatedNet.ToString("F2") лв.</td>
                                         <td class="text-center">
                                             @if (isPaid)
                                             {
@@ -259,8 +258,15 @@
                                 <span class="fw-semibold">Selected:</span>
                                 <span class="badge bg-primary rounded-pill ms-1">@SelectedOrderIds.Count</span>
                                 <span class="mx-2">|</span>
-                                <span class="fw-bold">Total to pay:</span>
-                                <span class="fw-bold text-primary fs-5 ms-1">@SelectedTotal.ToString("F2") лв.</span>
+                                <span class="fw-bold">Subtotal:</span>
+                                <span class="fw-bold ms-1">@SelectedTotal.ToString("F2") лв.</span>
+                                @if (EstimatedPortionDeduction > 0)
+                                {
+                                    <span class="mx-1 text-success">- @EstimatedPortionDeduction.ToString("F2") лв. portion</span>
+                                }
+                                <span class="mx-2">|</span>
+                                <span class="fw-bold">Net total:</span>
+                                <span class="fw-bold text-primary fs-5 ms-1">@EstimatedNetTotal.ToString("F2") лв.</span>
                             </div>
                             <button class="btn btn-success px-4" 
                                     @onclick="MarkSelectedAsPaidAsync"
@@ -277,6 +283,12 @@
                                 }
                             </button>
                         </div>
+                        @if (PortionAmount > 0)
+                        {
+                            <div class="mt-2 small text-muted">
+                                <i class="bi bi-info-circle me-1"></i>Company portion: @PortionAmount.ToString("F2") лв./day (applied once per day at payment)
+                            </div>
+                        }
                     </div>
                 </div>
             }

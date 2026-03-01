@@ -1,5 +1,4 @@
-﻿using Domain.Common.Enums;
-using Domain.Infrastructure.Exceptions;
+﻿using Domain.Infrastructure.Exceptions;
 using Domain.Infrastructure.Identity;
 
 namespace Domain.Entities;
@@ -30,7 +29,7 @@ public class MealOrder
     public DateTime OrderedAt { get; private set; }    
 
     public MealOrderStatus Status { get; private set; }
-
+     
     public PaymentStatus PaymentStatus { get; private set; }
     public DateTime? PaidOn { get; private set; }
 
@@ -143,5 +142,16 @@ public class MealOrder
             throw new DomainException("Cancelled orders cannot be deleted.");
 
         IsDeleted = true;
+    }
+
+    public void UpdateMenuDate(DateTime newMenuDate)
+    {
+        if (IsDeleted)
+            throw new DomainException("Cannot update menu date on a deleted order.");
+
+        if (Status != MealOrderStatus.Pending)
+            throw new DomainException("Only pending orders can have their menu date updated.");
+
+        MenuDate = newMenuDate;
     }
 }

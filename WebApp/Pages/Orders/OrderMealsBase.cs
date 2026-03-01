@@ -6,7 +6,6 @@ using Shared.DTOs.Menus;
 using Shared.DTOs.Orders;
 using WebApp.Services.Menus;
 using WebApp.Services.Orders;
-using WebApp.Services.Settings;
 
 namespace WebApp.Pages.Orders;
 
@@ -14,7 +13,6 @@ public class OrderMealsBase : ComponentBase
 {
     [Inject] protected IMenuDataService MenuDataService { get; init; } = null!;
     [Inject] protected IOrderDataService OrderDataService { get; init; } = null!;
-    [Inject] protected ISettingsDataService SettingsDataService { get; init; } = null!;
 
     [CascadingParameter] protected Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
 
@@ -44,10 +42,6 @@ public class OrderMealsBase : ComponentBase
 
     protected List<UserOrderItemDto> MyOrders { get; private set; } = [];
 
-    // Server-sourced portion
-    private readonly decimal _fallbackPortion = 3.00m;
-    protected decimal PortionAmount { get; private set; }
-
     protected override async Task OnInitializedAsync()
     {
         IsLoading = true;
@@ -57,9 +51,9 @@ public class OrderMealsBase : ComponentBase
         try
         {
             AuthenticationState authState = await AuthenticationStateTask;
-            ClaimsPrincipal? user = authState.User;
-            IsAuthenticated = user?.Identity?.IsAuthenticated == true;
-            CurrentUserName = user?.Identity?.Name;
+            ClaimsPrincipal user = authState.User;
+            IsAuthenticated = user.Identity?.IsAuthenticated == true;
+            CurrentUserName = user.Identity?.Name;
 
             Menus = (await MenuDataService.GetAllMenusAsync(includeDeleted: true)).ToList();
 
@@ -71,7 +65,6 @@ public class OrderMealsBase : ComponentBase
                 .OrderBy(x => x.SupplierName)
                 .ToList();
 
-            await LoadPortionAsync();
             await LoadMyOrdersAsync();
         }
         catch (Exception ex)
@@ -81,19 +74,6 @@ public class OrderMealsBase : ComponentBase
         finally
         {
             IsLoading = false;
-        }
-    }
-
-    protected async Task LoadPortionAsync()
-    {
-        try
-        {
-            PortionAmount = await SettingsDataService.GetCompanyPortionAsync();
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Failed to load portion: {ex.Message}";
-            PortionAmount = _fallbackPortion;
         }
     }
 
@@ -250,35 +230,18 @@ public class OrderMealsBase : ComponentBase
         return summary;
     }
 
-    // Apply portion once per calendar date across all suppliers
-    protected sealed record PerDateTotal(DateTime Date, IReadOnlyList<SummaryItem> Items, decimal Subtotal, decimal PortionApplied, decimal Total);
+    protected sealed record PerDateTotal(DateTime Date, IReadOnlyList<SummaryItem> Items, decimal Total);
 
-    protected IReadOnlyList<PerDateTotal> ComputePerDateTotalsWithPortion(IReadOnlyList<SummaryItem> items, decimal portion)
+    protected IReadOnlyList<PerDateTotal> ComputePerDateTotals(IReadOnlyList<SummaryItem> items)
     {
-        var perDate = items
+        List<PerDateTotal> perDate = items
             .GroupBy(x => x.MenuDate.Date)
             .OrderBy(g => g.Key)
-            .Select(g =>
-            {
-            decimal subtotal = g.Sum(x => x.Price * x.Quantity);
-
-            // Portion applies to a single unit of the first item (if any) for this date
-            SummaryItem? firstItem = g.FirstOrDefault(x => x.Quantity > 0);
-            decimal portionApplied = 0m;
-            if (firstItem is not null)
-                portionApplied = Math.Min(portion, firstItem.Price);
-
-            decimal total = subtotal - portionApplied;
-
-            return new PerDateTotal(
+            .Select(g => new PerDateTotal(
                 Date: g.Key,
                 Items: g.ToList(),
-                Subtotal: subtotal,
-                PortionApplied: portionApplied,
-                Total: total
-            );
-        })
-        .ToList();
+                Total: g.Sum(x => x.Price * x.Quantity)))
+            .ToList();
 
         return perDate;
     }

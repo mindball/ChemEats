@@ -105,6 +105,20 @@ public class MenuRepository : IMenuRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task UpdateDateAsync(Menu menu, DateTime newDate, CancellationToken cancellationToken = default)
+    {
+        List<MealOrder> orders = await _context.MealOrders
+            .Include(o => o.Meal)
+            .Where(o => o.Meal.MenuId == menu.Id
+                        && !o.IsDeleted
+                        && o.Status == MealOrderStatus.Pending)
+            .ToListAsync(cancellationToken);
+
+        menu.UpdateDateWithPendingOrders(newDate, orders);
+
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<bool> ExistsAsync(Guid supplierId, DateTime date, CancellationToken cancellationToken = default)
     {
         return await _context.Menus

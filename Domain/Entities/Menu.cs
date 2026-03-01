@@ -76,6 +76,17 @@ public class Menu
         Date = newDate;
     }
 
+    public void UpdateDateWithPendingOrders(DateTime newDate, IReadOnlyCollection<MealOrder> orders)
+    {
+        UpdateDate(newDate);
+
+        foreach (MealOrder order in orders.Where(o =>
+                     o is { IsDeleted: false, Status: MealOrderStatus.Pending }))
+        {
+            order.UpdateMenuDate(newDate);
+        }
+    }
+
     public void UpdateActiveUntil(DateTime newActiveUntil)
     {
         if (IsDeleted)

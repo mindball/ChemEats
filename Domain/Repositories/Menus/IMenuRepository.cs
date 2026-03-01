@@ -11,6 +11,7 @@ public interface IMenuRepository
     Task<Menu?> GetBySupplierAndDateAsync(Guid supplierId, DateTime date, CancellationToken cancellationToken = default);
     Task AddAsync(Menu menu, CancellationToken cancellationToken = default);
     Task UpdateAsync(Menu menu, CancellationToken cancellationToken = default);
+    Task UpdateDateAsync(Menu menu, DateTime newDate, CancellationToken cancellationToken = default);
     Task<bool> ExistsAsync(Guid supplierId, DateTime date, CancellationToken cancellationToken = default);
     Task<bool> SoftDeleteAsync(Guid menuId, CancellationToken cancellationToken = default);
     Task<Menu?> GetForUpdateAsync(Guid id, CancellationToken cancellationToken = default);

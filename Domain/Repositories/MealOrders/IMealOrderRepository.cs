@@ -82,6 +82,7 @@ public interface IMealOrderRepository
         string userId,
         IReadOnlyList<Guid> orderIds,
         DateTime paidOn,
+        decimal companyPortion,
         CancellationToken cancellationToken = default);
 
     Task<(int CompletedCount, decimal TotalAmount)> MarkPendingOrdersAsCompletedForMenuAsync(

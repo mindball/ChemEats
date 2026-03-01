@@ -6,6 +6,7 @@ using Shared.DTOs.Employees;
 using Shared.DTOs.Orders;
 using WebApp.Services.Employees;
 using WebApp.Services.Orders;
+using WebApp.Services.Settings;
 
 namespace WebApp.Pages.AdminPanel;
 
@@ -13,6 +14,7 @@ public class AdminPaymentsBase : ComponentBase
 {
     [Inject] protected IOrderDataService OrderDataService { get; init; } = null!;
     [Inject] protected IEmployeeDataService EmployeeDataService { get; init; } = null!;
+    [Inject] protected ISettingsDataService SettingsDataService { get; init; } = null!;
 
     [CascadingParameter] protected Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
 
@@ -35,9 +37,49 @@ public class AdminPaymentsBase : ComponentBase
 
     protected bool HasSelection => SelectedOrderIds.Count > 0;
 
+    protected decimal PortionAmount { get; private set; }
+
     protected decimal SelectedTotal => FilteredOrders
         .Where(o => SelectedOrderIds.Contains(o.OrderId))
-        .Sum(o => o.NetAmount);
+        .Sum(o => o.Price);
+
+    protected decimal EstimatedPortionDeduction => PortionMap.Values.Sum();
+
+    protected decimal EstimatedNetTotal => SelectedTotal - EstimatedPortionDeduction;
+
+    private Dictionary<Guid, decimal>? _portionMapCache;
+    private int _portionMapSelectionHash;
+
+    protected Dictionary<Guid, decimal> PortionMap
+    {
+        get
+        {
+            int currentHash = ComputeSelectionHash();
+            if (_portionMapCache is null || _portionMapSelectionHash != currentHash)
+            {
+                _portionMapCache = BuildPortionMap();
+                _portionMapSelectionHash = currentHash;
+            }
+            return _portionMapCache;
+        }
+    }
+
+    protected decimal GetEstimatedPortionForOrder(UserOrderPaymentItemDto item)
+    {
+        if (item.PaymentStatus == PaymentStatusDto.Paid)
+            return item.PortionAmount;
+
+        return PortionMap.GetValueOrDefault(item.OrderId, 0m);
+    }
+
+    protected decimal GetEstimatedNetForOrder(UserOrderPaymentItemDto item)
+    {
+        if (item.PaymentStatus == PaymentStatusDto.Paid)
+            return item.NetAmount;
+
+        decimal portion = GetEstimatedPortionForOrder(item);
+        return Math.Max(0m, item.Price - portion);
+    }
 
     protected int TotalOrders => FilteredOrders.Count;
     protected int PaidOrders => FilteredOrders.Count(o => o.PaymentStatus == PaymentStatusDto.Paid);
@@ -54,6 +96,8 @@ public class AdminPaymentsBase : ComponentBase
             List<EmployeeDto> employees = await EmployeeDataService.GetAllEmployeesAsync();
             
             AllEmployees = employees.OrderBy(e => e.FullName).ToList();
+
+            PortionAmount = await SettingsDataService.GetCompanyPortionAsync();
 
             // Default: current month
             StartDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
@@ -140,21 +184,24 @@ public class AdminPaymentsBase : ComponentBase
             SelectedOrderIds.Add(orderId);
         else
             SelectedOrderIds.Remove(orderId);
+
+        _portionMapCache = null;
     }
 
     protected void SelectAll()
     {
-        if (FilteredOrders is null) return;
-
         SelectedOrderIds = FilteredOrders
             .Where(o => o.PaymentStatus == PaymentStatusDto.Unpaid)
             .Select(o => o.OrderId)
             .ToHashSet();
+
+        _portionMapCache = null;
     }
 
     protected void DeselectAll()
     {
         SelectedOrderIds.Clear();
+        _portionMapCache = null;
     }
 
     protected async Task MarkSelectedAsPaidAsync()
@@ -191,6 +238,47 @@ public class AdminPaymentsBase : ComponentBase
         {
             IsProcessing = false;
         }
+    }
+
+    private Dictionary<Guid, decimal> BuildPortionMap()
+    {
+        Dictionary<Guid, decimal> map = new();
+
+        if (PortionAmount <= 0m || !HasSelection)
+            return map;
+
+        List<UserOrderPaymentItemDto> selectedUnpaid = FilteredOrders
+            .Where(o => SelectedOrderIds.Contains(o.OrderId) && o.PaymentStatus == PaymentStatusDto.Unpaid)
+            .ToList();
+
+        HashSet<DateOnly> datesAlreadyWithPortion = FilteredOrders
+            .Where(o => o.PortionApplied && !SelectedOrderIds.Contains(o.OrderId))
+            .Select(o => DateOnly.FromDateTime(o.MenuDate))
+            .ToHashSet();
+
+        foreach (IGrouping<DateOnly, UserOrderPaymentItemDto> group in selectedUnpaid
+            .GroupBy(o => DateOnly.FromDateTime(o.MenuDate)))
+        {
+            if (datesAlreadyWithPortion.Contains(group.Key))
+                continue;
+
+            UserOrderPaymentItemDto? firstOrder = group.FirstOrDefault();
+            if (firstOrder is not null)
+            {
+                map[firstOrder.OrderId] = Math.Min(PortionAmount, firstOrder.Price);
+                datesAlreadyWithPortion.Add(group.Key);
+            }
+        }
+
+        return map;
+    }
+
+    private int ComputeSelectionHash()
+    {
+        HashCode hash = new();
+        foreach (Guid id in SelectedOrderIds.Order())
+            hash.Add(id);
+        return hash.ToHashCode();
     }
 
     protected static string FormatBulgarianDate(DateTime date)
