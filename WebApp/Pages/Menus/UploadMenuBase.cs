@@ -1,7 +1,4 @@
 ﻿using System.Globalization;
-using System.Text;
-using CsvHelper;
-using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Shared.DTOs.Meals;
@@ -19,7 +16,7 @@ public class UploadMenuBase : ComponentBase
     [Inject] protected NavigationManager Navigation { get; set; } = null!;
 
     protected List<SupplierDto> Suppliers { get; set; } = [];
-    protected List<CsvMealRow> ParsedMeals { get; set; } = [];
+    protected List<CreateMealDto> ParsedMeals { get; set; } = [];
 
     protected Guid SelectedSupplierId { get; set; }
     private DateTime _selectedDate = DateTime.Today.AddDays(1);
@@ -44,6 +41,7 @@ public class UploadMenuBase : ComponentBase
 
     protected bool IsLoading { get; set; }
     protected bool IsSubmitting { get; set; }
+    protected bool IsParsingFile { get; set; }
     protected string? ErrorMessage { get; set; }
     protected string? SuccessMessage { get; set; }
 
@@ -116,13 +114,15 @@ public class UploadMenuBase : ComponentBase
 
     protected async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
-        IBrowserFile? file = e.File;
+        IBrowserFile file = e.File;
 
         try
         {
             ErrorMessage = null;
             SuccessMessage = null;
             ParsedMeals.Clear();
+            IsParsingFile = true;
+            StateHasChanged();
 
             const long maxFileSize = 5 * 1024 * 1024;
 
@@ -131,35 +131,25 @@ public class UploadMenuBase : ComponentBase
             await stream.CopyToAsync(memoryStream);
             memoryStream.Position = 0;
 
-            using StreamReader reader = new(memoryStream, Encoding.UTF8);
+            List<CreateMealDto> meals = await MenuService.ParseMenuFileAsync(memoryStream, file.Name);
 
-            CsvConfiguration config = new(CultureInfo.InvariantCulture)
+            if (meals.Count == 0)
             {
-                HasHeaderRecord = true,
-                Delimiter = ";",
-                TrimOptions = TrimOptions.Trim,
-                MissingFieldFound = null,
-                BadDataFound = null
-            };
-
-            using CsvReader csv = new(reader, config);
-            csv.Context.RegisterClassMap<CsvMealRowMap>();
-
-            List<CsvMealRow> records = csv.GetRecords<CsvMealRow>().ToList();
-
-            if (!records.Any())
-            {
-                ErrorMessage = "CSV file is empty or invalid format.";
+                ErrorMessage = "No meals found in the uploaded file.";
                 return;
             }
 
-            ParsedMeals = records;
-            SuccessMessage = $"Successfully loaded {ParsedMeals.Count} meal(s) from CSV.";
+            ParsedMeals = meals;
+            SuccessMessage = $"Successfully parsed {ParsedMeals.Count} meal(s) from file.";
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to parse CSV file: {ex.Message}";
+            ErrorMessage = $"Failed to parse file: {ex.Message}";
             ParsedMeals.Clear();
+        }
+        finally
+        {
+            IsParsingFile = false;
         }
     }
 
@@ -192,7 +182,7 @@ public class UploadMenuBase : ComponentBase
 
             if (!ParsedMeals.Any())
             {
-                ErrorMessage = "Please upload a CSV file with meals.";
+                ErrorMessage = "Please upload a file with meals.";
                 return;
             }
 
@@ -223,15 +213,11 @@ public class UploadMenuBase : ComponentBase
                 return;
             }
 
-            List<CreateMealDto> mealDtos = ParsedMeals
-                .Select(m => new CreateMealDto(m.Name, m.Price))
-                .ToList();
-
             CreateMenuDto dto = new(
                 SelectedSupplierId,
                 SelectedDate,
                 ActiveUntil,
-                mealDtos
+                ParsedMeals
             );
 
             MenuDto? result = await MenuService.AddMenuAsync(dto);
@@ -261,23 +247,6 @@ public class UploadMenuBase : ComponentBase
         finally
         {
             IsSubmitting = false;
-        }
-    }
-
-    public class CsvMealRow
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public decimal Price { get; set; }
-    }
-
-    public sealed class CsvMealRowMap : ClassMap<CsvMealRow>
-    {
-        public CsvMealRowMap()
-        {
-            Map(m => m.Id).Index(0).Name("Id");
-            Map(m => m.Name).Index(1).Name("Name");
-            Map(m => m.Price).Index(2).Name("Price");
         }
     }
 }

@@ -5,7 +5,7 @@
 
 <div class="container-fluid">
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Menus List</h3>
+    <h3 class="mb-0" style="color: #003d61;"><i class="bi bi-journal-text me-2"></i>Lab Menus</h3>
 </div>
 
 <div class="card mb-4">
@@ -188,10 +188,10 @@ else
                                 <td class="text-center">
                                     <div class="btn-group btn-group-sm" role="group">
                                         <button class="btn btn-outline-warning"
-                                                disabled="@(menu.IsDeleted || isExpired)"
+                                                disabled="@(menu.IsDeleted || menu.PendingOrdersCount == 0)"
                                                 @onclick="() => FinalizeMenuAsync(menu.Id)"
-                                                title="@(isExpired ? "Cannot finalize expired menu" : "Finalize and complete all orders")">
-                                            <i class="bi bi-check-circle me-1"></i>Finalize
+                                                title="@(menu.PendingOrdersCount == 0 ? "No pending orders to finalize" : "Finalize and complete all pending orders")">
+                                            <i class="bi bi-check-circle me-1"></i>Finalize (@menu.PendingOrdersCount)
                                         </button>
 
                                         <button class="btn btn-outline-success"

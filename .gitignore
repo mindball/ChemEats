@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/MenuParser/menuAmerica.xlsx
+/MenuParser/MenuAmerica.docx
+/MenuParser/5.csv

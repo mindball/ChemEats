@@ -89,6 +89,10 @@ public interface IMealOrderRepository
         Guid menuId,
         CancellationToken cancellationToken = default);
 
+    Task<Dictionary<Guid, int>> GetPendingOrdersCountByMenuIdsAsync(
+        IEnumerable<Guid> menuIds,
+        CancellationToken cancellationToken = default);
+
     Task<bool> HasPortionAppliedOnDateAsync(
         string userId,
         DateOnly date,

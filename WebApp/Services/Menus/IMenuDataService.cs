@@ -1,4 +1,5 @@
-﻿using Shared.DTOs.Menus;
+﻿using Shared.DTOs.Meals;
+using Shared.DTOs.Menus;
 
 namespace WebApp.Services.Menus;
 
@@ -6,6 +7,7 @@ public interface IMenuDataService
 {
     Task<MenuDto?> GetMenuByIdAsync(Guid menuId);
     Task<MenuDto?> AddMenuAsync(CreateMenuDto menu);
+    Task<List<CreateMealDto>> ParseMenuFileAsync(Stream fileStream, string fileName);
     Task<IEnumerable<MenuDto>> GetAllMenusAsync(bool includeDeleted = false);
     Task<IEnumerable<MenuDto>> GetActiveMenusAsync();
     Task<IEnumerable<MenuDto>> GetMenusBySupplierAsync(Guid supplierId);

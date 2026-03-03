@@ -17,16 +17,16 @@ public static class SupplierEndpoints
         group.MapGet("/", GetAllSuppliersAsync)
             .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
-        group.MapGet("/{id:guid}", GetSupplierByIdAsync)
+        group.MapGet(ApiRoutes.Suppliers.ByIdRoute, GetSupplierByIdAsync)
             .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
         group.MapPost("/", CreateSupplierAsync)
             .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
-        group.MapPut("/{id:guid}", UpdateSupplierAsync)
+        group.MapPut(ApiRoutes.Suppliers.ByIdRoute, UpdateSupplierAsync)
             .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
-        group.MapDelete("/{id:guid}", DeleteSupplierAsync)
+        group.MapDelete(ApiRoutes.Suppliers.ByIdRoute, DeleteSupplierAsync)
             .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
     }

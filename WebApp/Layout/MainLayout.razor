@@ -88,15 +88,20 @@
         <div class="top-row px-4 auth">
             <AuthorizeView>
                 <Authorized>
-                    <div class="nav-item px-3">
-                        Hello, @context.User.Identity?.Name
+                    <div class="nav-item px-3 d-flex align-items-center">
+                        <i class="bi bi-person-circle me-1" style="color: #00629B;"></i>
+                        <span style="color: #003d61; font-weight: 500;">@context.User.Identity?.Name</span>
                     </div>
                     <div class="nav-item px-3">
-                        <button class="btn btn-link nav-link" @onclick="Logout">Logout</button>
+                        <button class="btn btn-link nav-link" style="color: #00629B;" @onclick="Logout">
+                            <i class="bi bi-box-arrow-right me-1"></i>Logout
+                        </button>
                     </div>
                 </Authorized>
                 <NotAuthorized>
-                    <NavLink class="nav-link" href="Account/Login">Log in</NavLink>
+                    <NavLink class="nav-link" href="Account/Login" style="color: #00629B;">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>Log in
+                    </NavLink>
                 </NotAuthorized>
             </AuthorizeView>
         </div>

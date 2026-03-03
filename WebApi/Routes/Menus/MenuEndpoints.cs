@@ -1,10 +1,13 @@
 ﻿    using Domain.Entities;
 using Domain.Infrastructure.Exceptions;
+using Domain.Repositories.MealOrders;
 using Domain.Repositories.Menus;
 using Domain.Repositories.Suppliers;
 using MapsterMapper;
+using MenuParser.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 using Shared;
+using Shared.DTOs.Meals;
 using Shared.DTOs.Menus;
 using WebApi.Infrastructure.Filters;
 
@@ -19,18 +22,22 @@ public static class MenuEndpoints
             .RequireAuthorization().AddEndpointFilter<AuthorizedRequestLoggingFilter>();
 
         group.MapPost("", CreateMenuAsync).AddEndpointFilter<SupplierSupervisorFilter>();
+        group.MapPost(ApiRoutes.Menus.ParseFile, ParseMenuFileAsync)
+            .AddEndpointFilter<SupplierSupervisorFilter>()
+            .DisableAntiforgery();
         group.MapGet("", GetAllMenusAsync);
         group.MapGet(ApiRoutes.Menus.Active, GetActiveMenusAsync);
-        group.MapGet("{menuId:guid}", GetMenuByIdAsync);
-        group.MapGet($"{ApiRoutes.Menus.BySupplier}/{{supplierId:guid}}", GetMenusBySupplierAsync);
-        group.MapPut($"{{menuId:guid}}/{ApiRoutes.Menus.Date}", UpdateMenuDateAsync).AddEndpointFilter<SupplierSupervisorFilter>();
-        group.MapPut($"{{menuId:guid}}/{ApiRoutes.Menus.ActiveUntil}", UpdateMenuActiveUntilAsync).AddEndpointFilter<SupplierSupervisorFilter>();
-        group.MapDelete("{menuId:guid}", SoftDeleteMenuAsync).AddEndpointFilter<SupplierSupervisorFilter>();
+        group.MapGet(ApiRoutes.Menus.ByIdRoute, GetMenuByIdAsync);
+        group.MapGet(ApiRoutes.Menus.BySupplierRoute, GetMenusBySupplierAsync);
+        group.MapPut(ApiRoutes.Menus.UpdateDateRoute, UpdateMenuDateAsync).AddEndpointFilter<SupplierSupervisorFilter>();
+        group.MapPut(ApiRoutes.Menus.UpdateActiveUntilRoute, UpdateMenuActiveUntilAsync).AddEndpointFilter<SupplierSupervisorFilter>();
+        group.MapDelete(ApiRoutes.Menus.ByIdRoute, SoftDeleteMenuAsync).AddEndpointFilter<SupplierSupervisorFilter>();
     }
 
     private static async Task<IResult> GetMenuByIdAsync(
         Guid menuId,
         IMenuRepository menuRepository,
+        IMealOrderRepository orderRepository,
         IMapper mapper,
         ILogger<Program> logger,
         CancellationToken cancellationToken)
@@ -45,7 +52,12 @@ public static class MenuEndpoints
         }
 
         MenuDto dto = mapper.Map<MenuDto>(menu);
-        return Results.Ok(dto);
+
+        Dictionary<Guid, int> pendingCounts = await orderRepository
+            .GetPendingOrdersCountByMenuIdsAsync([menuId], cancellationToken);
+
+        MenuDto enrichedDto = dto with { PendingOrdersCount = pendingCounts.GetValueOrDefault(menuId) };
+        return Results.Ok(enrichedDto);
     }
 
     private static async Task<IResult> CreateMenuAsync(
@@ -95,36 +107,101 @@ public static class MenuEndpoints
         }
     }
 
+    private static async Task<IResult> ParseMenuFileAsync(
+        IFormFile file,
+        IMenuFileParser parser,
+        ILogger<Program> logger,
+        CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return Results.BadRequest(new { Message = "No file provided." });
+
+        if (!parser.IsSupported(file.FileName))
+            return Results.BadRequest(new { Message = "Unsupported file format. Supported: .csv, .xlsx, .docx" });
+
+        try
+        {
+            logger.LogInformation("Parsing menu file: {FileName} ({Size} bytes)", file.FileName, file.Length);
+
+            await using Stream stream = file.OpenReadStream();
+            IReadOnlyList<MenuParser.Models.ParsedMeal> meals = await parser.ParseAsync(stream, file.FileName, cancellationToken);
+
+            List<CreateMealDto> result = meals
+                .Select(m => new CreateMealDto(m.Name, m.Price))
+                .ToList();
+
+            logger.LogInformation("Parsed {Count} meals from {FileName}", result.Count, file.FileName);
+            return Results.Ok(result);
+        }
+        catch (NotSupportedException ex)
+        {
+            logger.LogWarning(ex, "Unsupported file format: {FileName}", file.FileName);
+            return Results.BadRequest(new { ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            logger.LogError(ex, "AI parsing error for file: {FileName}", file.FileName);
+            return Results.BadRequest(new { ex.Message });
+        }
+    }
+
     private static async Task<IResult> GetAllMenusAsync(
         IMenuRepository menuRepository,
+        IMealOrderRepository orderRepository,
         IMapper mapper,
         CancellationToken cancellationToken,
         [FromQuery] bool includeDeleted = false)
     {
         IReadOnlyList<Menu> menus = await menuRepository.GetAllAsync(includeDeleted, cancellationToken);
         List<MenuDto> dtos = mapper.Map<List<MenuDto>>(menus);
-        return Results.Ok(dtos);
+
+        Dictionary<Guid, int> pendingCounts = await orderRepository
+            .GetPendingOrdersCountByMenuIdsAsync(dtos.Select(d => d.Id), cancellationToken);
+
+        List<MenuDto> enrichedDtos = dtos
+            .Select(d => d with { PendingOrdersCount = pendingCounts.GetValueOrDefault(d.Id) })
+            .ToList();
+
+        return Results.Ok(enrichedDtos);
     }
 
     private static async Task<IResult> GetActiveMenusAsync(
         IMenuRepository menuRepository,
+        IMealOrderRepository orderRepository,
         IMapper mapper,
         CancellationToken cancellationToken)
     {
         IReadOnlyList<Menu> menus = await menuRepository.GetActiveMenusAsync(cancellationToken);
         List<MenuDto> dtos = mapper.Map<List<MenuDto>>(menus);
-        return Results.Ok(dtos);
+
+        Dictionary<Guid, int> pendingCounts = await orderRepository
+            .GetPendingOrdersCountByMenuIdsAsync(dtos.Select(d => d.Id), cancellationToken);
+
+        List<MenuDto> enrichedDtos = dtos
+            .Select(d => d with { PendingOrdersCount = pendingCounts.GetValueOrDefault(d.Id) })
+            .ToList();
+
+        return Results.Ok(enrichedDtos);
     }
 
     private static async Task<IResult> GetMenusBySupplierAsync(
         Guid supplierId,
         IMenuRepository menuRepository,
+        IMealOrderRepository orderRepository,
         IMapper mapper,
         CancellationToken cancellationToken)
     {
         IReadOnlyList<Menu> menus = await menuRepository.GetBySupplierAsync(supplierId, cancellationToken);
         List<MenuDto> dtos = mapper.Map<List<MenuDto>>(menus);
-        return Results.Ok(dtos);
+
+        Dictionary<Guid, int> pendingCounts = await orderRepository
+            .GetPendingOrdersCountByMenuIdsAsync(dtos.Select(d => d.Id), cancellationToken);
+
+        List<MenuDto> enrichedDtos = dtos
+            .Select(d => d with { PendingOrdersCount = pendingCounts.GetValueOrDefault(d.Id) })
+            .ToList();
+
+        return Results.Ok(enrichedDtos);
     }
 
     private static async Task<IResult> UpdateMenuDateAsync(

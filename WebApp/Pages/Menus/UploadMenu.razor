@@ -1,10 +1,11 @@
 ﻿@page "/upload-menu"
+@using Shared.DTOs.Meals
 @using Shared.DTOs.Suppliers
 @inherits UploadMenuBase
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="mb-0"><i class="bi bi-cloud-upload me-2"></i>Upload Menu</h3>
+        <h3 class="mb-0" style="color: #003d61;"><i class="bi bi-clipboard-plus me-2"></i>Create Menu</h3>
     </div>
 
     @if (IsLoading)
@@ -108,26 +109,34 @@
 
                 <div class="card mb-3">
                     <div class="card-header bg-light">
-                        <h5 class="mb-0"><i class="bi bi-file-earmark-spreadsheet me-2"></i>CSV File Upload</h5>
+                        <h5 class="mb-0"><i class="bi bi-file-earmark-spreadsheet me-2"></i>Menu File Upload</h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
                             <label class="form-label fw-semibold">
-                                <i class="bi bi-upload me-1"></i>Select CSV File <span class="text-danger">*</span>
+                                <i class="bi bi-upload me-1"></i>Select Menu File <span class="text-danger">*</span>
                             </label>
                             <InputFile OnChange="HandleFileSelected"
                                        class="form-control"
-                                       accept=".csv" />
+                                       accept=".csv,.xlsx,.docx"
+                                       disabled="@IsParsingFile" />
                             <div class="form-text">
-                                <i class="bi bi-info-circle me-1"></i>Expected format: Name,Price (one meal per line)
+                                <i class="bi bi-info-circle me-1"></i>Supported formats: CSV, Excel (.xlsx), Word (.docx) — file must contain meal names and prices
                             </div>
                         </div>
 
-                        @if (ParsedMeals.Any())
+                        @if (IsParsingFile)
                         {
-                            <div class="alert alert-info">
+                            <div class="d-flex align-items-center mt-2">
+                                <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                <span class="text-muted"><i class="bi bi-robot me-1"></i>Parsing file with AI...</span>
+                            </div>
+                        }
+                        else if (ParsedMeals.Any())
+                        {
+                            <div class="alert alert-info mb-0">
                                 <i class="bi bi-info-circle me-2"></i>
-                                <strong>@ParsedMeals.Count</strong> meal(s) loaded from CSV
+                                <strong>@ParsedMeals.Count</strong> meal(s) parsed from file
                             </div>
                         }
                     </div>
@@ -143,7 +152,7 @@
                             </div>
                         </div>
                         <ul class="list-group list-group-flush">
-                            @foreach (CsvMealRow meal in ParsedMeals)
+                            @foreach (CreateMealDto meal in ParsedMeals)
                             {
                                 <li class="list-group-item">
                                     <div class="d-flex justify-content-between align-items-center">

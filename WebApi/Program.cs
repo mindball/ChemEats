@@ -1,4 +1,5 @@
 ﻿using Domain.Infrastructure.Exceptions;
+using MenuParser.Extensions;
 using Microsoft.AspNetCore.Diagnostics;
 using QuestPDF.Infrastructure;
 using Serilog;
@@ -27,7 +28,8 @@ builder.Services.AddAppOpenApi()
     .AddAppRazorComponents()
     .AddAppRepositories()
     .AddAppMapster()
-    .AddAppEmployees(builder.Configuration);
+    .AddAppEmployees(builder.Configuration)
+    .AddMenuParser(builder.Configuration);
 
 WebApplication app = builder.Build();
 

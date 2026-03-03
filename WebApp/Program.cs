@@ -25,7 +25,11 @@ builder.Services.AddScoped<IEmployeeDataService, EmployeeDataService>();
 builder.Services.AddScoped<IMenuReportService, MenuReportService>();
 
 
-builder.Services.AddScoped((sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) }));
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri(builder.HostEnvironment.BaseAddress),
+    Timeout = TimeSpan.FromMinutes(6)
+});
 
 // Това е нужно за AuthorizeView
 builder.Services.AddCascadingAuthenticationState();

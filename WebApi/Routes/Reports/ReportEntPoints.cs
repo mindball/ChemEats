@@ -18,7 +18,7 @@ public static class ReportEndpoints
             .RequireAuthorization("AdminPolicy")
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
 
-        group.MapGet("/menu/{menuId:guid}", GenerateMenuReportAsync);
+        group.MapGet(ApiRoutes.Reports.MenuReportRoute, GenerateMenuReportAsync);
     }
 
     private static async Task<IResult> GenerateMenuReportAsync(

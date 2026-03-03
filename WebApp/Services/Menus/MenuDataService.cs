@@ -2,6 +2,7 @@
 using System.Text.Json;
 using Shared;
 using Shared.DTOs.Errors;
+using Shared.DTOs.Meals;
 using Shared.DTOs.Menus;
 
 namespace WebApp.Services.Menus;
@@ -39,6 +40,22 @@ public class MenuDataService : IMenuDataService
 
         await ThrowDetailedExceptionAsync(response, "Failed to add menu");
         return null;
+    }
+
+    public async Task<List<CreateMealDto>> ParseMenuFileAsync(Stream fileStream, string fileName)
+    {
+        using MultipartFormDataContent content = new();
+        StreamContent streamContent = new(fileStream);
+        content.Add(streamContent, "file", fileName);
+
+        HttpResponseMessage response = await _httpClient.PostAsync(
+            $"{ApiRoutes.Menus.Base}/{ApiRoutes.Menus.ParseFile}", content);
+
+        if (!response.IsSuccessStatusCode)
+            await ThrowDetailedExceptionAsync(response, "Failed to parse menu file");
+
+        List<CreateMealDto>? meals = await response.Content.ReadFromJsonAsync<List<CreateMealDto>>();
+        return meals ?? [];
     }
 
     public async Task<IEnumerable<MenuDto>> GetAllMenusAsync(bool includeDeleted = false)

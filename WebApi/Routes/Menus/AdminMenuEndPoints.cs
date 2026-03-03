@@ -17,7 +17,7 @@ public static class AdminMenuEndpoints
             .RequireAuthorization()
             .AddEndpointFilter<SupplierSupervisorFilter>();
 
-        group.MapPost("/{menuId:guid}/finalize", FinalizeMenuAsync)
+        group.MapPost(ApiRoutes.AdminMenus.FinalizeRoute, FinalizeMenuAsync)
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
     }
 

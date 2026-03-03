@@ -10,5 +10,6 @@ public record MenuDto(
     DateTime ActiveUntil,
     bool IsActive,
     bool IsDeleted,
-    List<MealDto> Meals
+    List<MealDto> Meals,
+    int PendingOrdersCount = 0
 );

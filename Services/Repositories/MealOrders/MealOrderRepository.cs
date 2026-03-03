@@ -518,6 +518,25 @@ public class MealOrderRepository : IMealOrderRepository
         return (completedCount, totalAmount);
     }
 
+    public async Task<Dictionary<Guid, int>> GetPendingOrdersCountByMenuIdsAsync(
+        IEnumerable<Guid> menuIds,
+        CancellationToken cancellationToken = default)
+    {
+        List<Guid> menuIdList = menuIds.ToList();
+
+        return await _dbContext.MealOrders
+            .AsNoTracking()
+            .Include(mo => mo.Meal)
+            .Where(mo => menuIdList.Contains(mo.Meal.MenuId)
+                         && mo.Status == MealOrderStatus.Pending
+                         && !mo.IsDeleted)
+            .GroupBy(mo => mo.Meal.MenuId)
+            .ToDictionaryAsync(
+                g => g.Key,
+                g => g.Count(),
+                cancellationToken);
+    }
+
     public Task<bool> HasAppliedPortionAsync(string userId, Guid menuId, DateOnly date, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();

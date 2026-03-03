@@ -18,11 +18,11 @@ public static class AdminOrdersEndpoints
         RouteGroupBuilder group = app.MapGroup(ApiRoutes.AdminOrders.Base)
             .RequireAuthorization("AdminPolicy");
 
-        group.MapGet("/unpaid/{userId}", GetUnpaidOrdersAsync)
+        group.MapGet(ApiRoutes.AdminOrders.UnpaidRoute, GetUnpaidOrdersAsync)
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
-        group.MapPost("/order-pay", OrderPayAsync)
+        group.MapPost(ApiRoutes.AdminOrders.OrderPay, OrderPayAsync)
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
-        group.MapGet("/period/{userId}", GetOrdersForPeriodAsync)
+        group.MapGet(ApiRoutes.AdminOrders.PeriodRoute, GetOrdersForPeriodAsync)
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
     }
 

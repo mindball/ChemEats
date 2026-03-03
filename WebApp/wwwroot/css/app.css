@@ -1,5 +1,6 @@
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #f0f4f8;
 }
 
 h1:focus {
@@ -7,17 +8,17 @@ h1:focus {
 }
 
 a, .btn-link {
-    color: #0071c1;
+    color: #00629B;
 }
 
 .btn-primary {
     color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+    background-color: #00629B;
+    border-color: #005486;
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #00629B;
 }
 
 .content {
@@ -84,7 +85,7 @@ a, .btn-link {
     }
 
         .loading-progress circle:last-child {
-            stroke: #1b6ec2;
+            stroke: #00629B;
             stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
             transition: stroke-dasharray 0.05s ease-in-out;
         }
@@ -114,14 +115,14 @@ code {
 }
 
 .btn-primary {
-    background-color: #2563eb;
+    background-color: #00629B;
     color: white;
     padding: 0.5rem 1rem;
     border-radius: 6px;
 }
 
 .btn-primary:hover {
-    background-color: #1e40af;
+    background-color: #004d7a;
 }
 
 .form-label {

@@ -23,28 +23,28 @@ public static class OrdersEndpoints
         group.MapPost("/", PlaceOrdersAsync)
             .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
-        group.MapGet("/{orderId:guid}", GetOrderByIdAsync)
+        group.MapGet(ApiRoutes.Orders.ByIdRoute, GetOrderByIdAsync)
             .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
-        group.MapGet("/me", GetUserOrdersAsync)
+        group.MapGet(ApiRoutes.Orders.Me, GetUserOrdersAsync)
             .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
-        group.MapDelete("/{orderId:guid}", DeleteOrderAsync)
+        group.MapDelete(ApiRoutes.Orders.ByIdRoute, DeleteOrderAsync)
             .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
-        group.MapGet("/me/items", GetUserOrderItemsAsync)
+        group.MapGet(ApiRoutes.Orders.MeItems, GetUserOrderItemsAsync)
             .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
-        group.MapGet("/me/payments", GetUserPaymentsAsync)
+        group.MapGet(ApiRoutes.Orders.MePayments, GetUserPaymentsAsync)
             .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
-        group.MapGet("/me/payments/summary", GetUserPaymentSummaryAsync)
+        group.MapGet(ApiRoutes.Orders.MePaymentsSummary, GetUserPaymentSummaryAsync)
             .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
-        group.MapPatch("/{orderId:guid}/pay", MarkOrderAsPaidAsync)
+        group.MapPatch(ApiRoutes.Orders.MarkAsPaidRoute, MarkOrderAsPaidAsync)
             .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
-        group.MapGet("/me/menu/{menuId:guid}", GetUserOrdersByMenuAsync)
+        group.MapGet(ApiRoutes.Orders.MeByMenuRoute, GetUserOrdersByMenuAsync)
             .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
     }
