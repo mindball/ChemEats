@@ -1,6 +1,7 @@
 ﻿@page "/upload-menu"
 @using Shared.DTOs.Meals
 @using Shared.DTOs.Suppliers
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Supervisor,Admin")]
 @inherits UploadMenuBase
 
 <div class="container-fluid">

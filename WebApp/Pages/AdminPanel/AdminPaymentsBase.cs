@@ -37,6 +37,17 @@ public class AdminPaymentsBase : ComponentBase
 
     protected bool HasSelection => SelectedOrderIds.Count > 0;
 
+    protected bool IsAllUnpaidSelected
+    {
+        get
+        {
+            List<UserOrderPaymentItemDto> unpaid = FilteredOrders
+                .Where(o => o.PaymentStatus == PaymentStatusDto.Unpaid)
+                .ToList();
+            return unpaid.Count > 0 && unpaid.All(o => SelectedOrderIds.Contains(o.OrderId));
+        }
+    }
+
     protected decimal PortionAmount { get; private set; }
 
     protected decimal SelectedTotal => FilteredOrders
@@ -186,6 +197,14 @@ public class AdminPaymentsBase : ComponentBase
             SelectedOrderIds.Remove(orderId);
 
         _portionMapCache = null;
+    }
+
+    protected void ToggleSelectAll(bool selectAll)
+    {
+        if (selectAll)
+            SelectAll();
+        else
+            DeselectAll();
     }
 
     protected void SelectAll()

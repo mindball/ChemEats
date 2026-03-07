@@ -1,5 +1,6 @@
 ﻿@page "/orders/my"
 @using Shared.DTOs.Orders
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inherits MyOrdersBase
 
 <div class="container-fluid">

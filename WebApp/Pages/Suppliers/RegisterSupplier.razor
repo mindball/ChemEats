@@ -1,6 +1,7 @@
 @page "/register-supplier"
 @using Shared.Common.Enums
 @using Shared.DTOs.Employees
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inherits RegisterSupplierBase
 
 <AuthorizeView>

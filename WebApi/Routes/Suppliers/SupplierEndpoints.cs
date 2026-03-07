@@ -1,4 +1,6 @@
 using Domain.Entities;
+using Domain.Infrastructure.Identity;
+using Domain.Repositories.Employees;
 using Domain.Repositories.Suppliers;
 using MapsterMapper;
 using Shared;
@@ -96,6 +98,7 @@ public static class SupplierEndpoints
     private static async Task<IResult> CreateSupplierAsync(
         CreateSupplierDto dto,
         ISupplierRepository repo,
+        IUserRepository userRepo,
         IMapper mapper,
         ILogger<Program> logger,
         HttpContext context,
@@ -111,7 +114,10 @@ public static class SupplierEndpoints
             Supplier entity = mapper.Map<Supplier>(dto);
 
             if (!string.IsNullOrEmpty(dto.SupervisorId))
+            {
                 entity.AssignSupervisor(dto.SupervisorId);
+                await AssignSupervisorRoleAsync(dto.SupervisorId, userRepo, logger, cancellationToken);
+            }
 
             await repo.AddAsync(entity, cancellationToken);
 
@@ -137,6 +143,7 @@ public static class SupplierEndpoints
         Guid id,
         UpdateSupplierDto dto,
         ISupplierRepository repo,
+        IUserRepository userRepo,
         IMapper mapper,
         ILogger<Program> logger,
         HttpContext context,
@@ -163,9 +170,14 @@ public static class SupplierEndpoints
             mapper.Map(dto, existing);
 
             if (!string.IsNullOrEmpty(dto.SupervisorId))
+            {
                 existing.AssignSupervisor(dto.SupervisorId);
+                await AssignSupervisorRoleAsync(dto.SupervisorId, userRepo, logger, cancellationToken);
+            }
             else
+            {
                 existing.RemoveSupervisor();
+            }
 
             await repo.UpdateAsync(existing, cancellationToken);
 
@@ -230,6 +242,30 @@ public static class SupplierEndpoints
                 id,
                 ex.Message);
             throw;
+        }
+    }
+
+    private static async Task AssignSupervisorRoleAsync(
+        string supervisorId,
+        IUserRepository userRepo,
+        ILogger<Program> logger,
+        CancellationToken cancellationToken)
+    {
+        if (!Guid.TryParse(supervisorId, out Guid supervisorGuid))
+            return;
+
+        ApplicationUser? supervisorUser = await userRepo.GetByIdAsync(supervisorGuid, cancellationToken);
+        if (supervisorUser is null)
+        {
+            logger.LogWarning("Supervisor user {SupervisorId} not found when assigning Supervisor role", supervisorId);
+            return;
+        }
+
+        IList<string> currentRoles = await userRepo.GetRolesAsync(supervisorUser, cancellationToken);
+        if (!currentRoles.Contains("Supervisor"))
+        {
+            await userRepo.AddToRoleAsync(supervisorUser, "Supervisor", cancellationToken);
+            logger.LogInformation("Supervisor role assigned to user {SupervisorId}", supervisorId);
         }
     }
 }

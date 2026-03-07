@@ -1,5 +1,6 @@
 ﻿@page "/menus/view"
 @using System.Globalization
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inherits ViewMenusBase
 @inject IJSRuntime JSRuntime
 
@@ -110,7 +111,7 @@ else
                         <th class="text-start">
                             <i class="bi bi-egg-fried me-1"></i>Meals
                         </th>
-                        @if (IsAdmin)
+                        @if (CanManageMenus)
                         {
                             <th style="width: 280px">
                                 <i class="bi bi-gear me-1"></i>Actions
@@ -183,7 +184,7 @@ else
                                 }
                             </td>
 
-                            @if (IsAdmin)
+                            @if (CanManageMenus)
                             {
                                 <td class="text-center">
                                     <div class="btn-group btn-group-sm" role="group">

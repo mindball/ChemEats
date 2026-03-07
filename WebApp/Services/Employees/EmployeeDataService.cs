@@ -18,4 +18,18 @@ public class EmployeeDataService : IEmployeeDataService
         List<EmployeeDto>? employees = await _httpClient.GetFromJsonAsync<List<EmployeeDto>>(ApiRoutes.Employees.Base);
         return employees ?? [];
     }
+
+    public async Task<bool> AssignRoleAsync(string userId, string roleName)
+    {
+        HttpResponseMessage response = await _httpClient.PostAsync(
+            ApiRoutes.Employees.RoleAction(userId, roleName), null);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> RemoveRoleAsync(string userId, string roleName)
+    {
+        HttpResponseMessage response = await _httpClient.DeleteAsync(
+            ApiRoutes.Employees.RoleAction(userId, roleName));
+        return response.IsSuccessStatusCode;
+    }
 }

@@ -92,6 +92,13 @@ public static class ApiRoutes
         public const string SyncEmployees = "api/sync-employees";
         public const string Base = "api/employees";
         public const string Login = "api/login";
+
+        // Route templates (used by WebApi endpoint mapping)
+        public const string RolesRoute = "{userId}/roles/{roleName}";
+
+        // URL builders (used by WebApp HTTP client)
+        public static string RoleAction(string userId, string roleName) =>
+            $"{Base}/{Uri.EscapeDataString(userId)}/roles/{Uri.EscapeDataString(roleName)}";
     }
 
     public static class Reports

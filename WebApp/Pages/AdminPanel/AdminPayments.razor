@@ -184,7 +184,11 @@
                         <table class="table table-hover mb-0 align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th style="width: 40px;"></th>
+                                    <th style="width: 40px;">
+                                        <input type="checkbox" class="form-check-input"
+                                               checked="@IsAllUnpaidSelected"
+                                               @onchange="@(e => ToggleSelectAll(e.Value is true))" />
+                                    </th>
                                     <th><i class="bi bi-egg-fried me-1"></i>Meal</th>
                                     <th><i class="bi bi-shop me-1"></i>Supplier</th>
                                     <th><i class="bi bi-calendar-event me-1"></i>Menu Date</th>

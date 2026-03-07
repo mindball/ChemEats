@@ -26,6 +26,8 @@ public partial class ViewMenusBase : ComponentBase
     protected DateTime? EndDate { get; set; }
     protected bool IncludeDeleted { get; set; }
     protected bool IsAdmin;
+    protected bool IsSupervisor;
+    protected bool CanManageMenus => IsAdmin || IsSupervisor;
 
     protected string? ErrorMessage { get; set; }
     protected bool IsLoading { get; private set; }
@@ -41,6 +43,7 @@ public partial class ViewMenusBase : ComponentBase
     {
         AuthenticationState authState = await AuthProvider.GetAuthenticationStateAsync();
         IsAdmin = authState.User.IsInRole("Admin");
+        IsSupervisor = authState.User.IsInRole("Supervisor");
 
         Suppliers = (await SupplierDataService.GetAllSuppliersAsync()).ToList();
 

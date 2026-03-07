@@ -23,6 +23,16 @@ public static class EmployeeEndPoints
             .WithTags("Employees")
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
 
+        app.MapPost(ApiRoutes.Employees.Base + "/" + ApiRoutes.Employees.RolesRoute, AssignRoleAsync)
+            .RequireAuthorization("AdminPolicy")
+            .WithTags("Employees")
+            .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
+
+        app.MapDelete(ApiRoutes.Employees.Base + "/" + ApiRoutes.Employees.RolesRoute, RemoveRoleAsync)
+            .RequireAuthorization("AdminPolicy")
+            .WithTags("Employees")
+            .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
+
         app.MapPost(ApiRoutes.Employees.Login, LoginAsync);
     }
 
@@ -56,17 +66,23 @@ public static class EmployeeEndPoints
     {
         try
         {
-            logger.LogInformation("Retrieving all employees for admin dropdown");
+            logger.LogInformation("Retrieving all employees with roles");
 
             List<ApplicationUser> employees = await userRepository.GetAllUsersAsync(cancellationToken);
 
-            var dtos = employees.Select(e => new
+            List<object> dtos = [];
+            foreach (ApplicationUser employee in employees)
             {
-                UserId = e.Id,
-                FullName = e.FullName,
-                Email = e.Email,
-                Abbreviation = e.Abbreviation
-            }).ToList();
+                IList<string> roles = await userRepository.GetRolesAsync(employee, cancellationToken);
+                dtos.Add(new
+                {
+                    UserId = employee.Id,
+                    FullName = employee.FullName,
+                    Email = employee.Email,
+                    Abbreviation = employee.Abbreviation,
+                    Roles = roles
+                });
+            }
 
             logger.LogInformation("Retrieved {EmployeeCount} employees", dtos.Count);
 
@@ -77,6 +93,73 @@ public static class EmployeeEndPoints
             logger.LogError(ex, "Error retrieving employees: {ErrorMessage}", ex.Message);
             throw;
         }
+    }
+
+    private static async Task<IResult> AssignRoleAsync(
+        string userId,
+        string roleName,
+        IUserRepository userRepository,
+        ILogger<Program> logger,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInformation("Assigning role {Role} to user {UserId}", roleName, userId);
+
+        if (!Guid.TryParse(userId, out Guid userGuid))
+            return Results.BadRequest("Invalid user ID.");
+
+        ApplicationUser? user = await userRepository.GetByIdAsync(userGuid, cancellationToken);
+        if (user is null)
+            return Results.NotFound("User not found.");
+
+        if (!await userRepository.RoleExistsAsync(roleName, cancellationToken))
+            return Results.BadRequest($"Role '{roleName}' does not exist.");
+
+        IList<string> currentRoles = await userRepository.GetRolesAsync(user, cancellationToken);
+        if (currentRoles.Contains(roleName))
+            return Results.Ok("User already has this role.");
+
+        IdentityResult result = await userRepository.AddToRoleAsync(user, roleName, cancellationToken);
+        if (!result.Succeeded)
+        {
+            string errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            logger.LogError("Failed to assign role {Role} to user {UserId}: {Errors}", roleName, userId, errors);
+            return Results.BadRequest(errors);
+        }
+
+        logger.LogInformation("Role {Role} assigned to user {UserId} successfully", roleName, userId);
+        return Results.Ok("Role assigned.");
+    }
+
+    private static async Task<IResult> RemoveRoleAsync(
+        string userId,
+        string roleName,
+        IUserRepository userRepository,
+        ILogger<Program> logger,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInformation("Removing role {Role} from user {UserId}", roleName, userId);
+
+        if (!Guid.TryParse(userId, out Guid userGuid))
+            return Results.BadRequest("Invalid user ID.");
+
+        ApplicationUser? user = await userRepository.GetByIdAsync(userGuid, cancellationToken);
+        if (user is null)
+            return Results.NotFound("User not found.");
+
+        IList<string> currentRoles = await userRepository.GetRolesAsync(user, cancellationToken);
+        if (!currentRoles.Contains(roleName))
+            return Results.Ok("User does not have this role.");
+
+        IdentityResult result = await userRepository.RemoveFromRoleAsync(user, roleName, cancellationToken);
+        if (!result.Succeeded)
+        {
+            string errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            logger.LogError("Failed to remove role {Role} from user {UserId}: {Errors}", roleName, userId, errors);
+            return Results.BadRequest(errors);
+        }
+
+        logger.LogInformation("Role {Role} removed from user {UserId} successfully", roleName, userId);
+        return Results.Ok("Role removed.");
     }
 
     private static async Task<IResult> LoginAsync(

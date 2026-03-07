@@ -19,34 +19,12 @@
             </NavLink>
         </div>
 
-        <!-- Visible only to authenticated users -->
+        <!-- All authenticated users: Browse Menus, Place Order, My Orders -->
         <AuthorizeView>
             <Authorized>
 
                 <div class="nav-item px-3 nav-section-label">
-                    <small class="text-uppercase">Catalogue</small>
-                </div>
-
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link d-flex align-items-center" href="get-suppliers">
-                        <span class="bi bi-building me-2 d-inline-flex align-items-center"></span> Suppliers
-                    </NavLink>
-                </div>
-
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link d-flex align-items-center" href="register-supplier">
-                        <span class="bi bi-plus-circle-fill me-2 d-inline-flex align-items-center"></span> Add Supplier
-                    </NavLink>
-                </div>
-
-                <div class="nav-item px-3 nav-section-label">
                     <small class="text-uppercase">Lab Menu</small>
-                </div>
-
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link d-flex align-items-center" href="upload-menu">
-                        <span class="bi bi-clipboard-plus me-2 d-inline-flex align-items-center"></span> Create Menu
-                    </NavLink>
                 </div>
 
                 <div class="nav-item px-3">
@@ -74,6 +52,30 @@
             </Authorized>
         </AuthorizeView>
 
+        <!-- Supervisor and Admin: Create Menu, Suppliers -->
+        <AuthorizeView Roles="Supervisor,Admin">
+            <Authorized>
+
+                <div class="nav-item px-3 nav-section-label">
+                    <small class="text-uppercase">Management</small>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link d-flex align-items-center" href="upload-menu">
+                        <span class="bi bi-clipboard-plus me-2 d-inline-flex align-items-center"></span> Create Menu
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link d-flex align-items-center" href="get-suppliers">
+                        <span class="bi bi-building me-2 d-inline-flex align-items-center"></span> Suppliers
+                    </NavLink>
+                </div>
+
+            </Authorized>
+        </AuthorizeView>
+
+        <!-- Admin only: Add Supplier, Control Panel, Payments -->
         <AuthorizeView Roles="Admin">
             <Authorized>
 
@@ -82,15 +84,23 @@
                 </div>
 
                 <div class="nav-item px-3">
+                    <NavLink class="nav-link d-flex align-items-center" href="register-supplier">
+                        <span class="bi bi-plus-circle-fill me-2 d-inline-flex align-items-center"></span> Add Supplier
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
                     <NavLink class="nav-link d-flex align-items-center" href="admin">
                         <span class="bi bi-shield-lock-fill me-2 d-inline-flex align-items-center"></span> Control Panel
                     </NavLink>
                 </div>
+
                 <div class="nav-item px-3">
                     <NavLink class="nav-link d-flex align-items-center" href="admin/payments">
                         <span class="bi bi-cash-coin me-2 d-inline-flex align-items-center"></span> Payments
                     </NavLink>
                 </div>
+
             </Authorized>
         </AuthorizeView>
 

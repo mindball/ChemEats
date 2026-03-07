@@ -13,7 +13,7 @@ public class EmployeeSyncService : IEmployeeSyncService
     private readonly IEmployeeCacheService _employeeCache;
     private readonly ILogger<EmployeeSyncService> _logger;
 
-    private static readonly string[] DefaultRoles = ["Admin", "Employee", "Manager"];
+    private static readonly string[] DefaultRoles = ["Admin", "Employee", "Manager", "Supervisor"];
     private static readonly string[] AdminEmployeeCodes = ["MM", "DM"];
 
     public EmployeeSyncService(
@@ -116,6 +116,7 @@ public class EmployeeSyncService : IEmployeeSyncService
 
                         string role = AdminEmployeeCodes.Contains(dto.Code) ? "Admin" : "Employee";
 
+                        // await _userRepository.AddToRoleAsync(user, "Supervisor");
                         await _userRepository.AddToRoleAsync(user, role);
                         _logger.LogInformation(
                             "User {Code} assigned to role {Role}",

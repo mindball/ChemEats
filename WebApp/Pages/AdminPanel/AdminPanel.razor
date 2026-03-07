@@ -1,4 +1,6 @@
 ﻿@page "/admin"
+@using Shared.DTOs.Employees
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inherits WebApp.Pages.AdminPanel.AdminPanelBase
 
 <h3 class="mb-3" style="color: #003d61;"><i class="bi bi-shield-lock-fill me-2"></i>Control Panel</h3>
@@ -76,5 +78,113 @@
                 </a>
             </li>
         </ul>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <strong><i class="bi bi-people-fill me-2"></i>User Management</strong>
+        <button class="btn btn-sm btn-outline-primary" @onclick="LoadUsersAsync" disabled="@IsLoadingUsers">
+            <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+        </button>
+    </div>
+    <div class="card-body">
+        @if (!string.IsNullOrEmpty(UserManagementSuccess))
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@UserManagementSuccess
+                <button type="button" class="btn-close" @onclick="@(() => UserManagementSuccess = null)"></button>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(UserManagementError))
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@UserManagementError
+                <button type="button" class="btn-close" @onclick="@(() => UserManagementError = null)"></button>
+            </div>
+        }
+
+        @if (IsLoadingUsers)
+        {
+            <div class="d-flex justify-content-center py-3">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading users...</span>
+                </div>
+            </div>
+        }
+        else if (AllUsers is not null)
+        {
+            <div class="mb-3">
+                <input type="text" class="form-control" placeholder="Search by name, abbreviation or email..."
+                       @bind="UserSearchTerm" @bind:event="oninput" />
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th><i class="bi bi-person me-1"></i>Name</th>
+                            <th><i class="bi bi-code me-1"></i>Code</th>
+                            <th><i class="bi bi-envelope me-1"></i>Email</th>
+                            <th><i class="bi bi-shield me-1"></i>Roles</th>
+                            <th style="width: 200px"><i class="bi bi-gear me-1"></i>Manage Roles</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (EmployeeDto user in FilteredUsers)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@user.FullName</td>
+                                <td>@user.Abbreviation</td>
+                                <td><small class="text-muted">@user.Email</small></td>
+                                <td>
+                                    @foreach (string role in user.Roles)
+                                    {
+                                        string badgeClass = role switch
+                                        {
+                                            "Admin" => "bg-danger",
+                                            "Supervisor" => "bg-primary",
+                                            "Manager" => "bg-info",
+                                            _ => "bg-secondary"
+                                        };
+                                        <span class="badge @badgeClass me-1">
+                                            @role
+                                            <button type="button" class="btn-close btn-close-white ms-1"
+                                                    style="font-size: 0.5rem;"
+                                                    @onclick="() => RemoveRoleAsync(user.UserId, role)"
+                                                    title="Remove @role"></button>
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="input-group input-group-sm">
+                                        <select class="form-select form-select-sm" id="@($"role-{user.UserId}")">
+                                            <option value="">Add role...</option>
+                                            @foreach (string role in AvailableRoles.Where(r => !user.Roles.Contains(r)))
+                                            {
+                                                <option value="@role">@role</option>
+                                            }
+                                        </select>
+                                        <button class="btn btn-outline-success btn-sm"
+                                                @onclick="async () =>
+                                                {
+                                                    string? selectedRole = await GetSelectedRoleAsync(user.UserId);
+                                                    if (!string.IsNullOrEmpty(selectedRole))
+                                                        await AssignRoleAsync(user.UserId, selectedRole);
+                                                }">
+                                            <i class="bi bi-plus-lg"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-2 text-muted small">
+                <i class="bi bi-info-circle me-1"></i>Showing @FilteredUsers.Count of @AllUsers.Count users
+            </div>
+        }
     </div>
 </div>

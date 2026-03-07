@@ -180,6 +180,22 @@ public class UserRepository : IUserRepository
         return await _userManager.GetRolesAsync(user);
     }
 
+    public async Task<IdentityResult> RemoveFromRoleAsync(ApplicationUser user, string role, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        if (string.IsNullOrWhiteSpace(role))
+            throw new ArgumentException("Role cannot be null or empty.", nameof(role));
+
+        IdentityResult result = await _userManager.RemoveFromRoleAsync(user, role);
+
+        if (result.Succeeded)
+            _logger.LogInformation("User {User} removed from role {Role}.", user.UserName, role);
+        else
+            _logger.LogError("Failed to remove user {User} from role {Role}: {Errors}", user.UserName, role, string.Join(", ", result.Errors.Select(e => e.Description)));
+
+        return result;
+    }
+
     public async Task<IdentityResult> AddAsync(ApplicationUser user, string? password, string? role,
         CancellationToken cancellationToken)
     {
