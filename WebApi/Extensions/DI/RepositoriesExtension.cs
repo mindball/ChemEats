@@ -26,7 +26,12 @@ public static class RepositoriesExtension
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IMealOrderRepository, MealOrderRepository>();
         services.AddScoped<IMealRepository, MealRepository>();
-        services.AddScoped<ISettingsRepository, InMemorySettingsRepository>();
+        services.AddSingleton<ISettingsRepository>(sp =>
+        {
+            IWebHostEnvironment env = sp.GetRequiredService<IWebHostEnvironment>();
+            string filePath = Path.Combine(env.ContentRootPath, "App_Data", "company-settings.json");
+            return new JsonFileSettingsRepository(filePath);
+        });
         return services;
     }
 }

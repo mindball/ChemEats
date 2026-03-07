@@ -108,7 +108,7 @@ public static class MenuEndpoints
     }
 
     private static async Task<IResult> ParseMenuFileAsync(
-        IFormFile file,
+        IFormFile? file,
         IMenuFileParser parser,
         ILogger<Program> logger,
         CancellationToken cancellationToken)
