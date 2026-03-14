@@ -6,6 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
 		<BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>
+		<UserSecretsId>2abf1358-a0af-414a-ae3d-bb490103c59c</UserSecretsId>
 	</PropertyGroup>
 
 	<ItemGroup>
