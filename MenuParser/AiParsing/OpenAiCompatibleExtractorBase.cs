@@ -18,6 +18,9 @@ public abstract class OpenAiCompatibleExtractorBase : IAiMealExtractor
 
     protected abstract string BaseUrl { get; }
     protected abstract string ProviderName { get; }
+    protected virtual bool RequiresApiKey => true;
+    protected virtual bool SupportsResponseFormat => true;
+    protected virtual bool UseSeparateSystemMessage => false;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -42,17 +45,19 @@ public abstract class OpenAiCompatibleExtractorBase : IAiMealExtractor
         string textContent,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(_apiKey))
+        if (RequiresApiKey && string.IsNullOrWhiteSpace(_apiKey))
             throw new InvalidOperationException(
                 $"{ProviderName} API key is not configured.");
 
-        string prompt = BuildPrompt(textContent);
+        List<ChatMessage> messages = UseSeparateSystemMessage
+            ? BuildMessagesWithSystem(textContent)
+            : BuildMessagesWithUserOnly(textContent);
 
         ChatRequest request = new(
             Model: _model,
-            Messages: [new ChatMessage("user", prompt)],
+            Messages: messages,
             Temperature: 0.0m,
-            ResponseFormat: new ResponseFormat("json_object")
+            ResponseFormat: SupportsResponseFormat ? new ResponseFormat("json_object") : null
         );
 
         _logger.LogInformation("Sending menu text to {Provider} ({Model}, {Length} chars)",
@@ -97,8 +102,12 @@ public abstract class OpenAiCompatibleExtractorBase : IAiMealExtractor
                 ProviderName, attempt, maxAttempts);
 
             using HttpRequestMessage httpRequest = new(HttpMethod.Post, BaseUrl);
-            httpRequest.Headers.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _apiKey);
+            if (!string.IsNullOrWhiteSpace(_apiKey))
+            {
+                httpRequest.Headers.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _apiKey);
+            }
+
             httpRequest.Content = JsonContent.Create(request, options: JsonOptions);
 
             HttpResponseMessage httpResponse = await _httpClient.SendAsync(httpRequest, cancellationToken);
@@ -112,6 +121,15 @@ public abstract class OpenAiCompatibleExtractorBase : IAiMealExtractor
             string errorBody = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
             _logger.LogWarning("{Provider} API returned {StatusCode}: {Error}",
                 ProviderName, httpResponse.StatusCode, errorBody);
+
+            if (httpResponse.StatusCode == HttpStatusCode.InternalServerError)
+            {
+                _logger.LogError(
+                    "{Provider} internal error (500) - model may not support the request format. Error: {Error}",
+                    ProviderName, errorBody);
+                throw new InvalidOperationException(
+                    $"{ProviderName} internal error: {errorBody}");
+            }
 
             bool isRateLimited = httpResponse.StatusCode == HttpStatusCode.TooManyRequests;
 
@@ -173,6 +191,58 @@ public abstract class OpenAiCompatibleExtractorBase : IAiMealExtractor
         return [];
     }
 
+    private static List<ChatMessage> BuildMessagesWithUserOnly(string textContent)
+    {
+        string prompt = $$"""
+            You are a menu parser for a food ordering system. Extract all meals/dishes and their prices from the following menu content.
+
+            Rules:
+            - Extract every meal/dish with its price
+            - Return prices as decimal numbers (no currency symbols, no currency codes)
+            - If prices use comma as decimal separator, convert to dot notation
+            - Ignore headers, footers, supplier names, dates, IDs, GUIDs, or non-meal content
+            - If a line has no clear price, skip it
+            - Preserve the original meal name language (could be Bulgarian, English, etc.)
+            - Prices might be in EUR, BGN, лв, or other currencies - just extract the numeric value
+            - Files may be CSV (semicolon or comma delimited), Excel tables, or Word documents
+
+            Return a JSON object with a single key "meals" containing an array where each element has exactly two fields:
+            - "name": the meal/dish name (string, trimmed)
+            - "price": the price as a number (decimal, e.g. 5.50)
+
+            Example output: {"meals": [{"name": "Пилешка супа", "price": 3.50}, {"name": "Салата Цезар", "price": 4.20}]}
+
+            Menu content:
+            ---
+            {{textContent}}
+            ---
+            """;
+
+        return [new ChatMessage("user", prompt)];
+    }
+
+    private static List<ChatMessage> BuildMessagesWithSystem(string textContent)
+    {
+        string systemPrompt = """
+            You are a menu parser for a food ordering system.
+            Extract all meals/dishes and their prices from menu content.
+            Return ONLY valid JSON with format: {"meals": [{"name": "dish name", "price": 5.50}]}
+            Rules:
+            - Extract prices as decimal numbers without currency symbols
+            - Convert comma decimal separators to dots
+            - Ignore headers, footers, dates, or non-meal content
+            - Preserve original meal name language
+            """;
+
+        string userPrompt = $"Parse this menu and return JSON:\n\n{textContent}";
+
+        return
+        [
+            new ChatMessage("system", systemPrompt),
+            new ChatMessage("user", userPrompt)
+        ];
+    }
+
     private static string BuildPrompt(string textContent) => $$"""
         You are a menu parser for a food ordering system. Extract all meals/dishes and their prices from the following menu content.
 
@@ -202,7 +272,9 @@ public abstract class OpenAiCompatibleExtractorBase : IAiMealExtractor
         [property: JsonPropertyName("model")] string Model,
         [property: JsonPropertyName("messages")] List<ChatMessage> Messages,
         [property: JsonPropertyName("temperature")] decimal Temperature,
-        [property: JsonPropertyName("response_format")] ResponseFormat ResponseFormat
+        [property: JsonPropertyName("response_format")]
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        ResponseFormat? ResponseFormat
     );
 
     private record ChatMessage(

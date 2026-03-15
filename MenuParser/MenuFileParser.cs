@@ -2,6 +2,8 @@ using MenuParser.Abstractions;
 using MenuParser.Models;
 using MenuParser.TextExtraction;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace MenuParser;
 
@@ -12,6 +14,7 @@ public class MenuFileParser : IMenuFileParser
     private readonly ILogger<MenuFileParser> _logger;
 
     private static readonly string[] SupportedExtensions = [".csv", ".xlsx", ".docx"];
+    private static readonly Regex PriceRegex = new(@"\d+(?:[\.,]\d+)?", RegexOptions.Compiled);
 
     public MenuFileParser(
         TextExtractorFactory extractorFactory,

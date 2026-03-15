@@ -12,6 +12,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddMenuParser(this IServiceCollection services, IConfiguration configuration)
     {
+        services.Configure<OllamaOptions>(configuration.GetSection("Ollama"));
         services.Configure<GroqOptions>(configuration.GetSection("Groq"));
         services.Configure<SambaNovaOptions>(configuration.GetSection("SambaNova"));
 
@@ -20,8 +21,19 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ITextExtractor, WordTextExtractor>();
         services.AddSingleton<TextExtractorFactory>();
 
+        services.AddHttpClient("ollama", (serviceProvider, client) =>
+        {
+            OllamaOptions ollamaOptions = serviceProvider.GetRequiredService<IOptions<OllamaOptions>>().Value;
+            int timeoutSeconds = Math.Max(61, ollamaOptions.HttpTimeoutSeconds);
+            client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+        });
         services.AddHttpClient("groq", client => client.Timeout = TimeSpan.FromSeconds(60));
         services.AddHttpClient("sambanova", client => client.Timeout = TimeSpan.FromSeconds(60));
+
+        services.AddSingleton<OllamaMealExtractor>(sp => new OllamaMealExtractor(
+            sp.GetRequiredService<IHttpClientFactory>().CreateClient("ollama"),
+            sp.GetRequiredService<IOptions<OllamaOptions>>(),
+            sp.GetRequiredService<ILogger<OllamaMealExtractor>>()));
 
         services.AddSingleton<GroqMealExtractor>(sp => new GroqMealExtractor(
             sp.GetRequiredService<IHttpClientFactory>().CreateClient("groq"),

@@ -1,6 +1,7 @@
 ﻿using System.Net.Mail;
 using Domain.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 namespace WebApi.Routes.Emails;
 
@@ -8,7 +9,9 @@ public static class TestEmail
 {
     public static void EmailEndpoints(this WebApplication app)
     {
-        app.MapGet("/test-email", async (IEmailSender<ApplicationUser> emailSender, ILogger<Program> logger) =>
+        app.MapGet("/test-email", async (
+            [FromServices] IEmailSender<ApplicationUser> emailSender,
+            [FromServices] ILogger<Program> logger) =>
         {
             string testRecipient = "твоя_имейл@пример.com"; // сложи твоя имейл тук
             string subject = "SMTP Test Email";
