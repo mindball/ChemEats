@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Shared.DTOs.Employees;
 using Shared.DTOs.Suppliers;
 using WebApp.Services.Employees;
@@ -14,16 +15,19 @@ public class EditSupplierBase : ComponentBase
 
     protected UpdateSupplierDto Supplier { get; set; } = new();
     protected List<EmployeeDto> AvailableUsers { get; set; } = [];
+    protected bool CanEditSupervisorAssignment { get; private set; }
 
     [Inject] protected ISupplierDataService SupplierService { get; set; } = null!;
     [Inject] protected IEmployeeDataService EmployeeService { get; set; } = null!;
+    [Inject] protected AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
     [Parameter] public Guid SupplierId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            AvailableUsers = await EmployeeService.GetAllEmployeesAsync();
+            AuthenticationState authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            CanEditSupervisorAssignment = authenticationState.User.IsInRole("Admin");
 
             SupplierDto? existing = await SupplierService.GetSupplierDetailsAsync(SupplierId);
             if (existing != null)
@@ -42,6 +46,9 @@ public class EditSupplierBase : ComponentBase
                     SupervisorId = existing.SupervisorId,
                     Menus = existing.Menus
                 };
+
+            if (CanEditSupervisorAssignment)
+                AvailableUsers = await EmployeeService.GetAllEmployeesAsync();
         }
         catch (Exception ex)
         {

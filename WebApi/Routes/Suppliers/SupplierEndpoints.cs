@@ -17,19 +17,19 @@ public static class SupplierEndpoints
             .RequireAuthorization();
 
         group.MapGet("/", GetAllSuppliersAsync)
-            .RequireAuthorization()
+            .RequireAuthorization("SupplierManagementPolicy")
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
         group.MapGet(ApiRoutes.Suppliers.ByIdRoute, GetSupplierByIdAsync)
-            .RequireAuthorization()
+            .RequireAuthorization("SupplierManagementPolicy")
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
         group.MapPost("/", CreateSupplierAsync)
-            .RequireAuthorization()
+            .RequireAuthorization("AdminPolicy")
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
         group.MapPut(ApiRoutes.Suppliers.ByIdRoute, UpdateSupplierAsync)
-            .RequireAuthorization()
+            .RequireAuthorization("SupplierManagementPolicy")
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
         group.MapDelete(ApiRoutes.Suppliers.ByIdRoute, DeleteSupplierAsync)
-            .RequireAuthorization()
+            .RequireAuthorization("AdminPolicy")
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
     }
 

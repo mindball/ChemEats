@@ -15,10 +15,12 @@ public static class ReportEndpoints
     public static void MapReportEndpoints(this IEndpointRouteBuilder app)
     {
         RouteGroupBuilder group = app.MapGroup(ApiRoutes.Reports.Base)
-            .RequireAuthorization("AdminPolicy")
+            .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
 
-        group.MapGet(ApiRoutes.Reports.MenuReportRoute, GenerateMenuReportAsync);
+        group.MapGet(ApiRoutes.Reports.MenuReportRoute, GenerateMenuReportAsync)
+            .RequireAuthorization("SupplierManagementPolicy")
+            .AddEndpointFilter<SupplierSupervisorFilter>();
     }
 
     private static async Task<IResult> GenerateMenuReportAsync(
@@ -50,7 +52,7 @@ public static class ReportEndpoints
                     await orderRepository.GetAllOrdersByMenuAsync(menuId, cancellationToken);
 
             logger.LogInformation(
-                "Admin {UserId} generating PDF report for menu {MenuId} — {OrderCount} total orders",
+                "User {UserId} generating PDF report for menu {MenuId} — {OrderCount} total orders",
                 user.Id,
                 menuId,
                 orders.Count);

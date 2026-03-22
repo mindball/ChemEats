@@ -23,7 +23,7 @@ public static class MenuEndpoints
 
         group.MapPost("", CreateMenuAsync).AddEndpointFilter<SupplierSupervisorFilter>();
         group.MapPost(ApiRoutes.Menus.ParseFile, ParseMenuFileAsync)
-            .AddEndpointFilter<SupplierSupervisorFilter>()
+            .RequireAuthorization("SupplierManagementPolicy")
             .DisableAntiforgery();
         group.MapGet("", GetAllMenusAsync);
         group.MapGet(ApiRoutes.Menus.Active, GetActiveMenusAsync);

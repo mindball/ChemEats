@@ -120,7 +120,7 @@
                         <div class="col-md-3">
                             <div class="card bg-success bg-opacity-10">
                                 <div class="card-body text-center p-2">
-                                    <div class="fw-bold text-success fs-5">@TotalPaid.ToString("C", System.Globalization.CultureInfo.CurrentCulture)
+                                    <div class="fw-bold text-success fs-5">@FormatEuro(TotalPaid)
                                     </div>
                                     <small class="text-muted">Total Paid Amount</small>
                                 </div>
@@ -129,7 +129,7 @@
                         <div class="col-md-3">
                             <div class="card bg-danger bg-opacity-10">
                                 <div class="card-body text-center p-2">
-                                    <div class="fw-bold text-danger fs-5">@TotalUnpaid.ToString("C", System.Globalization.CultureInfo.CurrentCulture)
+                                    <div class="fw-bold text-danger fs-5">@FormatEuro(TotalUnpaid)
                                     </div>
                                     <small class="text-muted">Total Unpaid Amount</small>
                                 </div>
@@ -220,18 +220,18 @@
                                         <td>@item.SupplierName</td>
                                         <td><small>@FormatBulgarianDate(item.MenuDate)</small></td>
                                         <td><small>@FormatBulgarianDate(item.OrderedAt)</small></td>
-                                        <td class="text-end">@item.Price.ToString("F2") лв.</td>
+                                        <td class="text-end">@FormatEuro(item.Price)</td>
                                         <td class="text-end">
                                             @if (hasPortion)
                                             {
-                                                <span class="text-success fw-bold">-@estimatedPortion.ToString("F2") лв.</span>
+                                                <span class="text-success fw-bold">-@FormatEuro(estimatedPortion)</span>
                                             }
                                             else
                                             {
                                                 <span class="text-muted">—</span>
                                             }
                                         </td>
-                                        <td class="text-end fw-bold">@estimatedNet.ToString("F2") лв.</td>
+                                        <td class="text-end fw-bold">@FormatEuro(estimatedNet)</td>
                                         <td class="text-center">
                                             @if (isPaid)
                                             {
@@ -263,14 +263,14 @@
                                 <span class="badge bg-primary rounded-pill ms-1">@SelectedOrderIds.Count</span>
                                 <span class="mx-2">|</span>
                                 <span class="fw-bold">Subtotal:</span>
-                                <span class="fw-bold ms-1">@SelectedTotal.ToString("F2") лв.</span>
+                                <span class="fw-bold ms-1">@FormatEuro(SelectedTotal)</span>
                                 @if (EstimatedPortionDeduction > 0)
                                 {
-                                    <span class="mx-1 text-success">- @EstimatedPortionDeduction.ToString("F2") лв. portion</span>
+                                    <span class="mx-1 text-success">- @FormatEuro(EstimatedPortionDeduction) portion</span>
                                 }
                                 <span class="mx-2">|</span>
                                 <span class="fw-bold">Net total:</span>
-                                <span class="fw-bold text-primary fs-5 ms-1">@EstimatedNetTotal.ToString("F2") лв.</span>
+                                <span class="fw-bold text-primary fs-5 ms-1">@FormatEuro(EstimatedNetTotal)</span>
                             </div>
                             <button class="btn btn-success px-4" 
                                     @onclick="MarkSelectedAsPaidAsync"
@@ -290,7 +290,7 @@
                         @if (PortionAmount > 0)
                         {
                             <div class="mt-2 small text-muted">
-                                <i class="bi bi-info-circle me-1"></i>Company portion: @PortionAmount.ToString("F2") лв./day (applied once per day at payment)
+                                <i class="bi bi-info-circle me-1"></i>Company portion: @FormatEuro(PortionAmount)/day (applied once per day at payment)
                             </div>
                         }
                     </div>

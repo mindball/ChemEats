@@ -1,5 +1,5 @@
 @page "/edit-supplier/{SupplierId:guid}"
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Supervisor,Admin")]
 @inherits EditSupplierBase
 
 <AuthorizeView>
@@ -38,6 +38,7 @@
                     <div class="card-body">
                         <SupplierForm Supplier="@Supplier"
                                       AvailableUsers="@AvailableUsers"
+                                      CanEditSupervisorAssignment="@CanEditSupervisorAssignment"
                                       OnValidSubmit="@UpdateSupplierAsync"
                                       IsSubmitting="@IsSubmitting"
                                       SuccessMessage="@SuccessMessage"

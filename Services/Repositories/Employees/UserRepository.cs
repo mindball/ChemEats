@@ -151,6 +151,10 @@ public class UserRepository : IUserRepository
         if (string.IsNullOrWhiteSpace(role))
             throw new ArgumentException("Role cannot be null or empty.", nameof(role));
 
+        cancellationToken.ThrowIfCancellationRequested();
+
+        ApplicationUser roleUser = await ResolveManagedUserAsync(user, cancellationToken);
+
         if (!await _roleManager.RoleExistsAsync(role))
         {
             var result = await _roleManager.CreateAsync(new IdentityRole(role));
@@ -162,11 +166,11 @@ public class UserRepository : IUserRepository
             }
         }
 
-        var addResult = await _userManager.AddToRoleAsync(user, role);
+        var addResult = await _userManager.AddToRoleAsync(roleUser, role);
         if (addResult.Succeeded)
-            _logger.LogInformation("User {User} added to role {Role}.", user.UserName, role);
+            _logger.LogInformation("User {User} added to role {Role}.", roleUser.UserName, role);
         else
-            _logger.LogError("Failed to add user {User} to role {Role}: {Errors}", user.UserName, role, string.Join(", ", addResult.Errors.Select(e => e.Description)));
+            _logger.LogError("Failed to add user {User} to role {Role}: {Errors}", roleUser.UserName, role, string.Join(", ", addResult.Errors.Select(e => e.Description)));
 
         return addResult;
     }
@@ -195,7 +199,8 @@ public class UserRepository : IUserRepository
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        IdentityResult result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        ApplicationUser passwordUser = await ResolveManagedUserAsync(user, cancellationToken);
+        IdentityResult result = await _userManager.ChangePasswordAsync(passwordUser, currentPassword, newPassword);
 
         if (result.Succeeded)
             _logger.LogInformation("Password changed for user {UserName} ({UserId})", user.UserName, user.Id);
@@ -220,8 +225,9 @@ public class UserRepository : IUserRepository
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        string resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
-        IdentityResult result = await _userManager.ResetPasswordAsync(user, resetToken, newPassword);
+        ApplicationUser passwordUser = await ResolveManagedUserAsync(user, cancellationToken);
+        string resetToken = await _userManager.GeneratePasswordResetTokenAsync(passwordUser);
+        IdentityResult result = await _userManager.ResetPasswordAsync(passwordUser, resetToken, newPassword);
 
         if (result.Succeeded)
             _logger.LogInformation("Password reset for user {UserName} ({UserId})", user.UserName, user.Id);
@@ -234,18 +240,42 @@ public class UserRepository : IUserRepository
         return result;
     }
 
+    private async Task<ApplicationUser> ResolveManagedUserAsync(
+        ApplicationUser user,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        ApplicationUser? trackedUser = _dbContext.Set<ApplicationUser>()
+            .Local
+            .FirstOrDefault(existingUser => existingUser.Id == user.Id);
+
+        if (trackedUser is not null)
+            return trackedUser;
+
+        ApplicationUser? managedUser = await _userManager.FindByIdAsync(user.Id);
+        if (managedUser is not null)
+            return managedUser;
+
+        return user;
+    }
+
     public async Task<IdentityResult> RemoveFromRoleAsync(ApplicationUser user, string role, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(user);
         if (string.IsNullOrWhiteSpace(role))
             throw new ArgumentException("Role cannot be null or empty.", nameof(role));
 
-        IdentityResult result = await _userManager.RemoveFromRoleAsync(user, role);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        ApplicationUser roleUser = await ResolveManagedUserAsync(user, cancellationToken);
+
+        IdentityResult result = await _userManager.RemoveFromRoleAsync(roleUser, role);
 
         if (result.Succeeded)
-            _logger.LogInformation("User {User} removed from role {Role}.", user.UserName, role);
+            _logger.LogInformation("User {User} removed from role {Role}.", roleUser.UserName, role);
         else
-            _logger.LogError("Failed to remove user {User} from role {Role}: {Errors}", user.UserName, role, string.Join(", ", result.Errors.Select(e => e.Description)));
+            _logger.LogError("Failed to remove user {User} from role {Role}: {Errors}", roleUser.UserName, role, string.Join(", ", result.Errors.Select(e => e.Description)));
 
         return result;
     }

@@ -243,7 +243,7 @@ public class AdminPaymentsBase : ComponentBase
                 return;
             }
 
-            SuccessMessage = $"Successfully marked {result.PaidCount} orders as paid. Total: {result.TotalPaid.ToString("C", CultureInfo.CurrentCulture)}";
+            SuccessMessage = $"Successfully marked {result.PaidCount} orders as paid. Total: {FormatEuro(result.TotalPaid)}";
             SelectedOrderIds.Clear();
 
             // Refresh the list
@@ -306,5 +306,27 @@ public class AdminPaymentsBase : ComponentBase
         string dayName = date.ToString("dddd", bgCulture);
         string capitalizedDay = char.ToUpper(dayName[0], bgCulture) + dayName[1..];
         return $"{capitalizedDay} {date:dd.MM.yyyy'г.'}";
+    }
+
+    protected static string FormatEuro(decimal amount)
+    {
+        NumberFormatInfo numberFormat = (NumberFormatInfo)CultureInfo.CurrentCulture.NumberFormat.Clone();
+
+        if (ShouldForceEuroForBulgarianLev())
+            numberFormat.CurrencySymbol = "€";
+
+        return amount.ToString("C", numberFormat);
+    }
+
+    private static bool ShouldForceEuroForBulgarianLev()
+    {
+        string currencySymbol = CultureInfo.CurrentCulture.NumberFormat.CurrencySymbol;
+        bool usesLevSymbol = currencySymbol.Contains("лв", StringComparison.OrdinalIgnoreCase);
+        bool usesLevIsoCode = string.Equals(
+            RegionInfo.CurrentRegion.ISOCurrencySymbol,
+            "BGN",
+            StringComparison.OrdinalIgnoreCase);
+
+        return usesLevSymbol || usesLevIsoCode;
     }
 }

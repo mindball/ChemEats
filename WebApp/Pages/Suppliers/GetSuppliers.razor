@@ -1,9 +1,9 @@
 ﻿@page "/get-suppliers"
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Manager,Admin")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Supervisor,Admin")]
 @inherits GetSuppliersBase
 
 <AuthorizeView>
-    <Authorized>
+    <Authorized Context="authContext">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3 class="mb-0" style="color: #003d61;"><i class="bi bi-building me-2"></i>Suppliers</h3>
@@ -71,11 +71,15 @@
                                                             title="Edit supplier">
                                                         <i class="bi bi-pencil-fill"></i>
                                                     </button>
-                                                    <button class="btn btn-outline-danger"
-                                                            @onclick="() => DeleteSupplierAsync(supplier)"
-                                                            title="Delete supplier">
-                                                        <i class="bi bi-trash-fill"></i>
-                                                    </button>
+                                                    <AuthorizeView Roles="Admin">
+                                                        <Authorized Context="adminContext">
+                                                            <button class="btn btn-outline-danger"
+                                                                    @onclick="() => DeleteSupplierAsync(supplier)"
+                                                                    title="Delete supplier">
+                                                                <i class="bi bi-trash-fill"></i>
+                                                            </button>
+                                                        </Authorized>
+                                                    </AuthorizeView>
                                                 </div>
                                             </td>
                                         </tr>
