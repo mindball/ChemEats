@@ -1,7 +1,9 @@
 using Moq;
+using Microsoft.AspNetCore.Components.Authorization;
 using Shared.Common.Enums;
 using Shared.DTOs.Employees;
 using Shared.DTOs.Suppliers;
+using System.Security.Claims;
 using WebApp.Pages.Suppliers;
 using WebApp.Services.Employees;
 using WebApp.Services.Suppliers;
@@ -99,7 +101,10 @@ public class EditSupplierBaseTests
     private static EditSupplierBaseTestHarness CreateHarness(ISupplierDataService supplierService, IEmployeeDataService employeeService, Guid supplierId)
     {
         EditSupplierBaseTestHarness harness = new();
-        harness.SetDependencies(supplierService, employeeService);
+        harness.SetDependencies(
+            supplierService,
+            employeeService,
+            new TestAuthenticationStateProvider(isAdmin: true));
         harness.SupplierId = supplierId;
 
         return harness;
@@ -117,10 +122,39 @@ public class EditSupplierBaseTests
 
         public Task UpdateSupplierAsyncPublic() => UpdateSupplierAsync();
 
-        public void SetDependencies(ISupplierDataService supplierService, IEmployeeDataService employeeService)
+        public void SetDependencies(
+            ISupplierDataService supplierService,
+            IEmployeeDataService employeeService,
+            AuthenticationStateProvider authenticationStateProvider)
         {
             SupplierService = supplierService;
             EmployeeService = employeeService;
+            AuthenticationStateProvider = authenticationStateProvider;
+        }
+    }
+
+    private sealed class TestAuthenticationStateProvider : AuthenticationStateProvider
+    {
+        private readonly AuthenticationState _authenticationState;
+
+        public TestAuthenticationStateProvider(bool isAdmin)
+        {
+            List<Claim> claims = [
+                new(ClaimTypes.NameIdentifier, "test-user"),
+                new(ClaimTypes.Name, "test-user")
+            ];
+
+            if (isAdmin)
+                claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+
+            ClaimsIdentity identity = new(claims, "TestAuthType");
+            ClaimsPrincipal principal = new(identity);
+            _authenticationState = new AuthenticationState(principal);
+        }
+
+        public override Task<AuthenticationState> GetAuthenticationStateAsync()
+        {
+            return Task.FromResult(_authenticationState);
         }
     }
 }
