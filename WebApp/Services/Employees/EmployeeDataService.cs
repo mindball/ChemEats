@@ -32,4 +32,20 @@ public class EmployeeDataService : IEmployeeDataService
             ApiRoutes.Employees.RoleAction(userId, roleName));
         return response.IsSuccessStatusCode;
     }
+
+    public async Task<bool> ChangeMyPasswordAsync(ChangePasswordRequestDto request)
+    {
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync(
+            ApiRoutes.Employees.ChangeMyPassword(),
+            request);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> ResetPasswordAsync(string userId)
+    {
+        HttpResponseMessage response = await _httpClient.PostAsync(
+            ApiRoutes.Employees.ResetPassword(userId),
+            null);
+        return response.IsSuccessStatusCode;
+    }
 }

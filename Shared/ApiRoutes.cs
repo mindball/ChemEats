@@ -92,13 +92,21 @@ public static class ApiRoutes
         public const string SyncEmployees = "api/sync-employees";
         public const string Base = "api/employees";
         public const string Login = "api/login";
+        public const string MyPassword = "me/password";
 
         // Route templates (used by WebApi endpoint mapping)
         public const string RolesRoute = "{userId}/roles/{roleName}";
+        public const string ResetPasswordRoute = "{userId}/password/reset";
 
         // URL builders (used by WebApp HTTP client)
         public static string RoleAction(string userId, string roleName) =>
             $"{Base}/{Uri.EscapeDataString(userId)}/roles/{Uri.EscapeDataString(roleName)}";
+
+        public static string ChangeMyPassword() =>
+            $"{Base}/{MyPassword}";
+
+        public static string ResetPassword(string userId) =>
+            $"{Base}/{Uri.EscapeDataString(userId)}/password/reset";
     }
 
     public static class Reports

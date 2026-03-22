@@ -3,6 +3,7 @@ using Domain.Repositories.Employees;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Shared;
+using Shared.DTOs.Employees;
 using WebApi.Infrastructure.Employees;
 using WebApi.Infrastructure.Filters;
 using WebApi.Infrastructure.Identity;
@@ -29,6 +30,16 @@ public static class EmployeeEndPoints
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
 
         app.MapDelete(ApiRoutes.Employees.Base + "/" + ApiRoutes.Employees.RolesRoute, RemoveRoleAsync)
+            .RequireAuthorization("AdminPolicy")
+            .WithTags("Employees")
+            .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
+
+        app.MapPost(ApiRoutes.Employees.Base + "/" + ApiRoutes.Employees.MyPassword, ChangeMyPasswordAsync)
+            .RequireAuthorization()
+            .WithTags("Employees")
+            .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
+
+        app.MapPost(ApiRoutes.Employees.Base + "/" + ApiRoutes.Employees.ResetPasswordRoute, ResetUserPasswordAsync)
             .RequireAuthorization("AdminPolicy")
             .WithTags("Employees")
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
@@ -170,14 +181,16 @@ public static class EmployeeEndPoints
         JwtTokenProvider jwtProvider,
         ILogger<JwtTokenProvider> logger)
     {
-        logger.LogInformation("Login attempt for user: {Email}", req.Email);
+        logger.LogInformation("Login attempt for identifier: {Identifier}", req.Email);
 
         try
         {
-            ApplicationUser? user = await userRepo.FindByEmailAsync(req.Email);
+            ApplicationUser? user = await userRepo.FindByEmailAsync(req.Email)
+                ?? await userRepo.FindByUserNameAsync(req.Email);
+
             if (user == null)
             {
-                logger.LogWarning("Login failed - User not found: {Email}", req.Email);
+                logger.LogWarning("Login failed - User not found: {Identifier}", req.Email);
                 return Results.Unauthorized();
             }
 
@@ -204,12 +217,18 @@ public static class EmployeeEndPoints
             logger.LogInformation("JWT token generated successfully for user: {UserName} ({Abbreviation})",
                 user.UserName, user.Abbreviation);
 
+            bool requiresPasswordChange = string.Equals(
+                req.Password,
+                user.Abbreviation,
+                StringComparison.OrdinalIgnoreCase);
+
             return Results.Ok(new
             {
                 AccessToken = accessToken,
                 Username = user.UserName,
                 Email = user.Email,
-                Roles = roles
+                Roles = roles,
+                RequiresPasswordChange = requiresPasswordChange
             });
         }
         catch (Exception ex)
@@ -218,5 +237,69 @@ public static class EmployeeEndPoints
                 req.Email, ex.Message);
             throw;
         }
+    }
+
+    private static async Task<IResult> ChangeMyPasswordAsync(
+        ChangePasswordRequestDto request,
+        UserManager<ApplicationUser> userManager,
+        IUserRepository userRepository,
+        HttpContext httpContext,
+        ILogger<Program> logger,
+        CancellationToken cancellationToken)
+    {
+        ApplicationUser? user = await userManager.GetUserAsync(httpContext.User);
+        if (user is null)
+            return Results.Unauthorized();
+
+        if (request.NewPassword != request.ConfirmPassword)
+            return Results.BadRequest("Password confirmation does not match.");
+
+        if (string.Equals(request.NewPassword, user.Abbreviation, StringComparison.OrdinalIgnoreCase))
+            return Results.BadRequest("New password cannot be the same as your abbreviation.");
+
+        IdentityResult result = await userRepository.ChangePasswordAsync(
+            user,
+            request.CurrentPassword,
+            request.NewPassword,
+            cancellationToken);
+
+        if (!result.Succeeded)
+        {
+            string errors = string.Join(", ", result.Errors.Select(error => error.Description));
+            logger.LogWarning(
+                "Password change failed for user {UserId}: {Errors}",
+                user.Id,
+                errors);
+            return Results.BadRequest(errors);
+        }
+
+        logger.LogInformation("Password changed successfully for user {UserId}", user.Id);
+        return Results.Ok("Password changed successfully.");
+    }
+
+    private static async Task<IResult> ResetUserPasswordAsync(
+        string userId,
+        IUserRepository userRepository,
+        ILogger<Program> logger,
+        CancellationToken cancellationToken)
+    {
+        if (!Guid.TryParse(userId, out Guid userGuid))
+            return Results.BadRequest("Invalid user ID.");
+
+        ApplicationUser? user = await userRepository.GetByIdAsync(userGuid, cancellationToken);
+        if (user is null)
+            return Results.NotFound("User not found.");
+
+        IdentityResult result = await userRepository.ResetPasswordAsync(user, user.Abbreviation, cancellationToken);
+
+        if (!result.Succeeded)
+        {
+            string errors = string.Join(", ", result.Errors.Select(error => error.Description));
+            logger.LogWarning("Password reset failed for user {UserId}: {Errors}", user.Id, errors);
+            return Results.BadRequest(errors);
+        }
+
+        logger.LogInformation("Password reset successfully for user {UserId}", user.Id);
+        return Results.Ok("User password reset to abbreviation.");
     }
 }

@@ -187,6 +187,30 @@ public class AdminPanelBase : ComponentBase
         }
     }
 
+    protected async Task ResetUserPasswordAsync(EmployeeDto user)
+    {
+        UserManagementError = null;
+        UserManagementSuccess = null;
+
+        try
+        {
+            bool result = await EmployeeDataService.ResetPasswordAsync(user.UserId);
+            if (result)
+            {
+                UserManagementSuccess = $"Password for '{user.Abbreviation}' reset to abbreviation.";
+                await LoadUsersAsync();
+            }
+            else
+            {
+                UserManagementError = "Failed to reset password.";
+            }
+        }
+        catch (Exception ex)
+        {
+            UserManagementError = $"Error resetting password: {ex.Message}";
+        }
+    }
+
     protected async Task<string?> GetSelectedRoleAsync(string userId)
     {
         return await JsRuntime.InvokeAsync<string?>(

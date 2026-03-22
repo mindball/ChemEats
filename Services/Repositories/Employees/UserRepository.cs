@@ -180,6 +180,60 @@ public class UserRepository : IUserRepository
         return await _userManager.GetRolesAsync(user);
     }
 
+    public async Task<IdentityResult> ChangePasswordAsync(
+        ApplicationUser user,
+        string currentPassword,
+        string newPassword,
+        CancellationToken cancellationToken = default)
+    {
+        if (user is null)
+            throw new ArgumentNullException(nameof(user));
+        if (string.IsNullOrWhiteSpace(currentPassword))
+            throw new ArgumentException("Current password cannot be null or empty.", nameof(currentPassword));
+        if (string.IsNullOrWhiteSpace(newPassword))
+            throw new ArgumentException("New password cannot be null or empty.", nameof(newPassword));
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        IdentityResult result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+
+        if (result.Succeeded)
+            _logger.LogInformation("Password changed for user {UserName} ({UserId})", user.UserName, user.Id);
+        else
+            _logger.LogWarning("Failed to change password for user {UserName} ({UserId}): {Errors}",
+                user.UserName,
+                user.Id,
+                string.Join(", ", result.Errors.Select(error => error.Description)));
+
+        return result;
+    }
+
+    public async Task<IdentityResult> ResetPasswordAsync(
+        ApplicationUser user,
+        string newPassword,
+        CancellationToken cancellationToken = default)
+    {
+        if (user is null)
+            throw new ArgumentNullException(nameof(user));
+        if (string.IsNullOrWhiteSpace(newPassword))
+            throw new ArgumentException("New password cannot be null or empty.", nameof(newPassword));
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+        IdentityResult result = await _userManager.ResetPasswordAsync(user, resetToken, newPassword);
+
+        if (result.Succeeded)
+            _logger.LogInformation("Password reset for user {UserName} ({UserId})", user.UserName, user.Id);
+        else
+            _logger.LogWarning("Failed to reset password for user {UserName} ({UserId}): {Errors}",
+                user.UserName,
+                user.Id,
+                string.Join(", ", result.Errors.Select(error => error.Description)));
+
+        return result;
+    }
+
     public async Task<IdentityResult> RemoveFromRoleAsync(ApplicationUser user, string role, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(user);

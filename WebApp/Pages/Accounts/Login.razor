@@ -57,6 +57,12 @@
 
         if (formResult.Succeeded)
         {
+            if (formResult.RequiresPasswordChange)
+            {
+                navManager.NavigateTo("/account/change-password?required=true");
+                return;
+            }
+
             navManager.NavigateTo("/");
         }
         else

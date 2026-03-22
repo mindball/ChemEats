@@ -29,8 +29,8 @@ public class OllamaMealExtractor : IAiMealExtractor
         _options = options.Value;
         _logger = logger;
 
-        // ВАЖНО: Увеличаваме Timeout-а, за да дадем време на локалния модел да генерира отговора
-        _httpClient.Timeout = TimeSpan.FromMinutes(5);
+        int timeoutSeconds = Math.Max(61, _options.HttpTimeoutSeconds);
+        _httpClient.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
     }
 
     public async Task<IReadOnlyList<ParsedMeal>> ExtractMealsAsync(
@@ -47,7 +47,10 @@ public class OllamaMealExtractor : IAiMealExtractor
             false,   // Без стрийминг за по-лесна десериализация
             "json",  // Инструктираме Ollama да форматира като JSON
             false,
-            new GenerateOptions(0.1m) // Ниска температура за по-голяма точност
+            new GenerateOptions(
+                _options.Temperature,
+                _options.TopP,
+                _options.RepeatPenalty)
         );
 
         try
@@ -144,7 +147,27 @@ public class OllamaMealExtractor : IAiMealExtractor
     private static string LimitInput(string textContent, int maxInputChars)
     {
         int maxChars = Math.Max(1000, maxInputChars);
-        return textContent.Length <= maxChars ? textContent : textContent[..maxChars];
+        if (textContent.Length <= maxChars)
+            return textContent;
+
+        string[] lines = textContent
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Split('\n');
+
+        List<string> selectedLines = [];
+        int currentLength = 0;
+
+        foreach (string line in lines)
+        {
+            int nextLength = currentLength + line.Length + 1;
+            if (nextLength > maxChars)
+                break;
+
+            selectedLines.Add(line);
+            currentLength = nextLength;
+        }
+
+        return string.Join('\n', selectedLines);
     }
 
     private List<ParsedMeal> DeserializeMeals(string jsonText)
@@ -189,21 +212,38 @@ public class OllamaMealExtractor : IAiMealExtractor
     private static string BuildPrompt(string textContent)
     {
         return $$"""
-                 System: You are a specialized data extractor. Input is a Bulgarian menu. Output MUST be a valid JSON object.
-                 
-                 User: Extract all food items and their prices from the text below.
-                 
-                 Constraints:
-                 1. Output ONLY a JSON object with a "meals" key. No conversation, no markdown code blocks, no preamble.
-                 2. Names: Keep original Bulgarian names exactly as they appear.
-                 3. Prices: Extract as decimal numbers. Remove currency symbols like "lv.", "лв.", "€".
-                 4. If a line is not a meal or doesn't have a price, skip it.
-                 5. Ensure the JSON is minified and valid.
+                 System: You are a strict information extraction engine.
 
-                 Example format:
-                 {"meals":[{"name":"Шопска салата","price":8.50},{"name":"Мусака","price":12.00}]}
+                 User: Extract ALL menu items with prices from the text.
 
-                 Menu text to process:
+                 IMPORTANT RULES:
+                 - Process the text LINE BY LINE.
+                 - Each line may contain: number, name, price.
+                 - Ignore line numbers like "1", "2", etc.
+                 - Extract ONLY rows that contain BOTH name AND price.
+                 - NEVER skip valid items.
+                 - NEVER hallucinate items.
+
+                 OUTPUT RULES:
+                 - Return ONLY valid JSON.
+                 - NO markdown, NO explanations.
+                 - Use this exact schema:
+                 {"meals":[{"name":"string","price":number}]}
+                 
+                 Example Input:
+                 1. Шопска салата 8,50 euro
+                 2. Кюфте на скара 3.20 евро.
+                 
+                 Example Output:
+                 {"meals":[{"name":"Шопска салата","price":8.50},{"name":"Кюфте на скара","price":3.20}]}
+
+                 STRICT REQUIREMENTS:
+                 - price must be a number (float), no currency symbols
+                 - keep Bulgarian names EXACTLY
+                 - do not merge items
+                 - do not invent missing prices
+
+                 Menu:
                  {{textContent}}
                  """;
     }
@@ -223,7 +263,9 @@ public class OllamaMealExtractor : IAiMealExtractor
     );
 
     private sealed record GenerateOptions(
-        [property: JsonPropertyName("temperature")] decimal Temperature
+        [property: JsonPropertyName("temperature")] decimal Temperature,
+        [property: JsonPropertyName("top_p")] decimal TopP,
+        [property: JsonPropertyName("repeat_penalty")] decimal RepeatPenalty
     );
 
     private sealed record GenerateResponse(

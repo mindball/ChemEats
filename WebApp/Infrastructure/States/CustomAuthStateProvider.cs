@@ -49,6 +49,13 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
         string json = await response.Content.ReadAsStringAsync();
         JsonDocument doc = JsonDocument.Parse(json);
         string? token = doc.RootElement.GetProperty("accessToken").GetString();
+        bool requiresPasswordChange = false;
+
+        if (doc.RootElement.TryGetProperty("requiresPasswordChange", out JsonElement requiresPasswordElement)
+            && requiresPasswordElement.ValueKind == JsonValueKind.True)
+        {
+            requiresPasswordChange = true;
+        }
 
         if (string.IsNullOrWhiteSpace(token))
             return new FormResult { Succeeded = false, Errors = ["No token received"] };
@@ -64,7 +71,11 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
 
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(_currentUser)));
 
-        return new FormResult { Succeeded = true };
+        return new FormResult
+        {
+            Succeeded = true,
+            RequiresPasswordChange = requiresPasswordChange
+        };
     }
 
     public async Task LogoutAsync()
@@ -81,6 +92,7 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
     public class FormResult
     {
         public bool Succeeded { get; set; }
+        public bool RequiresPasswordChange { get; set; }
         public string[] Errors { get; set; } = Array.Empty<string>();
     }
 }
