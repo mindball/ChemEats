@@ -1,4 +1,4 @@
-﻿using Domain.Infrastructure.Exceptions;
+﻿    using Domain.Infrastructure.Exceptions;
 using MenuParser.Extensions;
 using Microsoft.AspNetCore.Diagnostics;
 using QuestPDF.Infrastructure;
@@ -8,6 +8,12 @@ using WebApi.Infrastructure.Employees;
 using WebApi.Infrastructure.Extensions;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseWindowsService(options =>
+{
+    options.ServiceName = "ChemEats WebApi";
+});
+
 QuestPDF.Settings.License = LicenseType.Community;
 
 // Logging

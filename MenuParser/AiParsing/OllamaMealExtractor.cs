@@ -82,7 +82,7 @@ public class OllamaMealExtractor : IAiMealExtractor
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during Ollama meal extraction");
-            return [];
+            throw;
         }
     }
 

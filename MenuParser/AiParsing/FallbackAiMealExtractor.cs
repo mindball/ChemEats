@@ -6,6 +6,8 @@ namespace MenuParser.AiParsing;
 
 public class FallbackAiMealExtractor : IAiMealExtractor
 {
+    private static readonly TimeSpan PrimaryTimeout = TimeSpan.FromMinutes(1);
+
     private readonly OllamaMealExtractor _primary;
     private readonly GroqMealExtractor _firstFallback;
     private readonly SambaNovaMealExtractor _secondFallback;
@@ -27,26 +29,53 @@ public class FallbackAiMealExtractor : IAiMealExtractor
         string textContent,
         CancellationToken cancellationToken = default)
     {
+        using CancellationTokenSource timeoutCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutCancellationTokenSource.CancelAfter(PrimaryTimeout);
+
         try
         {
-            return await _primary.ExtractMealsAsync(textContent, cancellationToken);
+            IReadOnlyList<ParsedMeal> primaryMeals = await _primary.ExtractMealsAsync(textContent, timeoutCancellationTokenSource.Token);
+
+            if (!cancellationToken.IsCancellationRequested && !timeoutCancellationTokenSource.IsCancellationRequested)
+            {
+                return primaryMeals;
+            }
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                throw new OperationCanceledException(cancellationToken);
+            }
+
+            _logger.LogWarning("Ollama extraction exceeded {Timeout} and fallback extraction will be used.", PrimaryTimeout);
+            return await ExtractFromFallbacksAsync(textContent, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception primaryException)
         {
             _logger.LogWarning(primaryException,
                 "Ollama extraction failed, activating Groq fallback");
 
-            try
-            {
-                return await _firstFallback.ExtractMealsAsync(textContent, cancellationToken);
-            }
-            catch (Exception firstFallbackException)
-            {
-                _logger.LogWarning(firstFallbackException,
-                    "Groq extraction failed, activating SambaNova fallback");
+            return await ExtractFromFallbacksAsync(textContent, cancellationToken);
+        }
+    }
 
-                return await _secondFallback.ExtractMealsAsync(textContent, cancellationToken);
-            }
+    private async Task<IReadOnlyList<ParsedMeal>> ExtractFromFallbacksAsync(
+        string textContent,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _firstFallback.ExtractMealsAsync(textContent, cancellationToken);
+        }
+        catch (Exception firstFallbackException)
+        {
+            _logger.LogWarning(firstFallbackException,
+                "Groq extraction failed, activating SambaNova fallback");
+
+            return await _secondFallback.ExtractMealsAsync(textContent, cancellationToken);
         }
     }
 }
