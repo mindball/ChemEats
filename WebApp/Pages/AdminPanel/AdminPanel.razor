@@ -11,7 +11,7 @@
     </div>
     <div class="card-body">
         <div class="mb-3">
-            <label class="form-label">Portion amount (BGN)</label>
+            <label class="form-label">Portion amount (EUR)</label>
             <input type="number"
                    class="form-control"
                    step="0.01"
@@ -84,9 +84,14 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <strong><i class="bi bi-people-fill me-2"></i>User Management</strong>
-        <button class="btn btn-sm btn-outline-primary" @onclick="LoadUsersAsync" disabled="@IsLoadingUsers">
-            <i class="bi bi-arrow-clockwise me-1"></i>Refresh
-        </button>
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-success" @onclick="SyncEmployeesAsync" disabled="@(IsLoadingUsers || IsSyncingEmployees)">
+                <i class="bi bi-arrow-repeat me-1"></i>Sync Employees
+            </button>
+            <button class="btn btn-sm btn-outline-primary" @onclick="LoadUsersAsync" disabled="@(IsLoadingUsers || IsSyncingEmployees)">
+                <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+            </button>
+        </div>
     </div>
     <div class="card-body">
         @if (!string.IsNullOrEmpty(UserManagementSuccess))

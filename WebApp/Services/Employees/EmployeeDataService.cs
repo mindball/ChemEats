@@ -19,6 +19,12 @@ public class EmployeeDataService : IEmployeeDataService
         return employees ?? [];
     }
 
+    public async Task<bool> SyncEmployeesAsync()
+    {
+        HttpResponseMessage response = await _httpClient.PostAsync(ApiRoutes.Employees.SyncEmployees, null);
+        return response.IsSuccessStatusCode;
+    }
+
     public async Task<bool> AssignRoleAsync(string userId, string roleName)
     {
         HttpResponseMessage response = await _httpClient.PostAsync(

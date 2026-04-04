@@ -33,6 +33,9 @@ public static class MenuReportDocument
                         column.Item().Component(new MenuInfoComponent(menu));
                         column.Item().Component(new OrdersTableComponent(orders));
                         column.Item().Component(new OrderSummaryComponent(orders));
+
+                        column.Item().PaddingTop(20).Text("Meals Summary").SemiBold().FontSize(16);
+                        column.Item().Component(new MealsSummaryTableComponent(orders));
                     });
 
                 page.Footer()

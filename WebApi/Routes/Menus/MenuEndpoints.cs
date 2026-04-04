@@ -26,7 +26,7 @@ public static class MenuEndpoints
             .RequireAuthorization("SupplierManagementPolicy")
             .DisableAntiforgery();
         group.MapGet("", GetAllMenusAsync);
-        group.MapGet(ApiRoutes.Menus.Active, GetActiveMenusAsync);
+        group.MapGet(ApiRoutes.Menus.Active, GetActiveMenusAsync).AllowAnonymous();
         group.MapGet(ApiRoutes.Menus.ByIdRoute, GetMenuByIdAsync);
         group.MapGet(ApiRoutes.Menus.BySupplierRoute, GetMenusBySupplierAsync);
         group.MapPut(ApiRoutes.Menus.UpdateDateRoute, UpdateMenuDateAsync).AddEndpointFilter<SupplierSupervisorFilter>();

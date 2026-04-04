@@ -1,4 +1,6 @@
-﻿namespace WebApp.Services.Menus;
+﻿using Shared;
+
+namespace WebApp.Services.Menus;
 
 public sealed class MenuReportService : IMenuReportService
 {
@@ -14,7 +16,7 @@ public sealed class MenuReportService : IMenuReportService
         CancellationToken cancellationToken = default)
     {
         return await _httpClient.GetByteArrayAsync(
-            $"api/reports/menu/{menuId}",
+            ApiRoutes.Reports.MenuReport(menuId),
             cancellationToken);
     }
 }

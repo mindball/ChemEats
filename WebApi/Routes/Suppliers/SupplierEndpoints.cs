@@ -17,7 +17,6 @@ public static class SupplierEndpoints
             .RequireAuthorization();
 
         group.MapGet("/", GetAllSuppliersAsync)
-            .RequireAuthorization("SupplierManagementPolicy")
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
         group.MapGet(ApiRoutes.Suppliers.ByIdRoute, GetSupplierByIdAsync)
             .RequireAuthorization("SupplierManagementPolicy")

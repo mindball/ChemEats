@@ -75,6 +75,28 @@ public class EmployeeSyncService : IEmployeeSyncService
                 employees.Count,
                 fetchSw.ElapsedMilliseconds);
 
+            HashSet<string> externalEmployeeCodes = employees
+                .Select(employee => employee.Code)
+                .Where(code => !string.IsNullOrWhiteSpace(code))
+                .Select(code => code.Trim().ToUpperInvariant())
+                .ToHashSet();
+
+            IReadOnlyCollection<ApplicationUser> cachedEmployees = _employeeCache.GetAll() ?? [];
+            int removedFromCache = 0;
+
+            foreach (ApplicationUser cachedEmployee in cachedEmployees)
+            {
+                if (string.IsNullOrWhiteSpace(cachedEmployee.Abbreviation))
+                    continue;
+
+                string cachedCode = cachedEmployee.Abbreviation.Trim().ToUpperInvariant();
+                if (externalEmployeeCodes.Contains(cachedCode))
+                    continue;
+
+                await _employeeCache.RemoveByAbbreviationAsync(cachedEmployee.Abbreviation);
+                removedFromCache++;
+            }
+
             int created = 0;
             int skipped = 0;
             int failed = 0;
@@ -155,10 +177,11 @@ public class EmployeeSyncService : IEmployeeSyncService
             totalSw.Stop();
 
             _logger.LogInformation(
-                "Employee synchronization completed in {ElapsedMs} ms - Created: {Created}, Skipped: {Skipped}, Failed: {Failed}, Total: {Total}",
+                "Employee synchronization completed in {ElapsedMs} ms - Created: {Created}, Skipped: {Skipped}, RemovedFromCache: {RemovedFromCache}, Failed: {Failed}, Total: {Total}",
                 totalSw.ElapsedMilliseconds,
                 created,
                 skipped,
+                removedFromCache,
                 failed,
                 employees.Count);
         }

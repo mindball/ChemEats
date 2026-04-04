@@ -32,6 +32,7 @@ public class AdminPanelBase : ComponentBase
     protected string? UserManagementError { get; set; }
     protected string? UserManagementSuccess { get; set; }
     protected bool IsLoadingUsers { get; private set; }
+    protected bool IsSyncingEmployees { get; private set; }
 
     protected List<EmployeeDto> FilteredUsers
     {
@@ -136,6 +137,35 @@ public class AdminPanelBase : ComponentBase
         finally
         {
             IsLoadingUsers = false;
+        }
+    }
+
+    protected async Task SyncEmployeesAsync()
+    {
+        UserManagementError = null;
+        UserManagementSuccess = null;
+
+        try
+        {
+            IsSyncingEmployees = true;
+            bool result = await EmployeeDataService.SyncEmployeesAsync();
+
+            if (!result)
+            {
+                UserManagementError = "Failed to synchronize employees.";
+                return;
+            }
+
+            UserManagementSuccess = "Employees synchronized successfully.";
+            await LoadUsersAsync();
+        }
+        catch (Exception ex)
+        {
+            UserManagementError = $"Error synchronizing employees: {ex.Message}";
+        }
+        finally
+        {
+            IsSyncingEmployees = false;
         }
     }
 

@@ -163,4 +163,52 @@ public class EmployeeCacheService : IEmployeeCacheService
                 ex.Message);
         }
     }
+
+    public async Task RemoveByAbbreviationAsync(string abbreviation)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(abbreviation))
+            {
+                _logger.LogWarning("Cannot remove employee from cache with empty abbreviation");
+                return;
+            }
+
+            if (!_cache.TryGetValue(CacheKey, out List<ApplicationUser>? users) || users is null)
+            {
+                _logger.LogWarning(
+                    "Cache miss when removing employee {Abbreviation}. Nothing to remove.",
+                    abbreviation);
+                return;
+            }
+
+            ApplicationUser? user = users.FirstOrDefault(cachedUser =>
+                cachedUser.Abbreviation.Equals(abbreviation, StringComparison.OrdinalIgnoreCase));
+
+            if (user is null)
+            {
+                _logger.LogDebug(
+                    "Employee {Abbreviation} not found in cache during remove operation",
+                    abbreviation);
+                return;
+            }
+
+            users.Remove(user);
+            _cache.Set(CacheKey, users, TimeSpan.FromHours(12));
+
+            _logger.LogInformation(
+                "Employee {Abbreviation} removed from cache. Total employees in cache: {TotalCount}",
+                abbreviation,
+                users.Count);
+
+            await Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Error removing employee {Abbreviation} from cache: {ErrorMessage}",
+                abbreviation,
+                ex.Message);
+        }
+    }
 }

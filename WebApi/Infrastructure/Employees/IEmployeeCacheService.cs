@@ -9,4 +9,5 @@ public interface IEmployeeCacheService
     Task<ApplicationUser?> GetByAbbreviationAsync(string abbreviation);
     IReadOnlyCollection<ApplicationUser> GetAll();
     Task AddOrUpdateAsync(ApplicationUser employee);
+    Task RemoveByAbbreviationAsync(string abbreviation);
 }

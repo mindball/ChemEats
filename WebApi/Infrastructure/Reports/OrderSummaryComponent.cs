@@ -18,7 +18,6 @@ public sealed class OrderSummaryComponent : IComponent
     public void Compose(IContainer container)
     {
         decimal totalAmount = _orders.Sum(o => o.Price);
-        CultureInfo bgCulture = CultureInfo.GetCultureInfo("bg-BG");
 
         container.Background(Colors.Blue.Lighten4)
             .Padding(10)
@@ -36,7 +35,7 @@ public sealed class OrderSummaryComponent : IComponent
                 {
                     row.RelativeItem().Text("Total Amount:").Bold().FontSize(14);
                     row.RelativeItem().AlignRight()
-                        .Text(totalAmount.ToString("C", bgCulture))
+                        .Text(totalAmount.ToString("0.00 €"))
                         .Bold()
                         .FontSize(14)
                         .FontColor(Colors.Red.Darken1);

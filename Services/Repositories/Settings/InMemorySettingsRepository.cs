@@ -4,7 +4,7 @@ namespace Services.Repositories.Settings;
 
 public sealed class InMemorySettingsRepository : ISettingsRepository
 {
-    private static decimal _portionAmount = 3.00m; 
+    private static decimal _portionAmount = 2.00m; 
 
     public Task<decimal> GetCompanyPortionAsync(CancellationToken cancellationToken = default)
         => Task.FromResult(_portionAmount);

@@ -94,8 +94,14 @@ public class ReportEndpointsTests
             .ReturnsAsync(menu);
 
         Mock<IMealOrderRepository> orderRepositoryMock = new();
+        List<UserOrderItem> orders = [
+            new UserOrderItem(
+                Guid.NewGuid(), "user1", "John Doe", meal.Id, meal.Name,
+                supplierId, "Test Supplier", DateTime.UtcNow, menu.Date,
+                meal.Price.Amount, "Pending", false, false, 0, meal.Price.Amount)
+        ];
         orderRepositoryMock.Setup(repository => repository.GetAllOrdersByMenuAsync(menu.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<UserOrderItem>());
+            .ReturnsAsync(orders);
 
         Mock<UserManager<ApplicationUser>> userManagerMock = CreateUserManagerMock();
         userManagerMock.Setup(manager => manager.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
