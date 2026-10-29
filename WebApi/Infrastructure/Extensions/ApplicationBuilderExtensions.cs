@@ -1,8 +1,11 @@
+using WebApi.Infrastructure.Middleware;
 using WebApi.Routes.Emails;
 using WebApi.Routes.Employees;
 using WebApi.Routes.Menus;
+using WebApi.Routes.Notifications;
 using WebApi.Routes.Orders;
 using WebApi.Routes.Reports;
+using WebApi.Routes.Robots;
 using WebApi.Routes.Settings;
 using WebApi.Routes.Suppliers;
 
@@ -10,6 +13,12 @@ namespace WebApi.Infrastructure.Extensions;
 
 public static class ApplicationBuilderExtensions
 {
+    public static WebApplication UseAppNoIndex(this WebApplication app)
+    {
+        app.UseMiddleware<NoIndexHeaderMiddleware>();
+        return app;
+    }
+
     public static WebApplication UseAppSwagger(this WebApplication app, IHostEnvironment env)
     {
         app.UseSwagger();
@@ -63,6 +72,8 @@ public static class ApplicationBuilderExtensions
         app.MapSettingsEndpoints();
         app.MapAdminMenuEndpoints();
         app.MapReportEndpoints();
+        app.MapNotificationEndpoints();
+        app.MapRobotsEndpoints();
         return app;
     }
 

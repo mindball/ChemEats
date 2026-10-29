@@ -80,9 +80,19 @@ public static class JwtClaimParser
                 nameKey == "email" || nameKey == "role" || nameKey == "roles")
                 continue;
 
+            // JwtTokenProvider writes claims under their full URI types (e.g. ClaimTypes.Role);
+            // a claim with several values (multiple roles) is serialized as a JSON array.
             JsonElement el = property.Value;
             if (el.ValueKind == JsonValueKind.String)
+            {
                 yield return new Claim(nameKey, el.GetString() ?? string.Empty);
+            }
+            else if (el.ValueKind == JsonValueKind.Array)
+            {
+                foreach (JsonElement item in el.EnumerateArray())
+                    if (item.ValueKind == JsonValueKind.String)
+                        yield return new Claim(nameKey, item.GetString() ?? string.Empty);
+            }
         }
     }
 }

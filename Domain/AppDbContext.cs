@@ -11,6 +11,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Meal> Meals => Set<Meal>();
     public DbSet<MealOrder> MealOrders => Set<MealOrder>();
     public DbSet<Menu> Menus => Set<Menu>();
+    public DbSet<MenuReminderLog> MenuReminderLogs => Set<MenuReminderLog>();
     public DbSet<Supplier> Suppliers => Set<Supplier>();
 
     public AppDbContext(DbContextOptions<AppDbContext> options)

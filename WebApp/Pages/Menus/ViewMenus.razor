@@ -130,7 +130,6 @@ else
                     {
                         bool isExpired = menu.ActiveUntil < DateTime.Now;
                         bool isActive = !menu.IsDeleted && !isExpired;
-                        bool isReportLoading = ReportLoadingMenuId == menu.Id;
 
                         <tr class="@(menu.IsDeleted ? "table-danger" : isExpired ? "table-warning" : "")">
                             <td class="fw-semibold ps-3 @(menu.IsDeleted ? "text-decoration-line-through" : "")">
@@ -216,18 +215,11 @@ else
                                             <i class="bi bi-trash-fill me-1"></i>Delete
                                         </button>
 
-                                        <button class="btn btn-outline-info"
-                                                disabled="@(menu.IsDeleted || isReportLoading)"
-                                                @onclick="() => DownloadReportAsync(menu.Id)"
-                                                title="Download my orders report">
-                                            @if (isReportLoading)
-                                            {
-                                                <span class="spinner-border spinner-border-sm" role="status"></span>
-                                            }
-                                            else
-                                            {
-                                                <i class="bi bi-file-earmark-pdf"></i>
-                                            }
+                                        <button class="btn btn-outline-info report-button"
+                                                disabled="@menu.IsDeleted"
+                                                @onclick="() => OpenReport(menu.Id)"
+                                                title="Open printable orders report">
+                                            <i class="bi bi-printer"></i>
                                         </button>
                                     </div>
                                 </td>

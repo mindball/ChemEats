@@ -3,10 +3,11 @@ using Domain.Infrastructure.Identity;
 using Domain.Models.Orders;
 using Domain.Repositories.MealOrders;
 using Domain.Repositories.Menus;
+using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Shared;
+using Shared.DTOs.Reports;
 using WebApi.Infrastructure.Filters;
-using WebApi.Infrastructure.Reports;
 
 namespace WebApi.Routes.Reports;
 
@@ -18,16 +19,17 @@ public static class ReportEndpoints
             .RequireAuthorization()
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
 
-        group.MapGet(ApiRoutes.Reports.MenuReportRoute, GenerateMenuReportAsync)
+        group.MapGet(ApiRoutes.Reports.MenuReportDataRoute, GetMenuReportDataAsync)
             .RequireAuthorization("SupplierManagementPolicy")
             .AddEndpointFilter<SupplierSupervisorFilter>();
     }
 
-    private static async Task<IResult> GenerateMenuReportAsync(
+    private static async Task<IResult> GetMenuReportDataAsync(
         Guid menuId,
         IMenuRepository menuRepository,
         IMealOrderRepository orderRepository,
         UserManager<ApplicationUser> userManager,
+        IMapper mapper,
         HttpContext httpContext,
         ILogger<Program> logger,
         CancellationToken cancellationToken)
@@ -52,21 +54,24 @@ public static class ReportEndpoints
                     await orderRepository.GetAllOrdersByMenuAsync(menuId, cancellationToken);
 
             logger.LogInformation(
-                "User {UserId} generating PDF report for menu {MenuId} — {OrderCount} total orders",
+                "User {UserId} requested report data for menu {MenuId} — {OrderCount} total orders",
                 user.Id,
                 menuId,
                 orders.Count);
 
-            byte[] pdfBytes = MenuReportDocument.Generate(menu, orders);
+            MenuReportDto report = new(
+                menu.Id,
+                menu.Supplier?.Name ?? string.Empty,
+                menu.Date,
+                menu.ActiveUntil,
+                orders.Select(mapper.Map<MenuReportOrderDto>).ToList());
 
-            string fileName = $"menu-report-{menuId:N}-{DateTime.Now:yyyyMMdd}.pdf";
-
-            return Results.File(pdfBytes, "application/pdf", fileName);
+            return Results.Ok(report);
         }
         catch (Exception ex)
         {
             logger.LogError(ex,
-                "Error generating report for menu {MenuId}: {ErrorMessage}",
+                "Error building report data for menu {MenuId}: {ErrorMessage}",
                 menuId,
                 ex.Message);
             throw;

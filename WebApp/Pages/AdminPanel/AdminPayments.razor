@@ -7,6 +7,14 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="mb-0" style="color: #003d61;"><i class="bi bi-cash-coin me-2"></i>Payments</h3>
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="admin/payments"><i class="bi bi-person me-1"></i>By Employee</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="admin/payments/summary"><i class="bi bi-people me-1"></i>Outstanding Summary</a>
+            </li>
+        </ul>
     </div>
 
     @if (IsLoading && AllEmployees is null)
@@ -47,16 +55,20 @@
 
                     <div class="col-md-3">
                         <label class="form-label fw-semibold">
-                            <i class="bi bi-calendar-range me-1"></i>Start Date
+                            <i class="bi bi-calendar-range me-1"></i>Menu date from
                         </label>
-                        <input type="date" class="form-control" @bind="StartDate" />
+                        <input type="date" class="form-control" @bind="StartDate" disabled="@AllDates" />
+                        <div class="form-check mt-2">
+                            <input type="checkbox" class="form-check-input" id="allDates" @bind="AllDates" />
+                            <label class="form-check-label" for="allDates">All unpaid (ignore dates)</label>
+                        </div>
                     </div>
 
                     <div class="col-md-3">
                         <label class="form-label fw-semibold">
-                            <i class="bi bi-calendar-check me-1"></i>End Date
+                            <i class="bi bi-calendar-check me-1"></i>Menu date to
                         </label>
-                        <input type="date" class="form-control" @bind="EndDate" />
+                        <input type="date" class="form-control" @bind="EndDate" disabled="@AllDates" />
                     </div>
 
                     <div class="col-md-2 d-flex align-items-end">
@@ -90,6 +102,35 @@
 
         @if (AllOrders is not null)
         {
+            @if (EarlierUnpaidCount > 0 && LoadedStartDate.HasValue)
+            {
+                <div class="alert alert-warning d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <span>
+                        <strong>@EarlierUnpaidCount</strong> unpaid orders before @LoadedStartDate.Value.ToString("dd.MM.yyyy"),
+                        total <strong>@FormatEuro(EarlierNetAmount)</strong>. They are included in "Pay all".
+                    </span>
+                </div>
+            }
+
+            @if (UnpaidUpToEndCount > 0 && HasLoadedRange)
+            {
+                <div class="card mb-3 border-success">
+                    <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <div>
+                            <span class="fw-semibold">Total due @PayAllScopeText:</span>
+                            <span class="fw-bold text-danger fs-5 ms-1">@FormatEuro(TotalDueUpToEnd)</span>
+                            <span class="text-muted ms-1">(@UnpaidUpToEndCount orders)</span>
+                        </div>
+                        <button class="btn btn-success pay-all-button"
+                                @onclick="PayAllUnpaidAsync"
+                                disabled="@IsProcessing">
+                            <i class="bi bi-cash-stack me-2"></i>Pay all unpaid @PayAllScopeText
+                        </button>
+                    </div>
+                </div>
+            }
+
             <div class="card mb-3">
                 <div class="card-body">
                     <div class="row g-3">
@@ -204,16 +245,17 @@
                                 {
                                     bool isSelected = SelectedOrderIds.Contains(item.OrderId);
                                     bool isPaid = item.PaymentStatus == PaymentStatusDto.Paid;
+                                    bool isPayable = IsPayable(item);
                                     decimal estimatedPortion = GetEstimatedPortionForOrder(item);
                                     decimal estimatedNet = GetEstimatedNetForOrder(item);
                                     bool hasPortion = isPaid ? item.PortionApplied : (isSelected && estimatedPortion > 0);
-                                    string rowClass = isPaid ? "table-success" : (isSelected ? "table-primary" : "");
+                                    string rowClass = isPaid ? "table-success" : !isPayable ? "table-secondary text-muted" : (isSelected ? "table-primary" : "");
 
                                     <tr class="@rowClass">
                                         <td>
                                             <input type="checkbox" class="form-check-input"
                                                    checked="@isSelected"
-                                                   disabled="@isPaid"
+                                                   disabled="@(!isPayable)"
                                                    @onchange="@(e => ToggleOrderSelection(item.OrderId, e.Value is true))" />
                                         </td>
                                         <td class="fw-semibold">@item.MealName</td>
@@ -241,6 +283,22 @@
                                                     {
                                                         <small class="d-block">@item.PaidOn.Value.ToString("dd.MM.yyyy")</small>
                                                     }
+                                                    @if (!string.IsNullOrEmpty(item.PaidByName))
+                                                    {
+                                                        <small class="d-block paid-by">by @item.PaidByName</small>
+                                                    }
+                                                </span>
+                                            }
+                                            else if (item.IsCancelled)
+                                            {
+                                                <span class="badge bg-secondary">
+                                                    <i class="bi bi-x-circle me-1"></i>Cancelled
+                                                </span>
+                                            }
+                                            else if (!item.IsCompleted)
+                                            {
+                                                <span class="badge bg-warning text-dark" title="The menu is not finalized yet; the order cannot be paid.">
+                                                    <i class="bi bi-hourglass-split me-1"></i>Pending
                                                 </span>
                                             }
                                             else

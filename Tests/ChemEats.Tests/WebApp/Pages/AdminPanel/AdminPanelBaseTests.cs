@@ -93,6 +93,42 @@ public class AdminPanelBaseTests
         Assert.Equal("Failed to remove role.", harness.UserManagementErrorPublic);
     }
 
+    [Fact]
+    public async Task LoadPaymentsSummaryAsync_ShouldListAllEmployeesSortedByTotalDue()
+    {
+        Mock<IOrderDataService> orderDataServiceMock = new();
+        orderDataServiceMock.Setup(service => service.GetAllOutstandingAsync(null))
+            .ReturnsAsync([
+                new EmployeeOutstandingSummaryDto("u1", "Alpha User", 2, 20m, 6m, 14m),
+                new EmployeeOutstandingSummaryDto("u2", "Beta User", 3, 30m, 3m, 27m, 1, 5m)
+            ]);
+
+        AdminPanelBaseTestHarness harness = new(orderDataServiceMock.Object, Mock.Of<ISettingsDataService>(), Mock.Of<IEmployeeDataService>());
+
+        await harness.LoadPaymentsSummaryAsyncPublic();
+
+        Assert.Equal(["u2", "u1"], harness.OutstandingEmployeesPublic!.Select(s => s.UserId));
+        Assert.Equal(6, harness.OutstandingOrderCountPublic);
+        Assert.Equal(46m, harness.OutstandingTotalDuePublic);
+        Assert.Null(harness.ErrorMessagePublic);
+        orderDataServiceMock.Verify(service => service.GetMyPaymentsSummaryAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task LoadPaymentsSummaryAsync_WhenServiceFails_ShouldSetErrorMessage()
+    {
+        Mock<IOrderDataService> orderDataServiceMock = new();
+        orderDataServiceMock.Setup(service => service.GetAllOutstandingAsync(null))
+            .ReturnsAsync((List<EmployeeOutstandingSummaryDto>?)null);
+
+        AdminPanelBaseTestHarness harness = new(orderDataServiceMock.Object, Mock.Of<ISettingsDataService>(), Mock.Of<IEmployeeDataService>());
+
+        await harness.LoadPaymentsSummaryAsyncPublic();
+
+        Assert.Equal("Failed to load outstanding payments.", harness.ErrorMessagePublic);
+        Assert.Null(harness.OutstandingEmployeesPublic);
+    }
+
     private sealed class AdminPanelBaseTestHarness : AdminPanelBase
     {
         public AdminPanelBaseTestHarness(
@@ -115,6 +151,11 @@ public class AdminPanelBaseTests
         public Task AssignRoleAsyncPublic(string userId, string roleName) => AssignRoleAsync(userId, roleName);
 
         public Task LoadUsersAsyncPublic() => LoadUsersAsync();
+
+        public Task LoadPaymentsSummaryAsyncPublic() => LoadPaymentsSummaryAsync();
+        public List<EmployeeOutstandingSummaryDto>? OutstandingEmployeesPublic => OutstandingEmployees;
+        public int OutstandingOrderCountPublic => OutstandingOrderCount;
+        public decimal OutstandingTotalDuePublic => OutstandingTotalDue;
 
         public Task RemoveRoleAsyncPublic(string userId, string roleName) => RemoveRoleAsync(userId, roleName);
 

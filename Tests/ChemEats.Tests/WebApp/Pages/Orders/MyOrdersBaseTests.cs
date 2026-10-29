@@ -26,6 +26,22 @@ public class MyOrdersBaseTests
     }
 
     [Fact]
+    public async Task OnInitializedAsync_WhenUserIsAuthenticated_ShouldDefaultToTheWholeCurrentMonth()
+    {
+        Mock<IMenuDataService> menuDataServiceMock = new();
+        menuDataServiceMock.Setup(service => service.GetAllMenusAsync(true)).ReturnsAsync(Array.Empty<MenuDto>());
+
+        AuthenticationState authenticationState = CreateAuthenticationState(true, "employee");
+        MyOrdersBaseTestHarness harness = new(menuDataServiceMock.Object, new Mock<IOrderDataService>().Object, Task.FromResult(authenticationState));
+
+        await harness.OnInitializedAsyncPublic();
+
+        DateTime monthStart = new(DateTime.Today.Year, DateTime.Today.Month, 1);
+        Assert.Equal(monthStart, harness.StartDatePublic);
+        Assert.Equal(new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.DaysInMonth(DateTime.Today.Year, DateTime.Today.Month)), harness.EndDatePublic);
+    }
+
+    [Fact]
     public void FormatBulgarianDate_ShouldReturnLocalizedDateString()
     {
         string formatted = MyOrdersBaseTestHarness.FormatBulgarianDatePublic(new DateTime(2026, 01, 10));
@@ -55,6 +71,8 @@ public class MyOrdersBaseTests
         }
 
         public string? ErrorMessagePublic => ErrorMessage;
+        public DateTime? StartDatePublic => StartDate;
+        public DateTime? EndDatePublic => EndDate;
         public Task OnInitializedAsyncPublic() => OnInitializedAsync();
 
         public static string FormatBulgarianDatePublic(DateTime date) => FormatBulgarianDate(date);

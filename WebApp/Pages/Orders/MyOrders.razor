@@ -31,14 +31,14 @@
                 <div class="row g-3">
                     <div class="col-md-6 col-lg-3">
                         <label class="form-label fw-semibold">
-                            <i class="bi bi-calendar-range me-1"></i>Start date
+                            <i class="bi bi-calendar-range me-1"></i>Menu date from
                         </label>
                         <input type="date" class="form-control" @bind="StartDate" />
                     </div>
 
                     <div class="col-md-6 col-lg-3">
                         <label class="form-label fw-semibold">
-                            <i class="bi bi-calendar-check me-1"></i>End date
+                            <i class="bi bi-calendar-check me-1"></i>Menu date to
                         </label>
                         <input type="date" class="form-control" @bind="EndDate" />
                     </div>
@@ -96,8 +96,8 @@
         }
         else
         {
-            decimal totalNet = Orders.Sum(o => o.NetAmount);
-            decimal totalPortionApplied = Orders.Where(o => o.PortionApplied).Sum(o => o.PortionAmount);
+            decimal totalNet = TotalNet;
+            decimal totalPortion = TotalPortion;
 
             <div class="card">
                 <div class="card-header bg-white">
@@ -132,6 +132,19 @@
                                         {
                                             <span class="badge text-bg-info ms-2">Pending</span>
                                         }
+                                        @if (!item.IsDeleted && !string.Equals(item.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            @if (item.IsPaid)
+                                            {
+                                                <span class="badge text-bg-success ms-2">
+                                                    <i class="bi bi-check-circle me-1"></i>Paid@(item.PaidOn.HasValue ? $" {item.PaidOn.Value:dd.MM.yyyy}" : string.Empty)
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge text-bg-secondary ms-2">Unpaid</span>
+                                            }
+                                        }
                                     </div>
                                     <small class="text-muted">
                                         <i class="bi bi-shop-window me-1"></i>@item.SupplierName
@@ -153,9 +166,16 @@
                                             <span class="ms-1">-@item.PortionAmount.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
                                         </div>
                                     }
+                                    else if (item.ExpectedPortionAmount > 0m)
+                                    {
+                                        <div class="text-success mb-1" title="Applied when the order is paid">
+                                            <small class="text-muted">Portion (at payment):</small>
+                                            <span class="ms-1">-@item.ExpectedPortionAmount.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
+                                        </div>
+                                    }
                                     <div class="fw-bold border-top pt-1">
                                         <small class="text-muted">Net:</small>
-                                        <span class="ms-1">@item.NetAmount.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
+                                        <span class="ms-1">@GetNetAmount(item).ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
                                     </div>
                                 </div>
                             </div>
@@ -163,20 +183,36 @@
                     }
                 </ul>
                 <div class="card-footer bg-light">
-                    <div class="row">
-                        <div class="col-md-6 mb-2 mb-md-0">
+                    <div class="row g-2">
+                        <div class="col-md-6">
                             <div class="d-flex justify-content-between">
-                                <span class="fw-semibold">Total portion applied:</span>
-                                <span class="fw-semibold text-success">-@totalPortionApplied.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
+                                <span class="fw-semibold">Total portion:</span>
+                                <span id="total-portion" class="fw-semibold text-success">-@totalPortion.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="d-flex justify-content-between">
-                                <span class="fw-bold">Total to pay:</span>
-                                <span class="fw-bold text-primary fs-5">@totalNet.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
+                                <span class="fw-semibold">Total after portion:</span>
+                                <span id="total-net" class="fw-semibold">@totalNet.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-semibold"><i class="bi bi-check-circle me-1 text-success"></i>Paid (@PaidCount):</span>
+                                <span id="total-paid" class="fw-semibold text-success">@TotalPaid.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold">Remaining to pay (@RemainingCount):</span>
+                                <span id="total-remaining" class="fw-bold text-primary fs-5">@TotalRemaining.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
                             </div>
                         </div>
                     </div>
+                    <small class="text-muted d-block mt-2">
+                        <i class="bi bi-info-circle me-1"></i>The company portion is given once per day (menu date), regardless of how many meals
+                        or from which suppliers were ordered. It goes to the most expensive meal of the day. Cancelled orders are not counted.
+                    </small>
                 </div>
             </div>
         }

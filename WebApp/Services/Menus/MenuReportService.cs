@@ -1,4 +1,6 @@
-﻿using Shared;
+﻿using System.Net.Http.Json;
+using Shared;
+using Shared.DTOs.Reports;
 
 namespace WebApp.Services.Menus;
 
@@ -11,12 +13,17 @@ public sealed class MenuReportService : IMenuReportService
         _httpClient = httpClient;
     }
 
-    public async Task<byte[]> GenerateMenuReportAsync(
+    public async Task<MenuReportDto?> GetMenuReportAsync(
         Guid menuId,
         CancellationToken cancellationToken = default)
     {
-        return await _httpClient.GetByteArrayAsync(
-            ApiRoutes.Reports.MenuReport(menuId),
+        HttpResponseMessage response = await _httpClient.GetAsync(
+            ApiRoutes.Reports.MenuReportData(menuId),
             cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await response.Content.ReadFromJsonAsync<MenuReportDto>(cancellationToken);
     }
 }

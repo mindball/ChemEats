@@ -1,7 +1,6 @@
 ﻿    using Domain.Infrastructure.Exceptions;
 using MenuParser.Extensions;
 using Microsoft.AspNetCore.Diagnostics;
-using QuestPDF.Infrastructure;
 using Serilog;
 using Shared.DTOs.Errors;
 using WebApi.Infrastructure.Employees;
@@ -13,8 +12,6 @@ builder.Host.UseWindowsService(options =>
 {
     options.ServiceName = "ChemEats WebApi";
 });
-
-QuestPDF.Settings.License = LicenseType.Community;
 
 // Logging
 Log.Logger = new LoggerConfiguration()
@@ -29,6 +26,8 @@ builder.Services.AddAppOpenApi()
     .AddSingleton<IHttpContextAccessor, HttpContextAccessor>()
     .AddAppDb(builder.Configuration)
     .AddAppEmail(builder.Configuration)
+    .AddAppNotifications(builder.Configuration)
+    .AddAppMenuAutoFinalize(builder.Configuration)
     .AddAppIdentity()
     .AddAppJwt(builder.Configuration)
     .AddAppRazorComponents()
@@ -40,7 +39,8 @@ builder.Services.AddAppOpenApi()
 WebApplication app = builder.Build();
 
 // Middleware
-app.UseAppSwagger(app.Environment)
+app.UseAppNoIndex()
+   .UseAppSwagger(app.Environment)
    .UseAppWebAssets()
    .UseAppSecurity()
    .MapAppEndpoints();

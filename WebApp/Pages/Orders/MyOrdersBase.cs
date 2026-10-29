@@ -53,13 +53,9 @@ public class MyOrdersBase : ComponentBase
 
             Menus = (await MenuDataService.GetAllMenusAsync(true)).ToList();
 
-            StartDate = DateTime.Today;
-            EndDate = DateTime.Today;
-            if (Menus!.All(m => m.Date.Date != StartDate.Value.Date))
-            {
-                StartDate = null;
-                EndDate = null;
-            }
+            // Default: current month, the same period the payments are made for
+            StartDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            EndDate = StartDate.Value.AddMonths(1).AddDays(-1);
 
             SelectedStatus = "All";
         }
@@ -104,6 +100,26 @@ public class MyOrdersBase : ComponentBase
             await InvokeAsync(StateHasChanged);
         }
     }
+
+    // Cancelled and deleted orders are never paid, so they do not count towards the totals.
+    protected IEnumerable<UserOrderItemDto> PayableOrders =>
+        Orders?.Where(o => !o.IsDeleted && !string.Equals(o.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
+        ?? [];
+
+    protected decimal TotalPortion =>
+        PayableOrders.Sum(o => (o.PortionApplied ? o.PortionAmount : 0m) + o.ExpectedPortionAmount);
+
+    protected decimal TotalNet => PayableOrders.Sum(GetNetAmount);
+
+    protected int PaidCount => PayableOrders.Count(o => o.IsPaid);
+    protected decimal TotalPaid => PayableOrders.Where(o => o.IsPaid).Sum(GetNetAmount);
+
+    protected int RemainingCount => PayableOrders.Count(o => !o.IsPaid);
+    protected decimal TotalRemaining => PayableOrders.Where(o => !o.IsPaid).Sum(GetNetAmount);
+
+    // Unpaid orders show the portion they will receive at payment.
+    protected static decimal GetNetAmount(UserOrderItemDto item) =>
+        Math.Max(0m, item.NetAmount - item.ExpectedPortionAmount);
 
     protected static string FormatBulgarianDate(DateTime date)
     {

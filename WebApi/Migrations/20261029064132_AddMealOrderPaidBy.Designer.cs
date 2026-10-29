@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260307093008_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20261029064132_AddMealOrderPaidBy")]
+    partial class AddMealOrderPaidBy
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,7 +21,7 @@ namespace WebApi.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Fb:ValueGenerationStrategy", FbValueGenerationStrategy.IdentityColumn)
-                .HasAnnotation("ProductVersion", "9.0.9")
+                .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 31);
 
             modelBuilder.Entity("Domain.Entities.Meal", b =>
@@ -62,6 +62,10 @@ namespace WebApi.Migrations
 
                     b.Property<DateTime>("OrderedAt")
                         .HasColumnType("TIMESTAMP");
+
+                    b.Property<string>("PaidByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("VARCHAR(450)");
 
                     b.Property<DateTime?>("PaidOn")
                         .HasColumnType("TIMESTAMP");
@@ -135,6 +139,34 @@ namespace WebApi.Migrations
                         .HasDatabaseName("IX_Menus_SupplierId_Date");
 
                     b.ToTable("Menus", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.MenuReminderLog", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("VARCHAR(36)");
+
+                    b.Property<string>("MenuId")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(36)");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("TIMESTAMP");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MenuId")
+                        .HasDatabaseName("IX_MenuRemLogs_MenuId");
+
+                    b.HasIndex("UserId", "MenuId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_MenuRemLogs_User_Menu");
+
+                    b.ToTable("MenuReminderLogs", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Supplier", b =>
@@ -224,6 +256,14 @@ namespace WebApi.Migrations
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
                         .HasColumnType("VARCHAR(256)");
+
+                    b.Property<string>("NotificationEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("VARCHAR(256)");
+
+                    b.Property<bool>("OrderRemindersEnabled")
+                        .HasColumnType("BOOLEAN")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("BLOB SUB_TYPE TEXT");
@@ -446,6 +486,23 @@ namespace WebApi.Migrations
                         .IsRequired();
 
                     b.Navigation("Supplier");
+                });
+
+            modelBuilder.Entity("Domain.Entities.MenuReminderLog", b =>
+                {
+                    b.HasOne("Domain.Entities.Menu", null)
+                        .WithMany()
+                        .HasForeignKey("MenuId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MenuRemLogs_Menus");
+
+                    b.HasOne("Domain.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_MenuRemLogs_Users");
                 });
 
             modelBuilder.Entity("Domain.Entities.Supplier", b =>

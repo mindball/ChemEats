@@ -10,6 +10,8 @@ using System.Text;
 using WebApi.Extensions.DI;
 using WebApi.Infrastructure.Employees;
 using WebApi.Infrastructure.Identity;
+using WebApi.Infrastructure.Menus;
+using WebApi.Infrastructure.Notifications;
 
 namespace WebApi.Infrastructure.Extensions;
 
@@ -151,6 +153,23 @@ public static class ServiceCollectionExtensions
     {
         services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
         services.AddTransient<IEmailSender<ApplicationUser>, SmtpEmailSender>();
+        return services;
+    }
+
+    public static IServiceCollection AddAppNotifications(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<OrderReminderOptions>(configuration.GetSection(OrderReminderOptions.SectionName));
+        services.AddTransient<IEmailService, SmtpEmailService>();
+        services.AddScoped<IOrderReminderService, OrderReminderService>();
+        services.AddHostedService<OrderReminderBackgroundService>();
+        return services;
+    }
+
+    public static IServiceCollection AddAppMenuAutoFinalize(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<MenuAutoFinalizeOptions>(configuration.GetSection(MenuAutoFinalizeOptions.SectionName));
+        services.AddScoped<IMenuAutoFinalizeService, MenuAutoFinalizeService>();
+        services.AddHostedService<MenuAutoFinalizeBackgroundService>();
         return services;
     }
 

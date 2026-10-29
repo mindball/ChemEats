@@ -17,6 +17,7 @@ public class OrderMappings : IRegister
 
         config.NewConfig<UserOrderPaymentItem, UserOrderPaymentItemDto>();
         config.NewConfig<UserOutstandingSummary, UserOutstandingSummaryDto>();
+        config.NewConfig<EmployeeOutstandingSummary, EmployeeOutstandingSummaryDto>();
     }
 
     private static MealOrder CreateMealOrder(OrderRequestItemDto src)

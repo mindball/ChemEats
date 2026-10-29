@@ -1,4 +1,4 @@
-using MenuParser.Abstractions;
+﻿using MenuParser.Abstractions;
 using MenuParser.AiParsing;
 using MenuParser.TextExtraction;
 using Microsoft.Extensions.Configuration;
@@ -14,7 +14,7 @@ public static class ServiceCollectionExtensions
     {
         services.Configure<OllamaOptions>(configuration.GetSection("Ollama"));
         services.Configure<GroqOptions>(configuration.GetSection("Groq"));
-        services.Configure<SambaNovaOptions>(configuration.GetSection("SambaNova"));
+        services.Configure<GeminiOptions>(configuration.GetSection("Gemini"));
 
         services.AddSingleton<ITextExtractor, CsvTextExtractor>();
         services.AddSingleton<ITextExtractor, ExcelTextExtractor>();
@@ -28,7 +28,7 @@ public static class ServiceCollectionExtensions
             client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
         });
         services.AddHttpClient("groq", client => client.Timeout = TimeSpan.FromSeconds(60));
-        services.AddHttpClient("sambanova", client => client.Timeout = TimeSpan.FromSeconds(60));
+        services.AddHttpClient("gemini", client => client.Timeout = TimeSpan.FromSeconds(60));
 
         services.AddSingleton<OllamaMealExtractor>(sp => new OllamaMealExtractor(
             sp.GetRequiredService<IHttpClientFactory>().CreateClient("ollama"),
@@ -40,10 +40,10 @@ public static class ServiceCollectionExtensions
             sp.GetRequiredService<IOptions<GroqOptions>>(),
             sp.GetRequiredService<ILogger<GroqMealExtractor>>()));
 
-        services.AddSingleton<SambaNovaMealExtractor>(sp => new SambaNovaMealExtractor(
-            sp.GetRequiredService<IHttpClientFactory>().CreateClient("sambanova"),
-            sp.GetRequiredService<IOptions<SambaNovaOptions>>(),
-            sp.GetRequiredService<ILogger<SambaNovaMealExtractor>>()));
+        services.AddSingleton<GeminiMealExtractor>(sp => new GeminiMealExtractor(
+            sp.GetRequiredService<IHttpClientFactory>().CreateClient("gemini"),
+            sp.GetRequiredService<IOptions<GeminiOptions>>(),
+            sp.GetRequiredService<ILogger<GeminiMealExtractor>>()));
 
         services.AddSingleton<IAiMealExtractor, FallbackAiMealExtractor>();
 

@@ -6,6 +6,7 @@ using Shared.DTOs.Menus;
 using Shared.DTOs.Suppliers;
 using System.Text;
 using System.Text.Json;
+using ChemEats.Tests.TestInfrastructure;
 using WebApp.Infrastructure.States;
 using WebApp.Pages.Menus;
 using WebApp.Services.Menus;
@@ -19,7 +20,6 @@ public class ViewMenusBaseTests
     public async Task OnInitializedAsync_ShouldSetAdminRoleAndLoadSuppliers()
     {
         Mock<IMenuDataService> menuDataServiceMock = new();
-        Mock<IMenuReportService> reportServiceMock = new();
         Mock<ISupplierDataService> supplierDataServiceMock = new();
         supplierDataServiceMock
             .Setup(service => service.GetAllSuppliersAsync())
@@ -27,7 +27,7 @@ public class ViewMenusBaseTests
 
         CustomAuthStateProvider authProvider = CreateAuthStateProviderWithToken(CreateJwtTokenWithRole("Admin"));
 
-        ViewMenusBaseTestHarness harness = CreateHarness(menuDataServiceMock.Object, reportServiceMock.Object, supplierDataServiceMock.Object, authProvider);
+        ViewMenusBaseTestHarness harness = CreateHarness(menuDataServiceMock.Object, supplierDataServiceMock.Object, authProvider);
 
         await harness.OnInitializedAsyncPublic();
 
@@ -52,13 +52,12 @@ public class ViewMenusBaseTests
             .Setup(service => service.GetAllMenusAsync(false))
             .ReturnsAsync(menus);
 
-        Mock<IMenuReportService> reportServiceMock = new();
         Mock<ISupplierDataService> supplierDataServiceMock = new();
         supplierDataServiceMock.Setup(service => service.GetAllSuppliersAsync()).ReturnsAsync([]);
 
         CustomAuthStateProvider authProvider = CreateAuthStateProviderWithToken(CreateJwtTokenWithRole("Supervisor"));
 
-        ViewMenusBaseTestHarness harness = CreateHarness(menuDataServiceMock.Object, reportServiceMock.Object, supplierDataServiceMock.Object, authProvider);
+        ViewMenusBaseTestHarness harness = CreateHarness(menuDataServiceMock.Object, supplierDataServiceMock.Object, authProvider);
 
         await harness.OnInitializedAsyncPublic();
         harness.SetFilters(supplierId, DateTime.Today, DateTime.Today.AddDays(2), false);
@@ -70,9 +69,20 @@ public class ViewMenusBaseTests
         Assert.All(harness.MenusPublic!, menu => Assert.Equal(supplierId, menu.SupplierId));
     }
 
+    [Fact]
+    public void OpenReport_WhenCalled_ShouldNavigateToPrintableReportPage()
+    {
+        Guid menuId = Guid.NewGuid();
+        CustomAuthStateProvider authProvider = CreateAuthStateProviderWithToken(CreateJwtTokenWithRole("Admin"));
+        ViewMenusBaseTestHarness harness = CreateHarness(new Mock<IMenuDataService>().Object, new Mock<ISupplierDataService>().Object, authProvider);
+
+        harness.OpenReportPublic(menuId);
+
+        Assert.Equal($"http://localhost/reports/menu/{menuId}", harness.CurrentUri);
+    }
+
     private static ViewMenusBaseTestHarness CreateHarness(
         IMenuDataService menuDataService,
-        IMenuReportService menuReportService,
         ISupplierDataService supplierDataService,
         CustomAuthStateProvider authProvider)
     {
@@ -82,7 +92,6 @@ public class ViewMenusBaseTests
 
         ViewMenusBaseTestHarness harness = new(
             menuDataService,
-            menuReportService,
             supplierDataService,
             authProvider,
             jsRuntimeMock.Object);
@@ -132,13 +141,12 @@ public class ViewMenusBaseTests
     {
         public ViewMenusBaseTestHarness(
             IMenuDataService menuDataService,
-            IMenuReportService menuReportService,
-            ISupplierDataService supplierDataService,
+                ISupplierDataService supplierDataService,
             CustomAuthStateProvider authProvider,
             IJSRuntime jsRuntime)
         {
             MenuDataService = menuDataService;
-            MenuReportService = menuReportService;
+            NavigationManager = new TestNavigationManager();
             SupplierDataService = supplierDataService;
             AuthProvider = authProvider;
             JsRuntime = jsRuntime;
@@ -149,6 +157,9 @@ public class ViewMenusBaseTests
         public IReadOnlyList<MenuDto>? MenusPublic => Menus;
         public List<SupplierDto> SuppliersPublic => Suppliers;
         public int TotalMenusPublic => TotalMenus;
+        public string CurrentUri => NavigationManager.Uri;
+
+        public void OpenReportPublic(Guid menuId) => OpenReport(menuId);
 
         public Task OnInitializedAsyncPublic() => OnInitializedAsync();
 

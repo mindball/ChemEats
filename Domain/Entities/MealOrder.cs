@@ -32,6 +32,7 @@ public class MealOrder
      
     public PaymentStatus PaymentStatus { get; private set; }
     public DateTime? PaidOn { get; private set; }
+    public string? PaidByUserId { get; private set; }
 
     public bool IsDeleted { get; private set; }
 
@@ -99,16 +100,23 @@ public class MealOrder
     public decimal GetNetAmount() =>
         Math.Max(0m, PriceAmount - (PortionApplied ? PortionAmount : 0m));
 
-    public void MarkAsPaid(DateTime paidOn)
+    public void MarkAsPaid(DateTime paidOn, string paidByUserId)
     {
+        if (string.IsNullOrWhiteSpace(paidByUserId))
+            throw new DomainException("The user who marks the order as paid is required.");
+
         if (Status == MealOrderStatus.Cancelled)
             throw new DomainException("Cancelled orders cannot be paid.");
 
         if (PaymentStatus == PaymentStatus.Paid)
             throw new DomainException("Order is already paid.");
 
+        if (Status != MealOrderStatus.Completed)
+            throw new DomainException("Only completed orders can be paid.");
+
         PaymentStatus = PaymentStatus.Paid;
         PaidOn = paidOn;
+        PaidByUserId = paidByUserId;
     }
 
     public void MarkAsCompleted()

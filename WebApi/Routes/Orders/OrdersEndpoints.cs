@@ -4,6 +4,7 @@ using Domain.Infrastructure.Identity;
 using Domain.Models.Orders;
 using Domain.Repositories.MealOrders;
 using Domain.Repositories.Meals;
+using Domain.Repositories.Settings;
 using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -324,6 +325,7 @@ public static class OrdersEndpoints
         [FromQuery] bool includeDeleted,
         [FromQuery] string? status,
         IMealOrderRepository orderRepository,
+        ISettingsRepository settingsRepository,
         UserManager<ApplicationUser> userManager,
         HttpContext httpContext,
         IMapper mapper,
@@ -363,7 +365,19 @@ public static class OrdersEndpoints
                     orderStatus,
                     cancellationToken);
 
-            List<UserOrderItemDto> userOrderItems = items.Select(mapper.Map<UserOrderItemDto>).ToList();
+            decimal companyPortion = await settingsRepository.GetCompanyPortionAsync(cancellationToken);
+            IReadOnlyDictionary<Guid, decimal> expectedPortions = await orderRepository.GetExpectedPortionsAsync(
+                user.Id,
+                items.Select(i => i.MenuDate).ToList(),
+                companyPortion,
+                cancellationToken);
+
+            List<UserOrderItemDto> userOrderItems = items
+                .Select(mapper.Map<UserOrderItemDto>)
+                .Select(dto => expectedPortions.TryGetValue(dto.OrderId, out decimal portion)
+                    ? dto with { ExpectedPortionAmount = portion }
+                    : dto)
+                .ToList();
 
             sw.Stop();
             logger.LogInformation(
@@ -510,6 +524,7 @@ public static class OrdersEndpoints
                 orderId,
                 user.Id,
                 paidAt,
+                user.Id,
                 cancellationToken);
 
             logger.LogInformation(

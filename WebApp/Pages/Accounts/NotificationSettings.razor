@@ -1,0 +1,62 @@
+@page "/account/notifications"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inherits NotificationSettingsBase
+
+<PageTitle>Notification Settings</PageTitle>
+
+<AuthorizeView>
+    <Authorized Context="authContext">
+        <h3 class="mb-3" style="color: #003d61;">
+            <i class="bi bi-bell-fill me-2"></i>Notification Settings
+        </h3>
+
+        @if (IsLoading)
+        {
+            <div class="text-muted">Loading...</div>
+        }
+        else
+        {
+            <EditForm Model="Model" OnSubmit="SaveAsync" style="max-width: 520px;">
+                <div class="mb-3">
+                    <label class="form-label" for="notification-email">Notification email</label>
+                    <InputText id="notification-email" class="form-control" type="email" placeholder="name@example.com"
+                               @bind-Value="Model.Email" />
+                    <div class="form-text">
+                        Reminders are sent to this address. It can differ from the email you registered with.
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label d-block">Remind me when I have not ordered for an upcoming menu</label>
+                    <InputRadioGroup TValue="bool" @bind-Value="Model.RemindersEnabled">
+                        <div class="form-check">
+                            <InputRadio TValue="bool" id="reminders-on" class="form-check-input" Value="true" />
+                            <label class="form-check-label" for="reminders-on">Yes, send me reminders</label>
+                        </div>
+                        <div class="form-check">
+                            <InputRadio TValue="bool" id="reminders-off" class="form-check-input" Value="false" />
+                            <label class="form-check-label" for="reminders-off">No, do not remind me</label>
+                        </div>
+                    </InputRadioGroup>
+                </div>
+
+                <button class="btn btn-primary" type="submit" disabled="@IsSaving">
+                    <i class="bi bi-save me-1"></i>Save
+                </button>
+            </EditForm>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(SuccessMessage))
+        {
+            <div class="alert alert-success mt-3">@SuccessMessage</div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+        {
+            <div class="alert alert-danger mt-3">@ErrorMessage</div>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <RedirectToLogin />
+    </NotAuthorized>
+</AuthorizeView>

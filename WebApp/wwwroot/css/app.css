@@ -129,3 +129,14 @@ code {
     font-weight: 600;
     margin-bottom: 0.25rem;
 }
+
+@page {
+    size: A4;
+    margin: 15mm;
+}
+
+@media print {
+    html, body {
+        background-color: #fff;
+    }
+}

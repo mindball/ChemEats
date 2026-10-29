@@ -25,6 +25,9 @@ public interface IOrderDataService
     Task<List<UserOrderPaymentItemDto>> GetUnpaidOrdersByUserAsync(string userId, Guid? supplierId = null);
     Task<List<UserOrderPaymentItemDto>> GetOrdersByUserForPeriodAsync(string userId, DateTime? startDate = null, DateTime? endDate = null, Guid? supplierId = null);
     Task<OrderPayResponseDto?> OrderMarkAsPaidAsync(OrderPayRequestDto requestDto);
+    Task<OrderPayResponseDto?> PayAllUnpaidAsync(PayAllUnpaidRequestDto requestDto);
+    Task<List<EmployeeOutstandingSummaryDto>?> GetOutstandingSummaryAsync(DateTime startDate, DateTime endDate, string? userId = null);
+    Task<List<EmployeeOutstandingSummaryDto>?> GetAllOutstandingAsync(string? userId = null);
 
     Task<List<UserOrderItemDto>> GetMyOrdersByMenuAsync(Guid menuId);
 }

@@ -15,5 +15,8 @@ public sealed record UserOrderPaymentItem(
     DateTime? PaidOn,
     bool PortionApplied,      // New
     decimal PortionAmount,    // New
-    decimal NetAmount         // New: Price - PortionAmount (min 0)
+    decimal NetAmount,        // New: Price - PortionAmount (min 0)
+    bool IsCancelled,
+    bool IsCompleted,         // Menu finalized; only completed orders can be paid
+    string? PaidByName
 );

@@ -46,6 +46,10 @@ public class MealOrderConfiguration : IEntityTypeConfiguration<MealOrder>
         builder.Property(x => x.PaidOn)
             .IsRequired(false);
 
+        builder.Property(x => x.PaidByUserId)
+            .HasMaxLength(450)
+            .IsRequired(false);
+
         builder.Property(x => x.PaymentStatus)
             .HasDefaultValue(PaymentStatus.Unpaid);
 

@@ -60,6 +60,8 @@ public static class ApiRoutes
     {
         public const string Base = "api/admin/mealorders";
         public const string OrderPay = "order-pay";
+        public const string PayAll = "pay-all";
+        public const string Outstanding = "outstanding";
 
         // Route templates (used by WebApi endpoint mapping)
         public const string UnpaidRoute = "unpaid/{userId}";
@@ -68,6 +70,13 @@ public static class ApiRoutes
         // URL builders (used by WebApp HTTP client)
         public static string Unpaid(string userId) => $"{Base}/unpaid/{Uri.EscapeDataString(userId)}";
         public static string Period(string userId) => $"{Base}/period/{Uri.EscapeDataString(userId)}";
+        public static string PayAllUnpaid() => $"{Base}/{PayAll}";
+        public static string OutstandingForPeriod(DateTime startDate, DateTime endDate, string? userId = null) =>
+            $"{Base}/{Outstanding}?startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}"
+            + (string.IsNullOrWhiteSpace(userId) ? string.Empty : $"&userId={Uri.EscapeDataString(userId)}");
+        public static string OutstandingAllDates(string? userId = null) =>
+            $"{Base}/{Outstanding}?allDates=true"
+            + (string.IsNullOrWhiteSpace(userId) ? string.Empty : $"&userId={Uri.EscapeDataString(userId)}");
     }
 
     public static class Suppliers
@@ -109,14 +118,28 @@ public static class ApiRoutes
             $"{Base}/{Uri.EscapeDataString(userId)}/password/reset";
     }
 
+    public static class Notifications
+    {
+        public const string Base = "api/notifications";
+        public const string Me = "me";
+
+        // URL builders (used by WebApp HTTP client)
+        public static string MySettings() => $"{Base}/{Me}";
+    }
+
     public static class Reports
     {
         public const string Base = "api/reports";
 
         // Route templates (used by WebApi endpoint mapping)
-        public const string MenuReportRoute = "menu/{menuId:guid}";
+        public const string MenuReportDataRoute = "menu/{menuId:guid}/data";
 
         // URL builders (used by WebApp HTTP client)
-        public static string MenuReport(Guid menuId) => $"{Base}/menu/{menuId}";
+        public static string MenuReportData(Guid menuId) => $"{Base}/menu/{menuId}/data";
+    }
+
+    public static class Robots
+    {
+        public const string Base = "robots.txt";
     }
 }

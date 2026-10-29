@@ -15,5 +15,7 @@ public sealed record UserOrderItem(
     bool PortionApplied,    // New
     bool IsDeleted,    // New
     decimal PortionAmount,  // New
-    decimal NetAmount       // New: Price - Portion (min 0)
+    decimal NetAmount,      // New: Price - Portion (min 0)
+    bool IsPaid,
+    DateTime? PaidOn
 );

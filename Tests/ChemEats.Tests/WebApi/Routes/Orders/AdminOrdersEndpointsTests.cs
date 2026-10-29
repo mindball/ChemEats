@@ -1,8 +1,10 @@
 using Domain.Infrastructure.Identity;
+using Domain.Models.Orders;
 using Domain.Repositories.MealOrders;
 using Domain.Repositories.Settings;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -80,6 +82,7 @@ public class AdminOrdersEndpointsTests
                 It.IsAny<IReadOnlyList<Guid>>(),
                 It.IsAny<DateTime>(),
                 3m,
+                admin.Id,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((1, 7m));
 
@@ -156,6 +159,351 @@ public class AdminOrdersEndpointsTests
             CancellationToken.None);
 
         AssertHttpResultType(result, "Ok");
+    }
+
+    [Fact]
+    public async Task GetOutstandingSummaryAsync_WhenAdminIsUnauthorized_ShouldReturnUnauthorized()
+    {
+        Mock<IMealOrderRepository> orderRepositoryMock = new();
+        Mock<ISettingsRepository> settingsRepositoryMock = new();
+        Mock<IMapper> mapperMock = new();
+        Mock<UserManager<ApplicationUser>> userManagerMock = CreateUserManagerMock();
+        userManagerMock.Setup(manager => manager.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
+            .ReturnsAsync((ApplicationUser?)null);
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "GetOutstandingSummaryAsync",
+            new DateTime(2026, 10, 1),
+            new DateTime(2026, 10, 31),
+            null,
+            null,
+            orderRepositoryMock.Object,
+            settingsRepositoryMock.Object,
+            mapperMock.Object,
+            userManagerMock.Object,
+            CreateHttpContext("admin"),
+            CreateProgramLogger(),
+            CancellationToken.None);
+
+        AssertHttpResultType(result, "UnauthorizedHttpResult");
+        orderRepositoryMock.Verify(repository => repository.GetOutstandingSummariesAsync(
+            It.IsAny<DateTime>(),
+            It.IsAny<DateTime>(),
+            It.IsAny<decimal>(),
+            It.IsAny<string?>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task GetOutstandingSummaryAsync_WhenEndDateIsBeforeStartDate_ShouldReturnBadRequest()
+    {
+        Mock<IMealOrderRepository> orderRepositoryMock = new();
+        Mock<ISettingsRepository> settingsRepositoryMock = new();
+        Mock<IMapper> mapperMock = new();
+        Mock<UserManager<ApplicationUser>> userManagerMock = CreateAdminUserManagerMock();
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "GetOutstandingSummaryAsync",
+            new DateTime(2026, 10, 31),
+            new DateTime(2026, 10, 1),
+            null,
+            null,
+            orderRepositoryMock.Object,
+            settingsRepositoryMock.Object,
+            mapperMock.Object,
+            userManagerMock.Object,
+            CreateHttpContext("admin"),
+            CreateProgramLogger(),
+            CancellationToken.None);
+
+        AssertHttpResultType(result, "BadRequest");
+        orderRepositoryMock.Verify(repository => repository.GetOutstandingSummariesAsync(
+            It.IsAny<DateTime>(),
+            It.IsAny<DateTime>(),
+            It.IsAny<decimal>(),
+            It.IsAny<string?>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task GetOutstandingSummaryAsync_WhenDatesAreMissing_ShouldReturnBadRequest()
+    {
+        Mock<IMealOrderRepository> orderRepositoryMock = new();
+        Mock<ISettingsRepository> settingsRepositoryMock = new();
+        Mock<IMapper> mapperMock = new();
+        Mock<UserManager<ApplicationUser>> userManagerMock = CreateAdminUserManagerMock();
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "GetOutstandingSummaryAsync",
+            null,
+            new DateTime(2026, 10, 31),
+            null,
+            null,
+            orderRepositoryMock.Object,
+            settingsRepositoryMock.Object,
+            mapperMock.Object,
+            userManagerMock.Object,
+            CreateHttpContext("admin"),
+            CreateProgramLogger(),
+            CancellationToken.None);
+
+        AssertHttpResultType(result, "BadRequest");
+    }
+
+    [Fact]
+    public async Task GetOutstandingSummaryAsync_WhenRangeIsValid_ShouldReturnOkWithMappedSummaries()
+    {
+        DateTime startDate = new(2026, 10, 1);
+        DateTime endDate = new(2026, 10, 31);
+        EmployeeOutstandingSummary summary = new("user-1", "User One", 2, 20m, 3m, 17m, 1, 5m);
+        EmployeeOutstandingSummaryDto summaryDto = new("user-1", "User One", 2, 20m, 3m, 17m, 1, 5m);
+
+        Mock<IMealOrderRepository> orderRepositoryMock = new();
+        orderRepositoryMock.Setup(repository => repository.GetOutstandingSummariesAsync(
+                startDate,
+                endDate,
+                3m,
+                "user-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync([summary]);
+
+        Mock<ISettingsRepository> settingsRepositoryMock = new();
+        settingsRepositoryMock.Setup(repository => repository.GetCompanyPortionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(3m);
+
+        Mock<IMapper> mapperMock = new();
+        mapperMock.Setup(mapper => mapper.Map<EmployeeOutstandingSummaryDto>(summary)).Returns(summaryDto);
+
+        Mock<UserManager<ApplicationUser>> userManagerMock = CreateAdminUserManagerMock();
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "GetOutstandingSummaryAsync",
+            startDate,
+            endDate,
+            "user-1",
+            null,
+            orderRepositoryMock.Object,
+            settingsRepositoryMock.Object,
+            mapperMock.Object,
+            userManagerMock.Object,
+            CreateHttpContext("admin"),
+            CreateProgramLogger(),
+            CancellationToken.None);
+
+        Ok<List<EmployeeOutstandingSummaryDto>> okResult = Assert.IsType<Ok<List<EmployeeOutstandingSummaryDto>>>(result);
+        EmployeeOutstandingSummaryDto returned = Assert.Single(okResult.Value!);
+        Assert.Equal(summaryDto, returned);
+    }
+
+    [Fact]
+    public async Task PayAllUnpaidAsync_WhenRequestIsValid_ShouldPayUpToDateAsAdminAndReturnOk()
+    {
+        DateTime upToDate = DateTime.Today.AddDays(-1);
+        PayAllUnpaidRequestDto request = new("user-1", upToDate);
+        ApplicationUser admin = new() { Id = "admin-id", UserName = "admin" };
+
+        Mock<IMealOrderRepository> orderRepositoryMock = new();
+        orderRepositoryMock.Setup(repository => repository.MarkAllUnpaidAsPaidAsync(
+                "user-1",
+                upToDate,
+                It.IsAny<DateTime>(),
+                3m,
+                "admin-id",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((4, 31.5m));
+
+        Mock<ISettingsRepository> settingsRepositoryMock = new();
+        settingsRepositoryMock.Setup(repository => repository.GetCompanyPortionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(3m);
+
+        Mock<UserManager<ApplicationUser>> userManagerMock = CreateUserManagerMock();
+        userManagerMock.Setup(manager => manager.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
+            .ReturnsAsync(admin);
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "PayAllUnpaidAsync",
+            request,
+            orderRepositoryMock.Object,
+            settingsRepositoryMock.Object,
+            userManagerMock.Object,
+            CreateHttpContext("admin"),
+            CreateProgramLogger(),
+            CancellationToken.None);
+
+        Ok<OrderPayResponseDto> okResult = Assert.IsType<Ok<OrderPayResponseDto>>(result);
+        Assert.Equal(new OrderPayResponseDto(4, 31.5m), okResult.Value);
+        orderRepositoryMock.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task PayAllUnpaidAsync_WhenUserIdIsMissing_ShouldReturnBadRequest(string userId)
+    {
+        PayAllUnpaidRequestDto request = new(userId, DateTime.Today);
+        Mock<IMealOrderRepository> orderRepositoryMock = new();
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "PayAllUnpaidAsync",
+            request,
+            orderRepositoryMock.Object,
+            new Mock<ISettingsRepository>().Object,
+            CreateAdminUserManagerMock().Object,
+            CreateHttpContext("admin"),
+            CreateProgramLogger(),
+            CancellationToken.None);
+
+        AssertHttpResultType(result, "BadRequest");
+        orderRepositoryMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task PayAllUnpaidAsync_WhenDateIsInTheFuture_ShouldPayUpToThatDateAndReturnOk()
+    {
+        DateTime upToDate = DateTime.Today.AddDays(2);
+        PayAllUnpaidRequestDto request = new("user-1", upToDate);
+
+        Mock<IMealOrderRepository> orderRepositoryMock = new();
+        orderRepositoryMock.Setup(repository => repository.MarkAllUnpaidAsPaidAsync(
+                "user-1",
+                upToDate,
+                It.IsAny<DateTime>(),
+                3m,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((2, 14m));
+
+        Mock<ISettingsRepository> settingsRepositoryMock = new();
+        settingsRepositoryMock.Setup(repository => repository.GetCompanyPortionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(3m);
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "PayAllUnpaidAsync",
+            request,
+            orderRepositoryMock.Object,
+            settingsRepositoryMock.Object,
+            CreateAdminUserManagerMock().Object,
+            CreateHttpContext("admin"),
+            CreateProgramLogger(),
+            CancellationToken.None);
+
+        Ok<OrderPayResponseDto> okResult = Assert.IsType<Ok<OrderPayResponseDto>>(result);
+        Assert.Equal(new OrderPayResponseDto(2, 14m), okResult.Value);
+        orderRepositoryMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task PayAllUnpaidAsync_WhenAdminIsUnauthorized_ShouldReturnUnauthorized()
+    {
+        PayAllUnpaidRequestDto request = new("user-1", DateTime.Today);
+        Mock<IMealOrderRepository> orderRepositoryMock = new();
+        Mock<UserManager<ApplicationUser>> userManagerMock = CreateUserManagerMock();
+        userManagerMock.Setup(manager => manager.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
+            .ReturnsAsync((ApplicationUser?)null);
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "PayAllUnpaidAsync",
+            request,
+            orderRepositoryMock.Object,
+            new Mock<ISettingsRepository>().Object,
+            userManagerMock.Object,
+            CreateHttpContext("admin"),
+            CreateProgramLogger(),
+            CancellationToken.None);
+
+        AssertHttpResultType(result, "UnauthorizedHttpResult");
+        orderRepositoryMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task GetOutstandingSummaryAsync_WhenAllDatesIsSet_ShouldIgnoreDatesAndQueryWithoutBounds()
+    {
+        EmployeeOutstandingSummary summary = new("user-1", "User One", 5, 50m, 6m, 44m, 0, 0m);
+        EmployeeOutstandingSummaryDto summaryDto = new("user-1", "User One", 5, 50m, 6m, 44m);
+
+        Mock<IMealOrderRepository> orderRepositoryMock = new();
+        orderRepositoryMock.Setup(repository => repository.GetOutstandingSummariesAsync(
+                null,
+                null,
+                3m,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync([summary]);
+
+        Mock<ISettingsRepository> settingsRepositoryMock = new();
+        settingsRepositoryMock.Setup(repository => repository.GetCompanyPortionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(3m);
+
+        Mock<IMapper> mapperMock = new();
+        mapperMock.Setup(mapper => mapper.Map<EmployeeOutstandingSummaryDto>(summary)).Returns(summaryDto);
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "GetOutstandingSummaryAsync",
+            null,
+            null,
+            null,
+            true,
+            orderRepositoryMock.Object,
+            settingsRepositoryMock.Object,
+            mapperMock.Object,
+            CreateAdminUserManagerMock().Object,
+            CreateHttpContext("admin"),
+            CreateProgramLogger(),
+            CancellationToken.None);
+
+        Ok<List<EmployeeOutstandingSummaryDto>> okResult = Assert.IsType<Ok<List<EmployeeOutstandingSummaryDto>>>(result);
+        Assert.Equal(summaryDto, Assert.Single(okResult.Value!));
+        orderRepositoryMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task PayAllUnpaidAsync_WhenDateIsNull_ShouldPayAllUnpaidRegardlessOfDate()
+    {
+        PayAllUnpaidRequestDto request = new("user-1", null);
+        ApplicationUser admin = new() { Id = "admin-id", UserName = "admin" };
+
+        Mock<IMealOrderRepository> orderRepositoryMock = new();
+        orderRepositoryMock.Setup(repository => repository.MarkAllUnpaidAsPaidAsync(
+                "user-1",
+                null,
+                It.IsAny<DateTime>(),
+                0m,
+                "admin-id",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((7, 49m));
+
+        Mock<ISettingsRepository> settingsRepositoryMock = new();
+        settingsRepositoryMock.Setup(repository => repository.GetCompanyPortionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0m);
+
+        Mock<UserManager<ApplicationUser>> userManagerMock = CreateUserManagerMock();
+        userManagerMock.Setup(manager => manager.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
+            .ReturnsAsync(admin);
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "PayAllUnpaidAsync",
+            request,
+            orderRepositoryMock.Object,
+            settingsRepositoryMock.Object,
+            userManagerMock.Object,
+            CreateHttpContext("admin"),
+            CreateProgramLogger(),
+            CancellationToken.None);
+
+        Ok<OrderPayResponseDto> okResult = Assert.IsType<Ok<OrderPayResponseDto>>(result);
+        Assert.Equal(new OrderPayResponseDto(7, 49m), okResult.Value);
+        orderRepositoryMock.VerifyAll();
+    }
+
+    private static Mock<UserManager<ApplicationUser>> CreateAdminUserManagerMock()
+    {
+        ApplicationUser admin = new() { Id = Guid.NewGuid().ToString(), UserName = "admin" };
+
+        Mock<UserManager<ApplicationUser>> userManagerMock = CreateUserManagerMock();
+        userManagerMock.Setup(manager => manager.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
+            .ReturnsAsync(admin);
+
+        return userManagerMock;
     }
 
     private static Mock<UserManager<ApplicationUser>> CreateUserManagerMock()

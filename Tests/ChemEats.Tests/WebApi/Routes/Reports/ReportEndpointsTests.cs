@@ -4,11 +4,15 @@ using Domain.Infrastructure.Identity;
 using Domain.Models.Orders;
 using Domain.Repositories.MealOrders;
 using Domain.Repositories.Menus;
+using Mapster;
+using MapsterMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Moq;
-using QuestPDF.Infrastructure;
+using Services.Mappings;
+using Shared.DTOs.Reports;
 using WebApi.Routes.Reports;
 
 namespace ChemEats.Tests.WebApi.Routes.Reports;
@@ -16,7 +20,7 @@ namespace ChemEats.Tests.WebApi.Routes.Reports;
 public class ReportEndpointsTests
 {
     [Fact]
-    public async Task GenerateMenuReportAsync_WhenUserUnauthorized_ShouldReturnUnauthorized()
+    public async Task GetMenuReportDataAsync_WhenUserUnauthorized_ShouldReturnUnauthorized()
     {
         Guid menuId = Guid.NewGuid();
 
@@ -30,20 +34,24 @@ public class ReportEndpointsTests
         object logger = CreateProgramLogger();
 
         IResult result = await InvokePrivateResultMethodAsync(
-            "GenerateMenuReportAsync",
+            "GetMenuReportDataAsync",
             menuId,
             menuRepositoryMock.Object,
             orderRepositoryMock.Object,
             userManagerMock.Object,
+            CreateMapper(),
             httpContext,
             logger,
             CancellationToken.None);
 
         AssertHttpResultType(result, "UnauthorizedHttpResult");
+        orderRepositoryMock.Verify(
+            repository => repository.GetAllOrdersByMenuAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Fact]
-    public async Task GenerateMenuReportAsync_WhenMenuMissing_ShouldReturnNotFound()
+    public async Task GetMenuReportDataAsync_WhenMenuMissing_ShouldReturnNotFound()
     {
         Guid menuId = Guid.NewGuid();
 
@@ -62,11 +70,12 @@ public class ReportEndpointsTests
         object logger = CreateProgramLogger();
 
         IResult result = await InvokePrivateResultMethodAsync(
-            "GenerateMenuReportAsync",
+            "GetMenuReportDataAsync",
             menuId,
             menuRepositoryMock.Object,
             orderRepositoryMock.Object,
             userManagerMock.Object,
+            CreateMapper(),
             httpContext,
             logger,
             CancellationToken.None);
@@ -75,17 +84,16 @@ public class ReportEndpointsTests
     }
 
     [Fact]
-    public async Task GenerateMenuReportAsync_WhenMenuExists_ShouldReturnFileResult()
+    public async Task GetMenuReportDataAsync_WhenMenuExists_ShouldReturnReportWithOrders()
     {
-        QuestPDF.Settings.License = LicenseType.Community;
-
         Guid supplierId = Guid.NewGuid();
-        Meal meal = Meal.Create(Guid.NewGuid(), "Soup", new Price(10m));
+        Meal soup = Meal.Create(Guid.NewGuid(), "Супа топчета", new Price(4.50m));
+        Meal salad = Meal.Create(Guid.NewGuid(), "Shopska salad", new Price(6m));
         Menu menu = Menu.Create(
             supplierId,
             DateTime.Today.AddDays(2),
             DateTime.Today.AddDays(1).AddHours(12),
-            [meal]);
+            [soup, salad]);
 
         ApplicationUser admin = new() { Id = Guid.NewGuid().ToString(), UserName = "admin" };
 
@@ -96,9 +104,13 @@ public class ReportEndpointsTests
         Mock<IMealOrderRepository> orderRepositoryMock = new();
         List<UserOrderItem> orders = [
             new UserOrderItem(
-                Guid.NewGuid(), "user1", "John Doe", meal.Id, meal.Name,
+                Guid.NewGuid(), "user1", "Иван Петров", soup.Id, soup.Name,
                 supplierId, "Test Supplier", DateTime.UtcNow, menu.Date,
-                meal.Price.Amount, "Pending", false, false, 0, meal.Price.Amount)
+                soup.Price.Amount, "Pending", false, false, 0, soup.Price.Amount, false, null),
+            new UserOrderItem(
+                Guid.NewGuid(), "user2", "John Doe", salad.Id, salad.Name,
+                supplierId, "Test Supplier", DateTime.UtcNow, menu.Date,
+                salad.Price.Amount, "Completed", false, false, 0, salad.Price.Amount, false, null)
         ];
         orderRepositoryMock.Setup(repository => repository.GetAllOrdersByMenuAsync(menu.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(orders);
@@ -111,16 +123,70 @@ public class ReportEndpointsTests
         object logger = CreateProgramLogger();
 
         IResult result = await InvokePrivateResultMethodAsync(
-            "GenerateMenuReportAsync",
+            "GetMenuReportDataAsync",
             menu.Id,
             menuRepositoryMock.Object,
             orderRepositoryMock.Object,
             userManagerMock.Object,
+            CreateMapper(),
             httpContext,
             logger,
             CancellationToken.None);
 
-        AssertHttpResultType(result, "File");
+        Ok<MenuReportDto> okResult = Assert.IsType<Ok<MenuReportDto>>(result);
+        MenuReportDto report = Assert.IsType<MenuReportDto>(okResult.Value);
+        Assert.Equal(menu.Id, report.MenuId);
+        Assert.Equal(menu.Date, report.MenuDate);
+        Assert.Equal(menu.ActiveUntil, report.ActiveUntil);
+        Assert.Equal(2, report.Orders.Count);
+        Assert.Equal(new MenuReportOrderDto("Иван Петров", "Супа топчета", 4.50m), report.Orders[0]);
+        Assert.Equal(new MenuReportOrderDto("John Doe", "Shopska salad", 6m), report.Orders[1]);
+    }
+
+    [Fact]
+    public async Task GetMenuReportDataAsync_WhenMenuHasNoOrders_ShouldReturnReportWithEmptyOrders()
+    {
+        Meal meal = Meal.Create(Guid.NewGuid(), "Soup", new Price(10m));
+        Menu menu = Menu.Create(
+            Guid.NewGuid(),
+            DateTime.Today.AddDays(2),
+            DateTime.Today.AddDays(1).AddHours(12),
+            [meal]);
+
+        ApplicationUser admin = new() { Id = Guid.NewGuid().ToString(), UserName = "admin" };
+
+        Mock<IMenuRepository> menuRepositoryMock = new();
+        menuRepositoryMock.Setup(repository => repository.GetByIdAsync(menu.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(menu);
+
+        Mock<IMealOrderRepository> orderRepositoryMock = new();
+        orderRepositoryMock.Setup(repository => repository.GetAllOrdersByMenuAsync(menu.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+
+        Mock<UserManager<ApplicationUser>> userManagerMock = CreateUserManagerMock();
+        userManagerMock.Setup(manager => manager.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
+            .ReturnsAsync(admin);
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "GetMenuReportDataAsync",
+            menu.Id,
+            menuRepositoryMock.Object,
+            orderRepositoryMock.Object,
+            userManagerMock.Object,
+            CreateMapper(),
+            CreateHttpContext("admin"),
+            CreateProgramLogger(),
+            CancellationToken.None);
+
+        Ok<MenuReportDto> okResult = Assert.IsType<Ok<MenuReportDto>>(result);
+        Assert.Empty(okResult.Value!.Orders);
+    }
+
+    private static IMapper CreateMapper()
+    {
+        TypeAdapterConfig config = new();
+        new MenuReportMappings().Register(config);
+        return new Mapper(config);
     }
 
     private static Mock<UserManager<ApplicationUser>> CreateUserManagerMock()

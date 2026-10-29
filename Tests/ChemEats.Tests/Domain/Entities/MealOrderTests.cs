@@ -54,18 +54,69 @@ public class MealOrderTests
     public void MarkAsPaid_WhenOrderAlreadyPaid_ShouldThrow()
     {
         MealOrder order = MealOrder.Create("MM", Guid.NewGuid(), DateTime.Today.AddDays(1), 20m);
-        order.MarkAsPaid(DateTime.UtcNow);
+        order.MarkAsCompleted();
+        order.MarkAsPaid(DateTime.UtcNow, "ADMIN");
 
-        DomainException exception = Assert.Throws<DomainException>(() => order.MarkAsPaid(DateTime.UtcNow));
+        DomainException exception = Assert.Throws<DomainException>(() => order.MarkAsPaid(DateTime.UtcNow, "ADMIN"));
 
         Assert.Equal("Order is already paid.", exception.Message);
+    }
+
+    [Fact]
+    public void MarkAsPaid_WhenCalled_ShouldStorePaidOnAndPaidBy()
+    {
+        MealOrder order = MealOrder.Create("MM", Guid.NewGuid(), DateTime.Today.AddDays(1), 20m);
+        order.MarkAsCompleted();
+        DateTime paidOn = new(2026, 10, 29, 9, 30, 0);
+
+        order.MarkAsPaid(paidOn, "ADMIN");
+
+        Assert.Equal(PaymentStatus.Paid, order.PaymentStatus);
+        Assert.Equal(paidOn, order.PaidOn);
+        Assert.Equal("ADMIN", order.PaidByUserId);
+    }
+
+    [Fact]
+    public void MarkAsPaid_WhenOrderIsPending_ShouldThrow()
+    {
+        MealOrder order = MealOrder.Create("MM", Guid.NewGuid(), DateTime.Today.AddDays(1), 20m);
+
+        DomainException exception = Assert.Throws<DomainException>(() => order.MarkAsPaid(DateTime.UtcNow, "ADMIN"));
+
+        Assert.Equal("Only completed orders can be paid.", exception.Message);
+        Assert.Equal(PaymentStatus.Unpaid, order.PaymentStatus);
+    }
+
+    [Fact]
+    public void MarkAsPaid_WhenOrderIsCancelled_ShouldThrow()
+    {
+        MealOrder order = MealOrder.Create("MM", Guid.NewGuid(), DateTime.Today.AddDays(1), 20m);
+        order.Cancel();
+
+        DomainException exception = Assert.Throws<DomainException>(() => order.MarkAsPaid(DateTime.UtcNow, "ADMIN"));
+
+        Assert.Equal("Cancelled orders cannot be paid.", exception.Message);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void MarkAsPaid_WhenPaidByIsMissing_ShouldThrow(string paidBy)
+    {
+        MealOrder order = MealOrder.Create("MM", Guid.NewGuid(), DateTime.Today.AddDays(1), 20m);
+
+        DomainException exception = Assert.Throws<DomainException>(() => order.MarkAsPaid(DateTime.UtcNow, paidBy));
+
+        Assert.Equal("The user who marks the order as paid is required.", exception.Message);
+        Assert.Equal(PaymentStatus.Unpaid, order.PaymentStatus);
     }
 
     [Fact]
     public void Cancel_WhenOrderIsPaid_ShouldThrow()
     {
         MealOrder order = MealOrder.Create("MM", Guid.NewGuid(), DateTime.Today.AddDays(1), 20m);
-        order.MarkAsPaid(DateTime.UtcNow);
+        order.MarkAsCompleted();
+        order.MarkAsPaid(DateTime.UtcNow, "ADMIN");
 
         DomainException exception = Assert.Throws<DomainException>(() => order.Cancel());
 

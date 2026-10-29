@@ -24,7 +24,14 @@ public class AdminPanelBase : ComponentBase
     protected string? SuccessMessage { get; set; }
     protected string? ErrorMessage { get; set; }
 
-    protected UserOutstandingSummaryDto? PaymentsSummary { get; private set; }
+    // Unpaid completed orders of all employees, regardless of the menu date.
+    protected List<EmployeeOutstandingSummaryDto>? OutstandingEmployees { get; private set; }
+
+    protected int OutstandingOrderCount =>
+        OutstandingEmployees?.Sum(s => s.UnpaidCount + s.EarlierUnpaidCount) ?? 0;
+
+    protected decimal OutstandingTotalDue =>
+        OutstandingEmployees?.Sum(s => s.NetAmount + s.EarlierNetAmount) ?? 0m;
 
     // User management state
     protected List<EmployeeDto>? AllUsers { get; private set; }
@@ -79,11 +86,21 @@ public class AdminPanelBase : ComponentBase
     {
         try
         {
-            PaymentsSummary = await OrderDataService.GetMyPaymentsSummaryAsync();
+            List<EmployeeOutstandingSummaryDto>? outstanding = await OrderDataService.GetAllOutstandingAsync();
+
+            if (outstanding is null)
+            {
+                ErrorMessage = "Failed to load outstanding payments.";
+                return;
+            }
+
+            OutstandingEmployees = outstanding
+                .OrderByDescending(s => s.NetAmount + s.EarlierNetAmount)
+                .ToList();
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to load payments summary: {ex.Message}";
+            ErrorMessage = $"Failed to load outstanding payments: {ex.Message}";
         }
     }
 

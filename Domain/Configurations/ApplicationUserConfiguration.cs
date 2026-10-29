@@ -11,7 +11,15 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         builder.ToTable("AspNetUsers");
 
         builder.Property(u => u.Abbreviation)
-            .HasMaxLength(3); 
+            .HasMaxLength(3);
+
+        builder.Property(u => u.NotificationEmail)
+            .HasMaxLength(ApplicationUser.NotificationEmailMaxLength)
+            .IsRequired(false);
+
+        builder.Property(u => u.OrderRemindersEnabled)
+            .HasDefaultValue(false)
+            .IsRequired();
 
         builder.HasMany(u => u.Orders)
             .WithOne(o => o.User)

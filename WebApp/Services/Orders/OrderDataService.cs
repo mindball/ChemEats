@@ -137,6 +137,38 @@ public class OrderDataService : IOrderDataService
         return await response.Content.ReadFromJsonAsync<OrderPayResponseDto>();
     }
 
+    public async Task<OrderPayResponseDto?> PayAllUnpaidAsync(PayAllUnpaidRequestDto requestDto)
+    {
+        ArgumentNullException.ThrowIfNull(requestDto);
+
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync(ApiRoutes.AdminOrders.PayAllUnpaid(), requestDto);
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await response.Content.ReadFromJsonAsync<OrderPayResponseDto>();
+    }
+
+    public async Task<List<EmployeeOutstandingSummaryDto>?> GetOutstandingSummaryAsync(DateTime startDate, DateTime endDate, string? userId = null)
+    {
+        HttpResponseMessage response = await _httpClient.GetAsync(ApiRoutes.AdminOrders.OutstandingForPeriod(startDate, endDate, userId));
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await response.Content.ReadFromJsonAsync<List<EmployeeOutstandingSummaryDto>>() ?? [];
+    }
+
+    public async Task<List<EmployeeOutstandingSummaryDto>?> GetAllOutstandingAsync(string? userId = null)
+    {
+        HttpResponseMessage response = await _httpClient.GetAsync(ApiRoutes.AdminOrders.OutstandingAllDates(userId));
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await response.Content.ReadFromJsonAsync<List<EmployeeOutstandingSummaryDto>>() ?? [];
+    }
+
     public async Task<List<UserOrderItemDto>> GetMyOrdersByMenuAsync(Guid menuId)
     {
         List<UserOrderItemDto>? items =

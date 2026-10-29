@@ -1,10 +1,13 @@
 using System.Reflection;
 using Domain.Entities;
 using Domain.Infrastructure.Identity;
+using Domain.Models.Orders;
 using Domain.Repositories.MealOrders;
 using Domain.Repositories.Meals;
+using Domain.Repositories.Settings;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -188,6 +191,7 @@ public class OrdersEndpointsTests
             false,
             null,
             orderRepositoryMock.Object,
+            new Mock<ISettingsRepository>().Object,
             userManagerMock.Object,
             httpContext,
             mapperMock.Object,
@@ -195,6 +199,59 @@ public class OrdersEndpointsTests
             CancellationToken.None);
 
         AssertHttpResultType(result, "UnauthorizedHttpResult");
+    }
+
+    [Fact]
+    public async Task GetUserOrderItemsAsync_WhenOrderIsUnpaid_ShouldReturnItsExpectedPortion()
+    {
+        ApplicationUser user = new() { Id = "user-1", UserName = "user1" };
+        DateTime menuDate = DateTime.Today.AddDays(1);
+        Guid withPortion = Guid.NewGuid();
+        Guid withoutPortion = Guid.NewGuid();
+        UserOrderItem first = new(withPortion, user.Id, "User", Guid.NewGuid(), "Soup", Guid.NewGuid(), "A", DateTime.Now, menuDate, 8m, "Pending", false, false, 0m, 8m, false, null);
+        UserOrderItem second = new(withoutPortion, user.Id, "User", Guid.NewGuid(), "Bread", Guid.NewGuid(), "B", DateTime.Now, menuDate, 1m, "Pending", false, false, 0m, 1m, false, null);
+
+        Mock<IMealOrderRepository> orderRepositoryMock = new();
+        orderRepositoryMock.Setup(repository => repository.GetUserOrderItemsAsync(
+                user.Id, null, null, null, false, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([first, second]);
+        orderRepositoryMock.Setup(repository => repository.GetExpectedPortionsAsync(
+                user.Id, It.IsAny<IReadOnlyCollection<DateTime>>(), 2m, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Dictionary<Guid, decimal> { [withPortion] = 2m });
+
+        Mock<ISettingsRepository> settingsRepositoryMock = new();
+        settingsRepositoryMock.Setup(repository => repository.GetCompanyPortionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(2m);
+
+        Mock<UserManager<ApplicationUser>> userManagerMock = CreateUserManagerMock();
+        userManagerMock.Setup(manager => manager.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
+            .ReturnsAsync(user);
+
+        Mock<IMapper> mapperMock = new();
+        mapperMock.Setup(mapper => mapper.Map<UserOrderItemDto>(It.IsAny<UserOrderItem>()))
+            .Returns((UserOrderItem item) => new UserOrderItemDto(
+                item.OrderId, item.UserId, item.MealId, item.MealName, item.SupplierId, item.SupplierName,
+                item.OrderedAt, item.MenuDate, item.Price, item.Status, item.IsDeleted, item.PortionApplied,
+                item.PortionAmount, item.NetAmount));
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "GetUserOrderItemsAsync",
+            null,
+            null,
+            null,
+            false,
+            null,
+            orderRepositoryMock.Object,
+            settingsRepositoryMock.Object,
+            userManagerMock.Object,
+            CreateHttpContext("user1"),
+            mapperMock.Object,
+            CreateProgramLogger(),
+            CancellationToken.None);
+
+        Ok<List<UserOrderItemDto>> okResult = Assert.IsType<Ok<List<UserOrderItemDto>>>(result);
+        Assert.Equal(2m, okResult.Value!.Single(i => i.OrderId == withPortion).ExpectedPortionAmount);
+        Assert.Equal(0m, okResult.Value!.Single(i => i.OrderId == withoutPortion).ExpectedPortionAmount);
     }
 
     [Fact]

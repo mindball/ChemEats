@@ -1,8 +1,10 @@
-﻿namespace WebApp.Services.Menus;
+﻿using Shared.DTOs.Reports;
+
+namespace WebApp.Services.Menus;
 
 public interface IMenuReportService
 {
-    Task<byte[]> GenerateMenuReportAsync(
+    Task<MenuReportDto?> GetMenuReportAsync(
         Guid menuId,
         CancellationToken cancellationToken = default);
 }

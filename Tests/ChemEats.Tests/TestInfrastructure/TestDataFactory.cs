@@ -37,8 +37,23 @@ internal static class TestDataFactory
         return user;
     }
 
+    public static ApplicationUser CreateUserWithReminders(string userId, string code, string fullName, string notificationEmail)
+    {
+        ApplicationUser user = CreateUser(userId, code, fullName);
+        user.UpdateNotificationSettings(notificationEmail, true);
+        return user;
+    }
+
     public static MealOrder CreateOrder(string userId, Guid mealId, DateTime menuDate, decimal price)
     {
         return MealOrder.Create(userId, mealId, menuDate, price);
+    }
+
+    // An order whose menu was finalized; only these can be paid.
+    public static MealOrder CreateCompletedOrder(string userId, Guid mealId, DateTime menuDate, decimal price)
+    {
+        MealOrder order = MealOrder.Create(userId, mealId, menuDate, price);
+        order.MarkAsCompleted();
+        return order;
     }
 }

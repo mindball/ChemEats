@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.JSInterop;
 using Shared.Common.Enums;
 using Shared.DTOs.Employees;
 using Shared.DTOs.Orders;
@@ -12,11 +13,20 @@ namespace WebApp.Pages.AdminPanel;
 
 public class AdminPaymentsBase : ComponentBase
 {
+    public const string BasePageUrl = "/admin/payments";
+
+    public static string EmployeeAllUnpaidPageUrl(string userId) =>
+        $"{BasePageUrl}?userId={Uri.EscapeDataString(userId)}&allDates=true";
+
     [Inject] protected IOrderDataService OrderDataService { get; init; } = null!;
     [Inject] protected IEmployeeDataService EmployeeDataService { get; init; } = null!;
     [Inject] protected ISettingsDataService SettingsDataService { get; init; } = null!;
+    [Inject] protected IJSRuntime JsRuntime { get; init; } = null!;
 
     [CascadingParameter] protected Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
+
+    [SupplyParameterFromQuery(Name = "userId")] public string? QueryUserId { get; set; }
+    [SupplyParameterFromQuery(Name = "allDates")] public bool? QueryAllDates { get; set; }
 
     protected List<EmployeeDto>? AllEmployees { get; private set; }
     protected List<EmployeeDto> FilteredEmployees => FilterEmployees();
@@ -24,6 +34,9 @@ public class AdminPaymentsBase : ComponentBase
     protected string? SelectedUserId { get; set; }
     protected DateTime? StartDate { get; set; }
     protected DateTime? EndDate { get; set; }
+
+    // Ignore the date filter and show every unpaid order of the employee.
+    protected bool AllDates { get; set; }
     protected string PaymentStatusFilter { get; set; } = "All";
 
     protected List<UserOrderPaymentItemDto>? AllOrders { get; private set; }
@@ -37,12 +50,30 @@ public class AdminPaymentsBase : ComponentBase
 
     protected bool HasSelection => SelectedOrderIds.Count > 0;
 
+    // Outstanding totals for the selected employee up to the loaded end date, including orders before the start date.
+    protected EmployeeOutstandingSummaryDto? Outstanding { get; private set; }
+    protected DateTime? LoadedStartDate { get; private set; }
+    protected DateTime? LoadedEndDate { get; private set; }
+    protected bool LoadedAllDates { get; private set; }
+    protected bool HasLoadedRange => LoadedAllDates || LoadedEndDate.HasValue;
+    protected string PayAllScopeText =>
+        LoadedAllDates ? "regardless of date" : $"up to {LoadedEndDate:dd.MM.yyyy}";
+
+    protected int EarlierUnpaidCount => Outstanding?.EarlierUnpaidCount ?? 0;
+    protected decimal EarlierNetAmount => Outstanding?.EarlierNetAmount ?? 0m;
+    protected int UnpaidUpToEndCount => (Outstanding?.UnpaidCount ?? 0) + EarlierUnpaidCount;
+    protected decimal TotalDueUpToEnd => (Outstanding?.NetAmount ?? 0m) + EarlierNetAmount;
+
+    // Only completed orders (finalized menus) can be paid; pending and cancelled ones are shown but not selectable.
+    protected static bool IsPayable(UserOrderPaymentItemDto order) =>
+        order.PaymentStatus == PaymentStatusDto.Unpaid && order.IsCompleted;
+
     protected bool IsAllUnpaidSelected
     {
         get
         {
             List<UserOrderPaymentItemDto> unpaid = FilteredOrders
-                .Where(o => o.PaymentStatus == PaymentStatusDto.Unpaid)
+                .Where(IsPayable)
                 .ToList();
             return unpaid.Count > 0 && unpaid.All(o => SelectedOrderIds.Contains(o.OrderId));
         }
@@ -94,9 +125,9 @@ public class AdminPaymentsBase : ComponentBase
 
     protected int TotalOrders => FilteredOrders.Count;
     protected int PaidOrders => FilteredOrders.Count(o => o.PaymentStatus == PaymentStatusDto.Paid);
-    protected int UnpaidOrders => FilteredOrders.Count(o => o.PaymentStatus == PaymentStatusDto.Unpaid);
+    protected int UnpaidOrders => FilteredOrders.Count(IsPayable);
     protected decimal TotalPaid => FilteredOrders.Where(o => o.PaymentStatus == PaymentStatusDto.Paid).Sum(o => o.NetAmount);
-    protected decimal TotalUnpaid => FilteredOrders.Where(o => o.PaymentStatus == PaymentStatusDto.Unpaid).Sum(o => o.NetAmount);
+    protected decimal TotalUnpaid => FilteredOrders.Where(IsPayable).Sum(o => o.NetAmount);
 
     protected override async Task OnInitializedAsync()
     {
@@ -112,7 +143,7 @@ public class AdminPaymentsBase : ComponentBase
 
             // Default: current month
             StartDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
-            EndDate = DateTime.Today;
+            EndDate = StartDate.Value.AddMonths(1).AddDays(-1);
         }
         catch (Exception ex)
         {
@@ -121,6 +152,14 @@ public class AdminPaymentsBase : ComponentBase
         finally
         {
             IsLoading = false;
+        }
+
+        // Deep link from the Control Panel: open an employee's unpaid orders directly.
+        if (!string.IsNullOrWhiteSpace(QueryUserId))
+        {
+            SelectedUserId = QueryUserId;
+            AllDates = QueryAllDates == true;
+            await SearchOrdersAsync();
         }
     }
 
@@ -144,6 +183,13 @@ public class AdminPaymentsBase : ComponentBase
 
     protected async Task SearchOrdersAsync()
     {
+        SuccessMessage = null;
+        await LoadOrdersAsync();
+    }
+
+    // Keeps SuccessMessage so a payment confirmation survives the refresh that follows it.
+    private async Task LoadOrdersAsync()
+    {
         if (string.IsNullOrWhiteSpace(SelectedUserId))
         {
             ErrorMessage = "Please select an employee.";
@@ -152,19 +198,45 @@ public class AdminPaymentsBase : ComponentBase
 
         IsLoading = true;
         ErrorMessage = null;
-        SuccessMessage = null;
         AllOrders = null;
+        Outstanding = null;
+        LoadedStartDate = null;
+        LoadedEndDate = null;
+        LoadedAllDates = false;
         SelectedOrderIds.Clear();
 
         try
         {
-            AllOrders = await OrderDataService.GetOrdersByUserForPeriodAsync(
-                SelectedUserId,
-                StartDate,
-                EndDate);
+            List<EmployeeOutstandingSummaryDto>? outstanding;
 
-            if (AllOrders.Count == 0)
-                SuccessMessage = "No orders found for this period.";
+            if (AllDates)
+            {
+                AllOrders = await OrderDataService.GetUnpaidOrdersByUserAsync(SelectedUserId);
+                outstanding = await OrderDataService.GetAllOutstandingAsync(SelectedUserId);
+                LoadedAllDates = true;
+                PaymentStatusFilter = "All";
+            }
+            else
+            {
+                AllOrders = await OrderDataService.GetOrdersByUserForPeriodAsync(
+                    SelectedUserId,
+                    StartDate,
+                    EndDate);
+
+                LoadedStartDate = StartDate?.Date;
+                LoadedEndDate = (EndDate ?? DateTime.Today).Date;
+                DateTime outstandingStart = LoadedStartDate ?? DateTime.MinValue.Date;
+
+                outstanding = await OrderDataService.GetOutstandingSummaryAsync(
+                    outstandingStart,
+                    LoadedEndDate.Value,
+                    SelectedUserId);
+            }
+
+            Outstanding = outstanding?.FirstOrDefault(s => s.UserId == SelectedUserId);
+
+            if (AllOrders.Count == 0 && EarlierUnpaidCount == 0)
+                SuccessMessage ??= LoadedAllDates ? "No unpaid orders." : "No orders found for this period.";
         }
         catch (Exception ex)
         {
@@ -184,7 +256,7 @@ public class AdminPaymentsBase : ComponentBase
         return PaymentStatusFilter switch
         {
             "Paid" => AllOrders.Where(o => o.PaymentStatus == PaymentStatusDto.Paid).ToList(),
-            "Unpaid" => AllOrders.Where(o => o.PaymentStatus == PaymentStatusDto.Unpaid).ToList(),
+            "Unpaid" => AllOrders.Where(IsPayable).ToList(),
             _ => AllOrders
         };
     }
@@ -210,7 +282,7 @@ public class AdminPaymentsBase : ComponentBase
     protected void SelectAll()
     {
         SelectedOrderIds = FilteredOrders
-            .Where(o => o.PaymentStatus == PaymentStatusDto.Unpaid)
+            .Where(IsPayable)
             .Select(o => o.OrderId)
             .ToHashSet();
 
@@ -246,8 +318,50 @@ public class AdminPaymentsBase : ComponentBase
             SuccessMessage = $"Successfully marked {result.PaidCount} orders as paid. Total: {FormatEuro(result.TotalPaid)}";
             SelectedOrderIds.Clear();
 
-            // Refresh the list
-            await SearchOrdersAsync();
+            await LoadOrdersAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Payment processing failed: {ex.Message}";
+        }
+        finally
+        {
+            IsProcessing = false;
+        }
+    }
+
+    protected async Task PayAllUnpaidAsync()
+    {
+        if (string.IsNullOrWhiteSpace(SelectedUserId) || !HasLoadedRange || UnpaidUpToEndCount == 0)
+            return;
+
+        string employeeName = AllEmployees?.FirstOrDefault(e => e.UserId == SelectedUserId)?.FullName ?? SelectedUserId;
+        bool confirmed = await JsRuntime.InvokeAsync<bool>(
+            "confirm",
+            $"Mark all {UnpaidUpToEndCount} unpaid orders of {employeeName} {PayAllScopeText} as paid?\nTotal: {FormatEuro(TotalDueUpToEnd)}");
+
+        if (!confirmed)
+            return;
+
+        IsProcessing = true;
+        ErrorMessage = null;
+        SuccessMessage = null;
+
+        try
+        {
+            OrderPayResponseDto? result = await OrderDataService.PayAllUnpaidAsync(
+                new PayAllUnpaidRequestDto(SelectedUserId, LoadedAllDates ? null : LoadedEndDate));
+
+            if (result is null)
+            {
+                ErrorMessage = "Failed to process payment. Please try again.";
+                return;
+            }
+
+            SuccessMessage = $"Successfully marked {result.PaidCount} orders as paid. Total: {FormatEuro(result.TotalPaid)}";
+            SelectedOrderIds.Clear();
+
+            await LoadOrdersAsync();
         }
         catch (Exception ex)
         {
@@ -267,7 +381,7 @@ public class AdminPaymentsBase : ComponentBase
             return map;
 
         List<UserOrderPaymentItemDto> selectedUnpaid = FilteredOrders
-            .Where(o => SelectedOrderIds.Contains(o.OrderId) && o.PaymentStatus == PaymentStatusDto.Unpaid)
+            .Where(o => SelectedOrderIds.Contains(o.OrderId) && IsPayable(o))
             .ToList();
 
         HashSet<DateOnly> datesAlreadyWithPortion = FilteredOrders
@@ -281,12 +395,14 @@ public class AdminPaymentsBase : ComponentBase
             if (datesAlreadyWithPortion.Contains(group.Key))
                 continue;
 
-            UserOrderPaymentItemDto? firstOrder = group.FirstOrDefault();
-            if (firstOrder is not null)
-            {
-                map[firstOrder.OrderId] = Math.Min(PortionAmount, firstOrder.Price);
-                datesAlreadyWithPortion.Add(group.Key);
-            }
+            // Same rule as the server: the portion goes to the most expensive order of the day.
+            UserOrderPaymentItemDto mostExpensive = group
+                .OrderByDescending(o => o.Price)
+                .ThenBy(o => o.OrderedAt)
+                .First();
+
+            map[mostExpensive.OrderId] = Math.Min(PortionAmount, mostExpensive.Price);
+            datesAlreadyWithPortion.Add(group.Key);
         }
 
         return map;

@@ -1,0 +1,111 @@
+@page "/reports/outstanding"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@layout PrintLayout
+@using Shared.DTOs.Orders
+@inherits OutstandingReportBase
+
+<PageTitle>@DocumentTitle</PageTitle>
+
+<div class="report-toolbar d-print-none">
+    <button class="btn btn-outline-secondary" @onclick="GoBack">
+        <i class="bi bi-arrow-left me-1"></i>Back
+    </button>
+    <button class="btn btn-primary" @onclick="PrintAsync" disabled="@(Summaries is null)">
+        <i class="bi bi-printer me-1"></i>Print / Save as PDF
+    </button>
+</div>
+
+@if (IsLoading)
+{
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger report-message">@ErrorMessage</div>
+}
+else if (Summaries is not null)
+{
+    <article class="report-sheet">
+        <h1 class="report-title">Outstanding Payments</h1>
+
+        <section class="report-box report-box-info">
+            <div class="report-box-row">
+                <span class="report-label">Period (menu date):</span>
+                <span class="report-period">@PeriodText</span>
+            </div>
+            <div class="report-box-row">
+                <span class="report-label">Employees with unpaid orders:</span>
+                <span>@Summaries.Count</span>
+            </div>
+        </section>
+
+        @if (Summaries.Count == 0)
+        {
+            <p class="report-empty">No unpaid orders for this period.</p>
+        }
+        else
+        {
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th class="col-index">№</th>
+                        <th>Employee</th>
+                        <th class="text-end">Unpaid Orders</th>
+                        <th class="text-end">Gross</th>
+                        <th class="text-end">Company Portion</th>
+                        <th class="text-end">Balance Owed</th>
+                        <th class="text-end">Earlier</th>
+                        <th class="text-end">Total Due</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Summaries.Count; i++)
+                    {
+                        EmployeeOutstandingSummaryDto summary = Summaries[i];
+                        <tr>
+                            <td class="col-index">@(i + 1)</td>
+                            <td>@summary.EmployeeName</td>
+                            <td class="text-end">@summary.UnpaidCount</td>
+                            <td class="text-end">@summary.GrossAmount.ToString("0.00 €")</td>
+                            <td class="text-end">@summary.PortionAmount.ToString("0.00 €")</td>
+                            <td class="text-end">@summary.NetAmount.ToString("0.00 €")</td>
+                            <td class="text-end">@summary.EarlierNetAmount.ToString("0.00 €")</td>
+                            <td class="text-end">@((summary.NetAmount + summary.EarlierNetAmount).ToString("0.00 €"))</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="report-total-row">
+                        <td colspan="2">Grand Total</td>
+                        <td class="text-end">@TotalUnpaidCount</td>
+                        <td class="text-end">@TotalGrossAmount.ToString("0.00 €")</td>
+                        <td class="text-end">@TotalPortionAmount.ToString("0.00 €")</td>
+                        <td class="text-end">@TotalNetAmount.ToString("0.00 €")</td>
+                        <td class="text-end">@TotalEarlierNetAmount.ToString("0.00 €")</td>
+                        <td class="text-end">@GrandTotalDue.ToString("0.00 €")</td>
+                    </tr>
+                </tfoot>
+            </table>
+        }
+
+        <section class="report-box report-box-summary">
+            <div class="report-box-row report-total">
+                <span class="report-label">Total Due:</span>
+                <span class="text-end report-total-amount">@GrandTotalDue.ToString("0.00 €")</span>
+            </div>
+        </section>
+
+        <p class="report-note">
+            Only completed orders (finalized menus) are counted; paid, pending, cancelled and deleted orders are excluded. The company portion is applied once per employee per day at payment; unpaid days show the expected portion.
+            "Earlier" is unpaid orders before the start date.
+        </p>
+
+        <footer class="report-footer">
+            Generated on <strong>@GeneratedAt.ToString("dd.MM.yyyy HH:mm")</strong>
+        </footer>
+    </article>
+}

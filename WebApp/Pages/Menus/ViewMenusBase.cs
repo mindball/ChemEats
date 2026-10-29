@@ -5,6 +5,7 @@ using Shared.DTOs.Suppliers;
 using System.Globalization;
 using Microsoft.AspNetCore.Components.Authorization;
 using WebApp.Infrastructure.States;
+using WebApp.Pages.Reports;
 using WebApp.Services.Menus;
 using WebApp.Services.Suppliers;
 
@@ -16,7 +17,7 @@ public partial class ViewMenusBase : ComponentBase
     [Inject] protected IJSRuntime JsRuntime { get; set; } = null!;
     [Inject] protected ISupplierDataService SupplierDataService { get; init; } = null!;
     [Inject] protected CustomAuthStateProvider AuthProvider { get; init; } = null!;
-    [Inject] protected IMenuReportService MenuReportService { get; set; } = null!;
+    [Inject] protected NavigationManager NavigationManager { get; set; } = null!;
 
     protected IReadOnlyList<MenuDto>? Menus { get; private set; }
     protected List<SupplierDto> Suppliers { get; private set; } = [];
@@ -31,7 +32,6 @@ public partial class ViewMenusBase : ComponentBase
 
     protected string? ErrorMessage { get; set; }
     protected bool IsLoading { get; private set; }
-    protected Guid? ReportLoadingMenuId { get; private set; }
 
     protected int CurrentPage { get; private set; } = 1;
     protected int PageSize { get; } = 5;
@@ -121,35 +121,10 @@ public partial class ViewMenusBase : ComponentBase
         return $"{capitalizedDay} {date:dd.MM.yyyy'г.'}";
     }
 
-    protected async Task DownloadReportAsync(Guid menuId)
+    // Same tab on purpose: the auth token lives in sessionStorage, which a new tab may not inherit.
+    protected void OpenReport(Guid menuId)
     {
-        try
-        {
-            ReportLoadingMenuId = menuId;
-            ErrorMessage = null;
-
-            byte[] pdfBytes = await MenuReportService.GenerateMenuReportAsync(menuId);
-
-            string fileName = $"menu-report-{menuId:N}-{DateTime.Now:yyyyMMdd}.pdf";
-
-            await JsRuntime.InvokeVoidAsync(
-                "downloadFile",
-                fileName,
-                Convert.ToBase64String(pdfBytes),
-                "application/pdf");
-        }
-        catch (ApplicationException ex)
-        {
-            ErrorMessage = ex.Message;
-        }
-        catch (Exception)
-        {
-            ErrorMessage = "Unexpected error while generating report.";
-        }
-        finally
-        {
-            ReportLoadingMenuId = null;
-        }
+        NavigationManager.NavigateTo(MenuReportBase.PageUrl(menuId));
     }
 
     protected async Task EditDateAsync(Guid id, DateTime current)

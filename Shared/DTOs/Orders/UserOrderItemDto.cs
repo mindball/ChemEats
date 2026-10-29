@@ -26,5 +26,8 @@ public sealed record UserOrderItemDto(
     bool IsDeleted,
     bool PortionApplied,   // New
     decimal PortionAmount, // New
-    decimal NetAmount      // New
+    decimal NetAmount,     // New
+    bool IsPaid = false,
+    DateTime? PaidOn = null,
+    decimal ExpectedPortionAmount = 0m
 );

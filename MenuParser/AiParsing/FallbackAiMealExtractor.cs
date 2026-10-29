@@ -1,4 +1,4 @@
-using MenuParser.Abstractions;
+﻿using MenuParser.Abstractions;
 using MenuParser.Models;
 using Microsoft.Extensions.Logging;
 
@@ -10,13 +10,13 @@ public class FallbackAiMealExtractor : IAiMealExtractor
 
     private readonly OllamaMealExtractor _primary;
     private readonly GroqMealExtractor _firstFallback;
-    private readonly SambaNovaMealExtractor _secondFallback;
+    private readonly GeminiMealExtractor _secondFallback;
     private readonly ILogger<FallbackAiMealExtractor> _logger;
 
     public FallbackAiMealExtractor(
         OllamaMealExtractor primary,
         GroqMealExtractor firstFallback,
-        SambaNovaMealExtractor secondFallback,
+        GeminiMealExtractor secondFallback,
         ILogger<FallbackAiMealExtractor> logger)
     {
         _primary = primary;
@@ -73,7 +73,7 @@ public class FallbackAiMealExtractor : IAiMealExtractor
         catch (Exception firstFallbackException)
         {
             _logger.LogWarning(firstFallbackException,
-                "Groq extraction failed, activating SambaNova fallback");
+                "Groq extraction failed, activating Gemini fallback");
 
             return await _secondFallback.ExtractMealsAsync(textContent, cancellationToken);
         }
