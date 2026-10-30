@@ -2,8 +2,10 @@
 
 namespace Domain.Entities;
 
-public class Meal 
+public class Meal
 {
+    public const int NameMaxLength = 300;
+
     private Meal() { }
 
     internal Meal(Guid id, Guid menuId, string name, Price price)
@@ -29,7 +31,11 @@ public class Meal
 
         ArgumentNullException.ThrowIfNull(price);
 
-        return new Meal(Guid.NewGuid(), menuId, name.Trim(), price);
+        string trimmedName = name.Trim();
+        if (trimmedName.Length > NameMaxLength)
+            throw new DomainException($"Meal name cannot be longer than {NameMaxLength} characters: \"{trimmedName[..50]}...\"");
+
+        return new Meal(Guid.NewGuid(), menuId, trimmedName, price);
     }
 
     public void ChangePrice(Price newPrice)

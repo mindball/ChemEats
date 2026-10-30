@@ -32,8 +32,8 @@ namespace WebApi.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("VARCHAR(100)");
+                        .HasMaxLength(300)
+                        .HasColumnType("VARCHAR(300)");
 
                     b.HasKey("Id");
 
