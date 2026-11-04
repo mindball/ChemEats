@@ -5,14 +5,16 @@ namespace ChemEats.Tests.Domain.Entities;
 
 public class OtherObligationTests
 {
+    private static readonly ObligationType Toner = ObligationType.Create("Printer toner");
+
     [Fact]
-    public void Create_WhenInputIsValid_ShouldCreateUnpaidObligationWithTrimmedDescriptionAndDateOnly()
+    public void Create_WhenInputIsValid_ShouldCreateUnpaidObligationWithTypeSnapshotAndDateOnly()
     {
         DateTime createdAt = new(2026, 11, 3, 9, 15, 0);
 
         OtherObligation obligation = OtherObligation.Create(
             "user-1",
-            "  Printer toner  ",
+            Toner,
             12.50m,
             new DateTime(2026, 11, 2, 17, 45, 0),
             createdAt,
@@ -20,6 +22,7 @@ public class OtherObligationTests
 
         Assert.NotEqual(Guid.Empty, obligation.Id);
         Assert.Equal("user-1", obligation.UserId);
+        Assert.Equal(Toner.Id, obligation.ObligationTypeId);
         Assert.Equal("Printer toner", obligation.Description);
         Assert.Equal(12.50m, obligation.Amount);
         Assert.Equal(new DateTime(2026, 11, 2), obligation.Date);
@@ -31,41 +34,60 @@ public class OtherObligationTests
     }
 
     [Theory]
-    [InlineData("", "Toner", 1, "admin-1")]
-    [InlineData("user-1", "", 1, "admin-1")]
-    [InlineData("user-1", "   ", 1, "admin-1")]
-    [InlineData("user-1", "Toner", 0, "admin-1")]
-    [InlineData("user-1", "Toner", -5, "admin-1")]
-    [InlineData("user-1", "Toner", 1, "")]
-    public void Create_WhenInputIsInvalid_ShouldThrowDomainException(string userId, string description, int amount, string createdBy)
+    [InlineData("", 1, "admin-1")]
+    [InlineData("user-1", 0, "admin-1")]
+    [InlineData("user-1", -5, "admin-1")]
+    [InlineData("user-1", 1, "")]
+    public void Create_WhenInputIsInvalid_ShouldThrowDomainException(string userId, int amount, string createdBy)
     {
         Assert.Throws<DomainException>(() =>
-            OtherObligation.Create(userId, description, amount, DateTime.Today, DateTime.Now, createdBy));
+            OtherObligation.Create(userId, Toner, amount, DateTime.Today, DateTime.Now, createdBy));
+    }
+
+    [Fact]
+    public void Create_WhenTypeIsMissing_ShouldThrowDomainException()
+    {
+        Assert.Throws<DomainException>(() =>
+            OtherObligation.Create("user-1", null!, 1m, DateTime.Today, DateTime.Now, "admin-1"));
+    }
+
+    [Fact]
+    public void Create_WhenTypeIsDeleted_ShouldThrowDomainException()
+    {
+        ObligationType deletedType = ObligationType.Create("Old type");
+        deletedType.SoftDelete();
+
+        Assert.Throws<DomainException>(() =>
+            OtherObligation.Create("user-1", deletedType, 1m, DateTime.Today, DateTime.Now, "admin-1"));
     }
 
     [Fact]
     public void Create_WhenAmountHasMoreThanTwoDecimals_ShouldThrowDomainException()
     {
         Assert.Throws<DomainException>(() =>
-            OtherObligation.Create("user-1", "Toner", 1.005m, DateTime.Today, DateTime.Now, "admin-1"));
+            OtherObligation.Create("user-1", Toner, 1.005m, DateTime.Today, DateTime.Now, "admin-1"));
     }
 
     [Fact]
-    public void Create_WhenDescriptionIsTooLong_ShouldThrowDomainException()
+    public void Create_WhenTypeIsRenamedLater_ShouldKeepOriginalDescription()
     {
-        string description = new('x', OtherObligation.DescriptionMaxLength + 1);
+        ObligationType type = ObligationType.Create("Keyboard");
+        OtherObligation obligation = OtherObligation.Create("user-1", type, 10m, DateTime.Today, DateTime.Now, "admin-1");
 
-        Assert.Throws<DomainException>(() =>
-            OtherObligation.Create("user-1", description, 1m, DateTime.Today, DateTime.Now, "admin-1"));
+        type.Rename("Wireless keyboard");
+
+        Assert.Equal("Keyboard", obligation.Description);
     }
 
     [Fact]
-    public void Update_WhenUnpaid_ShouldChangeDescriptionAmountAndDate()
+    public void Update_WhenUnpaid_ShouldChangeTypeAmountAndDate()
     {
         OtherObligation obligation = CreateObligation();
+        ObligationType keyboard = ObligationType.Create("Keyboard");
 
-        obligation.Update(" Keyboard ", 30m, new DateTime(2026, 10, 15, 8, 0, 0));
+        obligation.Update(keyboard, 30m, new DateTime(2026, 10, 15, 8, 0, 0));
 
+        Assert.Equal(keyboard.Id, obligation.ObligationTypeId);
         Assert.Equal("Keyboard", obligation.Description);
         Assert.Equal(30m, obligation.Amount);
         Assert.Equal(new DateTime(2026, 10, 15), obligation.Date);
@@ -77,7 +99,7 @@ public class OtherObligationTests
         OtherObligation obligation = CreateObligation();
         obligation.MarkAsPaid(DateTime.Now, "admin-1");
 
-        Assert.Throws<DomainException>(() => obligation.Update("Keyboard", 30m, DateTime.Today));
+        Assert.Throws<DomainException>(() => obligation.Update(Toner, 30m, DateTime.Today));
     }
 
     [Fact]
@@ -86,7 +108,7 @@ public class OtherObligationTests
         OtherObligation obligation = CreateObligation();
         obligation.SoftDelete();
 
-        Assert.Throws<DomainException>(() => obligation.Update("Keyboard", 30m, DateTime.Today));
+        Assert.Throws<DomainException>(() => obligation.Update(Toner, 30m, DateTime.Today));
     }
 
     [Fact]
@@ -94,7 +116,7 @@ public class OtherObligationTests
     {
         OtherObligation obligation = CreateObligation();
 
-        Assert.Throws<DomainException>(() => obligation.Update("Keyboard", 0m, DateTime.Today));
+        Assert.Throws<DomainException>(() => obligation.Update(Toner, 0m, DateTime.Today));
     }
 
     [Fact]
@@ -165,5 +187,5 @@ public class OtherObligationTests
     }
 
     private static OtherObligation CreateObligation() =>
-        OtherObligation.Create("user-1", "Printer toner", 12.5m, DateTime.Today, DateTime.Now, "admin-1");
+        OtherObligation.Create("user-1", Toner, 12.5m, DateTime.Today, DateTime.Now, "admin-1");
 }

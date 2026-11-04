@@ -12,7 +12,6 @@ namespace WebApp.Pages.AdminPanel;
 public class AdminObligationsBase : ComponentBase
 {
     public const string BasePageUrl = "/admin/payments/obligations";
-    public const int DescriptionMaxLength = 300;
 
     public static string EmployeeUnpaidPageUrl(string userId, DateTime? upToDate) =>
         upToDate.HasValue
@@ -20,6 +19,7 @@ public class AdminObligationsBase : ComponentBase
             : $"{BasePageUrl}?userId={Uri.EscapeDataString(userId)}&allDates=true";
 
     [Inject] protected IObligationDataService ObligationDataService { get; init; } = null!;
+    [Inject] protected IObligationTypeDataService ObligationTypeDataService { get; init; } = null!;
     [Inject] protected IEmployeeDataService EmployeeDataService { get; init; } = null!;
     [Inject] protected IJSRuntime JsRuntime { get; init; } = null!;
 
@@ -28,6 +28,7 @@ public class AdminObligationsBase : ComponentBase
     [SupplyParameterFromQuery(Name = "allDates")] public bool? QueryAllDates { get; set; }
 
     protected List<EmployeeDto>? AllEmployees { get; private set; }
+    protected List<ObligationTypeDto> ObligationTypes { get; private set; } = [];
     protected List<EmployeeDto> FilteredEmployees => FilterEmployees();
     protected string? SearchTerm { get; set; }
     protected string? SelectedUserId { get; set; }
@@ -55,7 +56,14 @@ public class AdminObligationsBase : ComponentBase
 
     // Add / edit form; EditingId is null while adding a new obligation.
     protected Guid? EditingId { get; private set; }
-    protected string? FormDescription { get; set; }
+    protected Guid? FormTypeId { get; set; }
+
+    // String view of FormTypeId for the <select> binding; an empty value means "not selected".
+    protected string FormTypeValue
+    {
+        get => FormTypeId?.ToString() ?? string.Empty;
+        set => FormTypeId = Guid.TryParse(value, out Guid id) ? id : null;
+    }
     protected decimal? FormAmount { get; set; }
     protected DateTime? FormDate { get; set; }
 
@@ -84,6 +92,11 @@ public class AdminObligationsBase : ComponentBase
         {
             List<EmployeeDto> employees = await EmployeeDataService.GetAllEmployeesAsync();
             AllEmployees = employees.OrderBy(e => e.FullName).ToList();
+
+            List<ObligationTypeDto>? types = await ObligationTypeDataService.GetObligationTypesAsync();
+            if (types is null)
+                ErrorMessage = "Failed to load the expense types.";
+            ObligationTypes = types ?? [];
 
             // Default: current month
             StartDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
@@ -203,7 +216,8 @@ public class AdminObligationsBase : ComponentBase
             return;
 
         EditingId = obligation.Id;
-        FormDescription = obligation.Description;
+        // A deleted (or missing) type is not in the list, so the admin has to pick a current one.
+        FormTypeId = ObligationTypes.Any(t => t.Id == obligation.ObligationTypeId) ? obligation.ObligationTypeId : null;
         FormAmount = obligation.Amount;
         FormDate = obligation.Date.Date;
     }
@@ -211,18 +225,15 @@ public class AdminObligationsBase : ComponentBase
     protected void ResetForm()
     {
         EditingId = null;
-        FormDescription = null;
+        FormTypeId = null;
         FormAmount = null;
         FormDate = DateTime.Today;
     }
 
     protected string? ValidateForm()
     {
-        if (string.IsNullOrWhiteSpace(FormDescription))
-            return "Description is required.";
-
-        if (FormDescription.Trim().Length > DescriptionMaxLength)
-            return $"Description cannot be longer than {DescriptionMaxLength} characters.";
+        if (!FormTypeId.HasValue || ObligationTypes.All(t => t.Id != FormTypeId.Value))
+            return "Please select an expense type.";
 
         if (!FormAmount.HasValue || FormAmount.Value <= 0m)
             return "Amount must be greater than zero.";
@@ -254,13 +265,13 @@ public class AdminObligationsBase : ComponentBase
 
         try
         {
-            string description = FormDescription!.Trim();
+            Guid typeId = FormTypeId!.Value;
             OtherObligationDto? saved = EditingId.HasValue
                 ? await ObligationDataService.UpdateObligationAsync(
                     EditingId.Value,
-                    new UpdateOtherObligationDto(description, FormAmount!.Value, FormDate!.Value.Date))
+                    new UpdateOtherObligationDto(typeId, FormAmount!.Value, FormDate!.Value.Date))
                 : await ObligationDataService.CreateObligationAsync(
-                    new CreateOtherObligationDto(LoadedUserId, description, FormAmount!.Value, FormDate!.Value.Date));
+                    new CreateOtherObligationDto(LoadedUserId, typeId, FormAmount!.Value, FormDate!.Value.Date));
 
             if (saved is null)
             {

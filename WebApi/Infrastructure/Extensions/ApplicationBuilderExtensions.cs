@@ -71,6 +71,7 @@ public static class ApplicationBuilderExtensions
         app.MapAdminMealOrderEndpoints();
         app.MapObligationEndpoints();
         app.MapAdminObligationEndpoints();
+        app.MapAdminObligationTypeEndpoints();
         app.EmailEndpoints();
         app.MapSettingsEndpoints();
         app.MapAdminMenuEndpoints();

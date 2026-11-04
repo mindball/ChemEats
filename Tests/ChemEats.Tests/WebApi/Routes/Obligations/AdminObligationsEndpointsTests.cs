@@ -20,10 +20,12 @@ public class AdminObligationsEndpointsTests
     private static readonly ApplicationUser Admin = new() { Id = "admin-id", UserName = "admin" };
     private static readonly ApplicationUser Employee = new() { Id = "user-1", UserName = "U1" };
 
+    private static readonly ObligationType Toner = ObligationType.Create("Printer toner");
+
     [Fact]
-    public async Task CreateObligationAsync_WhenRequestIsValid_ShouldCreateAsAdminAndReturnCreated()
+    public async Task CreateObligationAsync_WhenRequestIsValid_ShouldCreateFromTypeAsAdminAndReturnCreated()
     {
-        CreateOtherObligationDto request = new("user-1", "Printer toner", 12.5m, new DateTime(2026, 11, 2));
+        CreateOtherObligationDto request = new("user-1", Toner.Id, 12.5m, new DateTime(2026, 11, 2));
         OtherObligation? added = null;
 
         Mock<IOtherObligationRepository> repositoryMock = new();
@@ -41,6 +43,7 @@ public class AdminObligationsEndpointsTests
             "CreateObligationAsync",
             request,
             repositoryMock.Object,
+            CreateTypeRepositoryMock(Toner).Object,
             CreateUserManagerMock(Admin, Employee).Object,
             CreateHttpContext("admin"),
             mapperMock.Object,
@@ -50,6 +53,8 @@ public class AdminObligationsEndpointsTests
         Created<OtherObligationDto> created = Assert.IsType<Created<OtherObligationDto>>(result);
         Assert.NotNull(added);
         Assert.Equal("user-1", added.UserId);
+        Assert.Equal(Toner.Id, added.ObligationTypeId);
+        Assert.Equal("Printer toner", added.Description);
         Assert.Equal("admin-id", added.CreatedByUserId);
         Assert.Equal(12.5m, added.Amount);
         Assert.Equal(added.Id, created.Value!.Id);
@@ -57,19 +62,41 @@ public class AdminObligationsEndpointsTests
     }
 
     [Theory]
-    [InlineData("", "Toner", 10)]
-    [InlineData("user-1", "", 10)]
-    [InlineData("user-1", "Toner", 0)]
-    [InlineData("user-1", "Toner", -1)]
-    public async Task CreateObligationAsync_WhenRequestIsInvalid_ShouldReturnBadRequest(string userId, string description, int amount)
+    [InlineData("", true, 10)]
+    [InlineData("user-1", false, 10)]
+    [InlineData("user-1", true, 0)]
+    [InlineData("user-1", true, -1)]
+    public async Task CreateObligationAsync_WhenRequestIsInvalid_ShouldReturnBadRequest(string userId, bool hasType, int amount)
     {
-        CreateOtherObligationDto request = new(userId, description, amount, DateTime.Today);
+        CreateOtherObligationDto request = new(userId, hasType ? Toner.Id : Guid.Empty, amount, DateTime.Today);
         Mock<IOtherObligationRepository> repositoryMock = new();
 
         IResult result = await InvokePrivateResultMethodAsync(
             "CreateObligationAsync",
             request,
             repositoryMock.Object,
+            CreateTypeRepositoryMock(Toner).Object,
+            CreateUserManagerMock(Admin, Employee).Object,
+            CreateHttpContext("admin"),
+            new Mock<IMapper>().Object,
+            CreateProgramLogger(),
+            CancellationToken.None);
+
+        AssertHttpResultType(result, "BadRequest");
+        repositoryMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task CreateObligationAsync_WhenTypeDoesNotExist_ShouldReturnBadRequest()
+    {
+        CreateOtherObligationDto request = new("user-1", Guid.NewGuid(), 10m, DateTime.Today);
+        Mock<IOtherObligationRepository> repositoryMock = new();
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "CreateObligationAsync",
+            request,
+            repositoryMock.Object,
+            CreateTypeRepositoryMock(Toner).Object,
             CreateUserManagerMock(Admin, Employee).Object,
             CreateHttpContext("admin"),
             new Mock<IMapper>().Object,
@@ -87,6 +114,7 @@ public class AdminObligationsEndpointsTests
             "CreateObligationAsync",
             null,
             new Mock<IOtherObligationRepository>().Object,
+            CreateTypeRepositoryMock(Toner).Object,
             CreateUserManagerMock(Admin, Employee).Object,
             CreateHttpContext("admin"),
             new Mock<IMapper>().Object,
@@ -99,13 +127,14 @@ public class AdminObligationsEndpointsTests
     [Fact]
     public async Task CreateObligationAsync_WhenEmployeeDoesNotExist_ShouldReturnNotFound()
     {
-        CreateOtherObligationDto request = new("missing-user", "Toner", 10m, DateTime.Today);
+        CreateOtherObligationDto request = new("missing-user", Toner.Id, 10m, DateTime.Today);
         Mock<IOtherObligationRepository> repositoryMock = new();
 
         IResult result = await InvokePrivateResultMethodAsync(
             "CreateObligationAsync",
             request,
             repositoryMock.Object,
+            CreateTypeRepositoryMock(Toner).Object,
             CreateUserManagerMock(Admin, Employee).Object,
             CreateHttpContext("admin"),
             new Mock<IMapper>().Object,
@@ -119,13 +148,14 @@ public class AdminObligationsEndpointsTests
     [Fact]
     public async Task CreateObligationAsync_WhenAdminIsUnauthorized_ShouldReturnUnauthorized()
     {
-        CreateOtherObligationDto request = new("user-1", "Toner", 10m, DateTime.Today);
+        CreateOtherObligationDto request = new("user-1", Toner.Id, 10m, DateTime.Today);
         Mock<IOtherObligationRepository> repositoryMock = new();
 
         IResult result = await InvokePrivateResultMethodAsync(
             "CreateObligationAsync",
             request,
             repositoryMock.Object,
+            CreateTypeRepositoryMock(Toner).Object,
             CreateUserManagerMock(null, Employee).Object,
             CreateHttpContext("admin"),
             new Mock<IMapper>().Object,
@@ -137,13 +167,18 @@ public class AdminObligationsEndpointsTests
     }
 
     [Fact]
-    public async Task UpdateObligationAsync_WhenObligationExists_ShouldReturnOkWithUpdatedDto()
+    public async Task UpdateObligationAsync_WhenObligationExists_ShouldUpdateWithTypeAndReturnOk()
     {
         Guid obligationId = Guid.NewGuid();
-        UpdateOtherObligationDto request = new("Keyboard", 30m, new DateTime(2026, 10, 7));
+        UpdateOtherObligationDto request = new(Toner.Id, 30m, new DateTime(2026, 10, 7));
 
         Mock<IOtherObligationRepository> repositoryMock = new();
-        repositoryMock.Setup(repository => repository.UpdateAsync(obligationId, "Keyboard", 30m, new DateTime(2026, 10, 7), It.IsAny<CancellationToken>()))
+        repositoryMock.Setup(repository => repository.UpdateAsync(
+                obligationId,
+                It.Is<ObligationType>(type => type.Id == Toner.Id),
+                30m,
+                new DateTime(2026, 10, 7),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
         repositoryMock.Setup(repository => repository.GetItemByIdAsync(obligationId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateItem(obligationId));
@@ -157,6 +192,7 @@ public class AdminObligationsEndpointsTests
             obligationId,
             request,
             repositoryMock.Object,
+            CreateTypeRepositoryMock(Toner).Object,
             CreateUserManagerMock(Admin).Object,
             CreateHttpContext("admin"),
             mapperMock.Object,
@@ -172,14 +208,15 @@ public class AdminObligationsEndpointsTests
     public async Task UpdateObligationAsync_WhenObligationDoesNotExist_ShouldReturnNotFound()
     {
         Mock<IOtherObligationRepository> repositoryMock = new();
-        repositoryMock.Setup(repository => repository.UpdateAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<decimal>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+        repositoryMock.Setup(repository => repository.UpdateAsync(It.IsAny<Guid>(), It.IsAny<ObligationType>(), It.IsAny<decimal>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
         IResult result = await InvokePrivateResultMethodAsync(
             "UpdateObligationAsync",
             Guid.NewGuid(),
-            new UpdateOtherObligationDto("Keyboard", 30m, DateTime.Today),
+            new UpdateOtherObligationDto(Toner.Id, 30m, DateTime.Today),
             repositoryMock.Object,
+            CreateTypeRepositoryMock(Toner).Object,
             CreateUserManagerMock(Admin).Object,
             CreateHttpContext("admin"),
             new Mock<IMapper>().Object,
@@ -197,8 +234,9 @@ public class AdminObligationsEndpointsTests
         IResult result = await InvokePrivateResultMethodAsync(
             "UpdateObligationAsync",
             Guid.NewGuid(),
-            new UpdateOtherObligationDto("Keyboard", 0m, DateTime.Today),
+            new UpdateOtherObligationDto(Toner.Id, 0m, DateTime.Today),
             repositoryMock.Object,
+            CreateTypeRepositoryMock(Toner).Object,
             CreateUserManagerMock(Admin).Object,
             CreateHttpContext("admin"),
             new Mock<IMapper>().Object,
@@ -207,6 +245,35 @@ public class AdminObligationsEndpointsTests
 
         AssertHttpResultType(result, "BadRequest");
         repositoryMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task UpdateObligationAsync_WhenTypeDoesNotExist_ShouldReturnBadRequest()
+    {
+        Mock<IOtherObligationRepository> repositoryMock = new();
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "UpdateObligationAsync",
+            Guid.NewGuid(),
+            new UpdateOtherObligationDto(Guid.NewGuid(), 10m, DateTime.Today),
+            repositoryMock.Object,
+            CreateTypeRepositoryMock(Toner).Object,
+            CreateUserManagerMock(Admin).Object,
+            CreateHttpContext("admin"),
+            new Mock<IMapper>().Object,
+            CreateProgramLogger(),
+            CancellationToken.None);
+
+        AssertHttpResultType(result, "BadRequest");
+        repositoryMock.VerifyNoOtherCalls();
+    }
+
+    private static Mock<IObligationTypeRepository> CreateTypeRepositoryMock(params ObligationType[] knownTypes)
+    {
+        Mock<IObligationTypeRepository> typeRepositoryMock = new();
+        typeRepositoryMock.Setup(repository => repository.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Guid id, CancellationToken _) => knownTypes.FirstOrDefault(type => type.Id == id));
+        return typeRepositoryMock;
     }
 
     [Fact]
@@ -387,10 +454,10 @@ public class AdminObligationsEndpointsTests
     }
 
     private static OtherObligationItem CreateItem(Guid id) =>
-        new(id, "user-1", "User One", "Printer toner", 12.5m, new DateTime(2026, 11, 2), DateTime.Now, "Admin", PaymentStatus.Unpaid, null, null);
+        new(id, "user-1", "User One", Toner.Id, "Printer toner", 12.5m, new DateTime(2026, 11, 2), DateTime.Now, "Admin", PaymentStatus.Unpaid, null, null);
 
     private static OtherObligationDto CreateDto(Guid id) =>
-        new(id, "user-1", "User One", "Printer toner", 12.5m, new DateTime(2026, 11, 2), DateTime.Now, "Admin", PaymentStatusDto.Unpaid, null, null);
+        new(id, "user-1", "User One", Toner.Id, "Printer toner", 12.5m, new DateTime(2026, 11, 2), DateTime.Now, "Admin", PaymentStatusDto.Unpaid, null, null);
 
     private static Mock<UserManager<ApplicationUser>> CreateUserManagerMock(ApplicationUser? currentUser, params ApplicationUser[] knownUsers)
     {

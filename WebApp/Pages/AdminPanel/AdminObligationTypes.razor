@@ -1,0 +1,131 @@
+@page "/admin/payments/obligation-types"
+@using Shared.DTOs.Obligations
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inherits AdminObligationTypesBase
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0" style="color: #003d61;"><i class="bi bi-cash-coin me-2"></i>Payments</h3>
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link" href="admin/payments"><i class="bi bi-person me-1"></i>By Employee</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="admin/payments/summary"><i class="bi bi-people me-1"></i>Outstanding Summary</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="admin/payments/obligations"><i class="bi bi-bag me-1"></i>Other Obligations</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="admin/payments/obligation-types"><i class="bi bi-tags me-1"></i>Expense Types</a>
+            </li>
+        </ul>
+    </div>
+
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@ErrorMessage
+            <button type="button" class="btn-close" @onclick="@(() => ErrorMessage = null)"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(SuccessMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@SuccessMessage
+            <button type="button" class="btn-close" @onclick="@(() => SuccessMessage = null)"></button>
+        </div>
+    }
+
+    <div class="card mb-3 border-primary">
+        <div class="card-body">
+            <h6 class="card-title mb-3"><i class="bi bi-plus-circle me-2"></i>New expense type</h6>
+            <div class="row g-2">
+                <div class="col-md-8">
+                    <input id="newObligationTypeName" type="text" class="form-control" maxlength="@NameMaxLength"
+                           placeholder="e.g. Printer toner" @bind="NewName" />
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary w-100 add-obligation-type-button" @onclick="AddAsync" disabled="@IsProcessing">
+                        <i class="bi bi-plus-lg me-1"></i>Add
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (IsLoading && ObligationTypes is null)
+    {
+        <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (ObligationTypes is not null)
+    {
+        @if (ObligationTypes.Count == 0)
+        {
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>No expense types yet. Add the first one above.
+            </div>
+        }
+        else
+        {
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th><i class="bi bi-tag me-1"></i>Expense type (@ObligationTypes.Count)</th>
+                                <th style="width: 220px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (ObligationTypeDto type in ObligationTypes)
+                            {
+                                bool isEditing = EditingId == type.Id;
+                                <tr class="@(isEditing ? "table-warning" : string.Empty)">
+                                    <td>
+                                        @if (isEditing)
+                                        {
+                                            <input type="text" class="form-control form-control-sm" maxlength="@NameMaxLength" @bind="EditingName" />
+                                        }
+                                        else
+                                        {
+                                            <span class="fw-semibold">@type.Name</span>
+                                        }
+                                    </td>
+                                    <td class="text-end text-nowrap">
+                                        @if (isEditing)
+                                        {
+                                            <button class="btn btn-sm btn-primary me-1" @onclick="SaveRenameAsync" disabled="@IsProcessing">
+                                                <i class="bi bi-save me-1"></i>Save
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-secondary" @onclick="CancelRename" disabled="@IsProcessing">Cancel</button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-sm btn-outline-primary me-1" title="Rename"
+                                                    @onclick="() => StartRename(type)" disabled="@IsProcessing">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" title="Delete"
+                                                    @onclick="() => DeleteAsync(type)" disabled="@IsProcessing">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer bg-light small text-muted">
+                    <i class="bi bi-info-circle me-1"></i>Renaming or deleting a type does not change obligations that were already added; they keep the name they were saved with.
+                </div>
+            </div>
+        }
+    }
+</div>

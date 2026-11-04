@@ -11,6 +11,10 @@ public class OtherObligation
     public Guid Id { get; private set; }
     public string UserId { get; private set; } = null!;
 
+    // Null only for obligations created before expense types existed.
+    public Guid? ObligationTypeId { get; private set; }
+
+    // Snapshot of the expense type name at creation/update time, so renaming a type does not rewrite history.
     public string Description { get; private set; } = null!;
     public decimal Amount { get; private set; }
     public DateTime Date { get; private set; }
@@ -29,6 +33,7 @@ public class OtherObligation
     private OtherObligation(
         Guid id,
         string userId,
+        Guid obligationTypeId,
         string description,
         decimal amount,
         DateTime date,
@@ -37,6 +42,7 @@ public class OtherObligation
     {
         Id = id;
         UserId = userId;
+        ObligationTypeId = obligationTypeId;
         Description = description;
         Amount = amount;
         Date = date;
@@ -47,7 +53,7 @@ public class OtherObligation
 
     public static OtherObligation Create(
         string userId,
-        string description,
+        ObligationType obligationType,
         decimal amount,
         DateTime date,
         DateTime createdAt,
@@ -59,20 +65,21 @@ public class OtherObligation
         if (string.IsNullOrWhiteSpace(createdByUserId))
             throw new DomainException("The user who creates the obligation is required.");
 
-        string normalizedDescription = ValidateDescription(description);
+        string description = ValidateType(obligationType);
         ValidateAmount(amount);
 
         return new OtherObligation(
             Guid.NewGuid(),
             userId,
-            normalizedDescription,
+            obligationType.Id,
+            description,
             amount,
             date.Date,
             createdAt,
             createdByUserId);
     }
 
-    public void Update(string description, decimal amount, DateTime date)
+    public void Update(ObligationType obligationType, decimal amount, DateTime date)
     {
         if (IsDeleted)
             throw new DomainException("Deleted obligations cannot be changed.");
@@ -80,10 +87,11 @@ public class OtherObligation
         if (PaymentStatus == PaymentStatus.Paid)
             throw new DomainException("Paid obligations cannot be changed.");
 
-        string normalizedDescription = ValidateDescription(description);
+        string description = ValidateType(obligationType);
         ValidateAmount(amount);
 
-        Description = normalizedDescription;
+        ObligationTypeId = obligationType.Id;
+        Description = description;
         Amount = amount;
         Date = date.Date;
     }
@@ -115,17 +123,15 @@ public class OtherObligation
         IsDeleted = true;
     }
 
-    private static string ValidateDescription(string description)
+    private static string ValidateType(ObligationType? obligationType)
     {
-        if (string.IsNullOrWhiteSpace(description))
-            throw new DomainException("Description is required.");
+        if (obligationType is null)
+            throw new DomainException("Expense type is required.");
 
-        string trimmed = description.Trim();
+        if (obligationType.IsDeleted)
+            throw new DomainException("Deleted expense types cannot be used.");
 
-        if (trimmed.Length > DescriptionMaxLength)
-            throw new DomainException($"Description cannot be longer than {DescriptionMaxLength} characters.");
-
-        return trimmed;
+        return obligationType.Name;
     }
 
     private static void ValidateAmount(decimal amount)

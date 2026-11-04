@@ -49,14 +49,19 @@ internal static class TestDataFactory
         return MealOrder.Create(userId, mealId, menuDate, price);
     }
 
+    public static ObligationType CreateObligationType(string name = "Printer toner")
+    {
+        return ObligationType.Create(name);
+    }
+
     public static OtherObligation CreateObligation(
         string userId,
+        ObligationType obligationType,
         decimal amount = 12.5m,
         DateTime? date = null,
-        string description = "Printer toner",
         string createdByUserId = "admin-id")
     {
-        return OtherObligation.Create(userId, description, amount, date ?? DateTime.Today, DateTime.Now, createdByUserId);
+        return OtherObligation.Create(userId, obligationType, amount, date ?? DateTime.Today, DateTime.Now, createdByUserId);
     }
 
     // An order whose menu was finalized; only these can be paid.

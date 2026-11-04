@@ -19,7 +19,7 @@ public interface IOtherObligationRepository
     // Returns false when the obligation does not exist (or is deleted).
     Task<bool> UpdateAsync(
         Guid id,
-        string description,
+        ObligationType obligationType,
         decimal amount,
         DateTime date,
         CancellationToken cancellationToken = default);

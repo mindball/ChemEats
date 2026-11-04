@@ -40,6 +40,7 @@ public class OtherObligationRepository : IOtherObligationRepository
                 Id = o.Id,
                 UserId = o.UserId,
                 EmployeeName = user.FullName,
+                ObligationTypeId = o.ObligationTypeId,
                 Description = o.Description,
                 Amount = o.Amount,
                 Date = o.Date,
@@ -74,6 +75,7 @@ public class OtherObligationRepository : IOtherObligationRepository
             x.Id,
             x.UserId,
             x.EmployeeName,
+            x.ObligationTypeId,
             x.Description,
             x.Amount,
             x.Date,
@@ -110,7 +112,7 @@ public class OtherObligationRepository : IOtherObligationRepository
 
     public async Task<bool> UpdateAsync(
         Guid id,
-        string description,
+        ObligationType obligationType,
         decimal amount,
         DateTime date,
         CancellationToken cancellationToken = default)
@@ -121,7 +123,7 @@ public class OtherObligationRepository : IOtherObligationRepository
         if (obligation is null)
             return false;
 
-        obligation.Update(description, amount, date);
+        obligation.Update(obligationType, amount, date);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return true;
     }
@@ -252,6 +254,7 @@ public class OtherObligationRepository : IOtherObligationRepository
         public Guid Id { get; init; }
         public string UserId { get; init; } = string.Empty;
         public string EmployeeName { get; init; } = string.Empty;
+        public Guid? ObligationTypeId { get; init; }
         public string Description { get; init; } = string.Empty;
         public decimal Amount { get; init; }
         public DateTime Date { get; init; }

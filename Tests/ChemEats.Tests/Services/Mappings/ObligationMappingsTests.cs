@@ -16,13 +16,14 @@ public class ObligationMappingsTests
     public void Map_WhenMappingObligationItem_ShouldCopyFieldsAndMapPaymentStatus()
     {
         IMapper mapper = CreateMapper();
-        OtherObligationItem item = new(Guid.NewGuid(), "user-1", "User One", "Printer toner", 12.5m, new DateTime(2026, 10, 5),
+        OtherObligationItem item = new(Guid.NewGuid(), "user-1", "User One", Guid.NewGuid(), "Printer toner", 12.5m, new DateTime(2026, 10, 5),
             new DateTime(2026, 10, 5, 9, 0, 0), "Admin User", PaymentStatus.Paid, new DateTime(2026, 10, 31), "Cashier");
 
         OtherObligationDto dto = mapper.Map<OtherObligationDto>(item);
 
         Assert.Equal(item.Id, dto.Id);
         Assert.Equal("User One", dto.EmployeeName);
+        Assert.Equal(item.ObligationTypeId, dto.ObligationTypeId);
         Assert.Equal("Printer toner", dto.Description);
         Assert.Equal(12.5m, dto.Amount);
         Assert.Equal(item.Date, dto.Date);
@@ -30,6 +31,17 @@ public class ObligationMappingsTests
         Assert.Equal(PaymentStatusDto.Paid, dto.PaymentStatus);
         Assert.Equal(item.PaidOn, dto.PaidOn);
         Assert.Equal("Cashier", dto.PaidByName);
+    }
+
+    [Fact]
+    public void Map_WhenMappingObligationType_ShouldCopyIdAndName()
+    {
+        IMapper mapper = CreateMapper();
+        ObligationType type = ObligationType.Create("Printer toner");
+
+        ObligationTypeDto dto = mapper.Map<ObligationTypeDto>(type);
+
+        Assert.Equal(new ObligationTypeDto(type.Id, "Printer toner"), dto);
     }
 
     [Fact]

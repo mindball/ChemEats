@@ -1,7 +1,6 @@
 using Microsoft.JSInterop;
 using Moq;
 using Shared.Common.Enums;
-using Shared.DTOs.Employees;
 using Shared.DTOs.Obligations;
 using WebApp.Pages.AdminPanel;
 using WebApp.Services.Employees;
@@ -13,6 +12,8 @@ public class AdminObligationsBaseTests
 {
     private static readonly DateTime StartDate = new(2026, 10, 1);
     private static readonly DateTime EndDate = new(2026, 10, 31);
+    private static readonly ObligationTypeDto Toner = new(Guid.NewGuid(), "Printer toner");
+    private static readonly ObligationTypeDto Keyboard = new(Guid.NewGuid(), "Keyboard");
 
     [Fact]
     public async Task SearchAsync_WhenServiceReturnsObligations_ShouldPopulateListAndTotals()
@@ -68,20 +69,20 @@ public class AdminObligationsBaseTests
     }
 
     [Fact]
-    public async Task SaveAsync_WhenAdding_ShouldCreateForLoadedEmployeeAndReload()
+    public async Task SaveAsync_WhenAdding_ShouldCreateWithSelectedTypeForLoadedEmployeeAndReload()
     {
         Mock<IObligationDataService> obligationServiceMock = new();
         obligationServiceMock.Setup(service => service.GetUserObligationsAsync("u1", StartDate, EndDate))
             .ReturnsAsync([]);
         obligationServiceMock.Setup(service => service.CreateObligationAsync(
-                new CreateOtherObligationDto("u1", "Printer toner", 12.5m, new DateTime(2026, 10, 5))))
+                new CreateOtherObligationDto("u1", Toner.Id, 12.5m, new DateTime(2026, 10, 5))))
             .ReturnsAsync(CreateDto(12.5m, PaymentStatusDto.Unpaid));
 
         AdminObligationsBaseTestHarness harness = new(obligationServiceMock.Object);
         harness.Select("u1", StartDate, EndDate);
         await harness.SearchAsyncPublic();
 
-        harness.SetForm("  Printer toner ", 12.5m, new DateTime(2026, 10, 5));
+        harness.SetForm(Toner.Id.ToString(), 12.5m, new DateTime(2026, 10, 5));
         await harness.SaveAsyncPublic();
 
         Assert.Null(harness.ErrorMessagePublic);
@@ -91,9 +92,9 @@ public class AdminObligationsBaseTests
     }
 
     [Theory]
-    [InlineData("", 10, "Description is required.")]
-    [InlineData("Toner", 0, "Amount must be greater than zero.")]
-    public async Task SaveAsync_WhenFormIsInvalid_ShouldSetErrorAndNotCallService(string description, int amount, string expectedError)
+    [InlineData(false, 10, "Please select an expense type.")]
+    [InlineData(true, 0, "Amount must be greater than zero.")]
+    public async Task SaveAsync_WhenFormIsInvalid_ShouldSetErrorAndNotCallService(bool selectType, int amount, string expectedError)
     {
         Mock<IObligationDataService> obligationServiceMock = new();
         obligationServiceMock.Setup(service => service.GetUserObligationsAsync("u1", StartDate, EndDate))
@@ -103,7 +104,7 @@ public class AdminObligationsBaseTests
         harness.Select("u1", StartDate, EndDate);
         await harness.SearchAsyncPublic();
 
-        harness.SetForm(description, amount, DateTime.Today);
+        harness.SetForm(selectType ? Toner.Id.ToString() : string.Empty, amount, DateTime.Today);
         await harness.SaveAsyncPublic();
 
         Assert.Equal(expectedError, harness.ErrorMessagePublic);
@@ -111,7 +112,25 @@ public class AdminObligationsBaseTests
     }
 
     [Fact]
-    public async Task SaveAsync_WhenEditing_ShouldUpdateTheEditedObligation()
+    public async Task SaveAsync_WhenTypeIsNotInTheList_ShouldRejectSelection()
+    {
+        Mock<IObligationDataService> obligationServiceMock = new();
+        obligationServiceMock.Setup(service => service.GetUserObligationsAsync("u1", StartDate, EndDate))
+            .ReturnsAsync([]);
+
+        AdminObligationsBaseTestHarness harness = new(obligationServiceMock.Object);
+        harness.Select("u1", StartDate, EndDate);
+        await harness.SearchAsyncPublic();
+
+        harness.SetForm(Guid.NewGuid().ToString(), 10m, DateTime.Today);
+        await harness.SaveAsyncPublic();
+
+        Assert.Equal("Please select an expense type.", harness.ErrorMessagePublic);
+        obligationServiceMock.Verify(service => service.CreateObligationAsync(It.IsAny<CreateOtherObligationDto>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SaveAsync_WhenEditing_ShouldUpdateTheEditedObligationWithNewType()
     {
         OtherObligationDto existing = CreateDto(10m, PaymentStatusDto.Unpaid);
 
@@ -120,20 +139,34 @@ public class AdminObligationsBaseTests
             .ReturnsAsync([existing]);
         obligationServiceMock.Setup(service => service.UpdateObligationAsync(
                 existing.Id,
-                new UpdateOtherObligationDto("Keyboard", 30m, existing.Date)))
-            .ReturnsAsync(existing with { Description = "Keyboard", Amount = 30m });
+                new UpdateOtherObligationDto(Keyboard.Id, 30m, existing.Date)))
+            .ReturnsAsync(existing with { ObligationTypeId = Keyboard.Id, Description = "Keyboard", Amount = 30m });
 
         AdminObligationsBaseTestHarness harness = new(obligationServiceMock.Object);
         harness.Select("u1", StartDate, EndDate);
         await harness.SearchAsyncPublic();
 
         harness.StartEditPublic(existing);
-        harness.SetForm("Keyboard", 30m, existing.Date);
+        Assert.Equal(Toner.Id, harness.FormTypeIdPublic);
+
+        harness.SetForm(Keyboard.Id.ToString(), 30m, existing.Date);
         await harness.SaveAsyncPublic();
 
         Assert.Contains("updated", harness.SuccessMessagePublic);
         Assert.Null(harness.EditingIdPublic);
         obligationServiceMock.VerifyAll();
+    }
+
+    [Fact]
+    public void StartEdit_WhenObligationTypeWasDeleted_ShouldLeaveTypeUnselected()
+    {
+        AdminObligationsBaseTestHarness harness = new(new Mock<IObligationDataService>().Object);
+        OtherObligationDto legacy = CreateDto(10m, PaymentStatusDto.Unpaid) with { ObligationTypeId = Guid.NewGuid() };
+
+        harness.StartEditPublic(legacy);
+
+        Assert.Equal(legacy.Id, harness.EditingIdPublic);
+        Assert.Null(harness.FormTypeIdPublic);
     }
 
     [Fact]
@@ -149,7 +182,7 @@ public class AdminObligationsBaseTests
         harness.Select("u1", StartDate, EndDate);
         await harness.SearchAsyncPublic();
 
-        harness.SetForm("Toner", 10m, DateTime.Today);
+        harness.SetForm(Toner.Id.ToString(), 10m, DateTime.Today);
         await harness.SaveAsyncPublic();
 
         Assert.StartsWith("Failed to save the obligation.", harness.ErrorMessagePublic);
@@ -232,7 +265,7 @@ public class AdminObligationsBaseTests
     }
 
     private static OtherObligationDto CreateDto(decimal amount, PaymentStatusDto status) =>
-        new(Guid.NewGuid(), "u1", "User One", "Printer toner", amount, new DateTime(2026, 10, 5), DateTime.Now, "Admin",
+        new(Guid.NewGuid(), "u1", "User One", Toner.Id, Toner.Name, amount, new DateTime(2026, 10, 5), DateTime.Now, "Admin",
             status, status == PaymentStatusDto.Paid ? DateTime.Now : null, null);
 
     private sealed class AdminObligationsBaseTestHarness : AdminObligationsBase
@@ -240,7 +273,13 @@ public class AdminObligationsBaseTests
         public AdminObligationsBaseTestHarness(IObligationDataService obligationDataService, bool confirm = true)
         {
             ObligationDataService = obligationDataService;
-            EmployeeDataService = new Mock<IEmployeeDataService>().Object;
+            Mock<IEmployeeDataService> employeeServiceMock = new();
+            employeeServiceMock.Setup(service => service.GetAllEmployeesAsync()).ReturnsAsync([]);
+            EmployeeDataService = employeeServiceMock.Object;
+
+            Mock<IObligationTypeDataService> typeServiceMock = new();
+            typeServiceMock.Setup(service => service.GetObligationTypesAsync()).ReturnsAsync([Keyboard, Toner]);
+            ObligationTypeDataService = typeServiceMock.Object;
 
             Mock<IJSRuntime> jsRuntimeMock = new();
             jsRuntimeMock.Setup(runtime => runtime.InvokeAsync<bool>("confirm", It.IsAny<object?[]?>()))
@@ -256,6 +295,7 @@ public class AdminObligationsBaseTests
         public decimal PaidTotalPublic => PaidTotal;
         public decimal SelectedTotalPublic => SelectedTotal;
         public Guid? EditingIdPublic => EditingId;
+        public Guid? FormTypeIdPublic => FormTypeId;
 
         public Task SearchAsyncPublic() => SearchAsync();
         public Task SaveAsyncPublic() => SaveAsync();
@@ -264,16 +304,18 @@ public class AdminObligationsBaseTests
         public void StartEditPublic(OtherObligationDto obligation) => StartEdit(obligation);
         public void ToggleSelectionPublic(Guid id, bool isSelected) => ToggleSelection(id, isSelected);
 
+        // Runs the page initialization (employees, expense types) before setting the filters.
         public void Select(string? userId, DateTime? startDate, DateTime? endDate)
         {
+            OnInitializedAsync().GetAwaiter().GetResult();
             SelectedUserId = userId;
             StartDate = startDate;
             EndDate = endDate;
         }
 
-        public void SetForm(string? description, decimal? amount, DateTime? date)
+        public void SetForm(string typeValue, decimal? amount, DateTime? date)
         {
-            FormDescription = description;
+            FormTypeValue = typeValue;
             FormAmount = amount;
             FormDate = date;
         }

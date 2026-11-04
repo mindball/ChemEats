@@ -13,6 +13,8 @@ public sealed class OtherObligationRepositoryTests : IDisposable
 {
     private readonly AppDbContext _context;
     private readonly OtherObligationRepository _repository;
+    private readonly ObligationType _toner = TestDataFactory.CreateObligationType("Printer toner");
+    private readonly ObligationType _keyboard = TestDataFactory.CreateObligationType("Keyboard");
 
     public OtherObligationRepositoryTests()
     {
@@ -24,13 +26,15 @@ public sealed class OtherObligationRepositoryTests : IDisposable
     public async Task AddAsync_WhenUserExists_ShouldPersistAndReturnItemWithNames()
     {
         await SeedUsersAsync();
-        OtherObligation obligation = TestDataFactory.CreateObligation("user-1", 15m, new DateTime(2026, 10, 5), createdByUserId: "admin-id");
+        OtherObligation obligation = CreateObligation("user-1", 15m, new DateTime(2026, 10, 5), createdByUserId: "admin-id");
 
         await _repository.AddAsync(obligation);
         OtherObligationItem? item = await _repository.GetItemByIdAsync(obligation.Id);
 
         Assert.NotNull(item);
         Assert.Equal("User One", item.EmployeeName);
+        Assert.Equal(_toner.Id, item.ObligationTypeId);
+        Assert.Equal("Printer toner", item.Description);
         Assert.Equal("Admin User", item.CreatedByName);
         Assert.Equal(15m, item.Amount);
         Assert.Equal(PaymentStatus.Unpaid, item.PaymentStatus);
@@ -41,7 +45,7 @@ public sealed class OtherObligationRepositoryTests : IDisposable
     public async Task AddAsync_WhenUserDoesNotExist_ShouldThrowArgumentException()
     {
         await SeedUsersAsync();
-        OtherObligation obligation = TestDataFactory.CreateObligation("missing-user");
+        OtherObligation obligation = CreateObligation("missing-user");
 
         await Assert.ThrowsAsync<ArgumentException>(() => _repository.AddAsync(obligation));
     }
@@ -51,10 +55,10 @@ public sealed class OtherObligationRepositoryTests : IDisposable
     {
         await SeedUsersAsync();
         await SeedObligationsAsync(
-            TestDataFactory.CreateObligation("user-1", 10m, new DateTime(2026, 10, 20)),
-            TestDataFactory.CreateObligation("user-1", 20m, new DateTime(2026, 10, 2)),
-            TestDataFactory.CreateObligation("user-1", 30m, new DateTime(2026, 9, 30)),
-            TestDataFactory.CreateObligation("user-2", 40m, new DateTime(2026, 10, 10)));
+            CreateObligation("user-1", 10m, new DateTime(2026, 10, 20)),
+            CreateObligation("user-1", 20m, new DateTime(2026, 10, 2)),
+            CreateObligation("user-1", 30m, new DateTime(2026, 9, 30)),
+            CreateObligation("user-2", 40m, new DateTime(2026, 10, 10)));
 
         IReadOnlyList<OtherObligationItem> result = await _repository.GetForUserAsync(
             "user-1",
@@ -69,8 +73,8 @@ public sealed class OtherObligationRepositoryTests : IDisposable
     public async Task GetForUserAsync_WhenObligationIsDeleted_ShouldExcludeIt()
     {
         await SeedUsersAsync();
-        OtherObligation kept = TestDataFactory.CreateObligation("user-1", 10m);
-        OtherObligation deleted = TestDataFactory.CreateObligation("user-1", 20m);
+        OtherObligation kept = CreateObligation("user-1", 10m);
+        OtherObligation deleted = CreateObligation("user-1", 20m);
         await SeedObligationsAsync(kept, deleted);
 
         await _repository.SoftDeleteAsync(deleted.Id);
@@ -83,14 +87,15 @@ public sealed class OtherObligationRepositoryTests : IDisposable
     public async Task UpdateAsync_WhenUnpaid_ShouldPersistChanges()
     {
         await SeedUsersAsync();
-        OtherObligation obligation = TestDataFactory.CreateObligation("user-1", 10m);
+        OtherObligation obligation = CreateObligation("user-1", 10m);
         await SeedObligationsAsync(obligation);
 
-        bool updated = await _repository.UpdateAsync(obligation.Id, "Keyboard", 35.9m, new DateTime(2026, 10, 7));
+        bool updated = await _repository.UpdateAsync(obligation.Id, _keyboard, 35.9m, new DateTime(2026, 10, 7));
 
         Assert.True(updated);
         OtherObligationItem? item = await _repository.GetItemByIdAsync(obligation.Id);
         Assert.NotNull(item);
+        Assert.Equal(_keyboard.Id, item.ObligationTypeId);
         Assert.Equal("Keyboard", item.Description);
         Assert.Equal(35.9m, item.Amount);
         Assert.Equal(new DateTime(2026, 10, 7), item.Date);
@@ -99,7 +104,7 @@ public sealed class OtherObligationRepositoryTests : IDisposable
     [Fact]
     public async Task UpdateAsync_WhenObligationDoesNotExist_ShouldReturnFalse()
     {
-        bool updated = await _repository.UpdateAsync(Guid.NewGuid(), "Keyboard", 10m, DateTime.Today);
+        bool updated = await _repository.UpdateAsync(Guid.NewGuid(), _keyboard, 10m, DateTime.Today);
 
         Assert.False(updated);
     }
@@ -108,12 +113,12 @@ public sealed class OtherObligationRepositoryTests : IDisposable
     public async Task UpdateAsync_WhenPaid_ShouldThrowDomainException()
     {
         await SeedUsersAsync();
-        OtherObligation obligation = TestDataFactory.CreateObligation("user-1", 10m);
+        OtherObligation obligation = CreateObligation("user-1", 10m);
         await SeedObligationsAsync(obligation);
         await _repository.MarkAsPaidAsync("user-1", [obligation.Id], DateTime.Now, "admin-id");
 
         await Assert.ThrowsAsync<DomainException>(() =>
-            _repository.UpdateAsync(obligation.Id, "Keyboard", 10m, DateTime.Today));
+            _repository.UpdateAsync(obligation.Id, _keyboard, 10m, DateTime.Today));
     }
 
     [Fact]
@@ -128,9 +133,9 @@ public sealed class OtherObligationRepositoryTests : IDisposable
     public async Task MarkAsPaidAsync_ShouldPayOnlyUnpaidObligationsOfThatUser()
     {
         await SeedUsersAsync();
-        OtherObligation first = TestDataFactory.CreateObligation("user-1", 10m);
-        OtherObligation second = TestDataFactory.CreateObligation("user-1", 5.5m);
-        OtherObligation otherUsers = TestDataFactory.CreateObligation("user-2", 100m);
+        OtherObligation first = CreateObligation("user-1", 10m);
+        OtherObligation second = CreateObligation("user-1", 5.5m);
+        OtherObligation otherUsers = CreateObligation("user-2", 100m);
         await SeedObligationsAsync(first, second, otherUsers);
 
         (int paidCount, decimal totalPaid) = await _repository.MarkAsPaidAsync(
@@ -154,7 +159,7 @@ public sealed class OtherObligationRepositoryTests : IDisposable
     public async Task MarkAsPaidAsync_WhenAlreadyPaid_ShouldSkipIt()
     {
         await SeedUsersAsync();
-        OtherObligation obligation = TestDataFactory.CreateObligation("user-1", 10m);
+        OtherObligation obligation = CreateObligation("user-1", 10m);
         await SeedObligationsAsync(obligation);
         await _repository.MarkAsPaidAsync("user-1", [obligation.Id], DateTime.Now, "admin-id");
 
@@ -169,9 +174,9 @@ public sealed class OtherObligationRepositoryTests : IDisposable
     {
         await SeedUsersAsync();
         await SeedObligationsAsync(
-            TestDataFactory.CreateObligation("user-1", 10m, new DateTime(2026, 9, 15)),
-            TestDataFactory.CreateObligation("user-1", 20m, new DateTime(2026, 10, 31)),
-            TestDataFactory.CreateObligation("user-1", 40m, new DateTime(2026, 11, 1)));
+            CreateObligation("user-1", 10m, new DateTime(2026, 9, 15)),
+            CreateObligation("user-1", 20m, new DateTime(2026, 10, 31)),
+            CreateObligation("user-1", 40m, new DateTime(2026, 11, 1)));
 
         (int paidCount, decimal totalPaid) = await _repository.MarkAllUnpaidAsPaidAsync(
             "user-1",
@@ -191,8 +196,8 @@ public sealed class OtherObligationRepositoryTests : IDisposable
     {
         await SeedUsersAsync();
         await SeedObligationsAsync(
-            TestDataFactory.CreateObligation("user-1", 10m, new DateTime(2026, 9, 15)),
-            TestDataFactory.CreateObligation("user-1", 40m, DateTime.Today.AddDays(10)));
+            CreateObligation("user-1", 10m, new DateTime(2026, 9, 15)),
+            CreateObligation("user-1", 40m, DateTime.Today.AddDays(10)));
 
         (int paidCount, decimal totalPaid) = await _repository.MarkAllUnpaidAsPaidAsync("user-1", null, DateTime.Now, "admin-id");
 
@@ -204,13 +209,13 @@ public sealed class OtherObligationRepositoryTests : IDisposable
     public async Task GetOutstandingSummariesAsync_ShouldSumUnpaidUpToDatePerEmployeeExcludingPaidAndDeleted()
     {
         await SeedUsersAsync();
-        OtherObligation paid = TestDataFactory.CreateObligation("user-1", 99m, new DateTime(2026, 10, 3));
-        OtherObligation deleted = TestDataFactory.CreateObligation("user-1", 77m, new DateTime(2026, 10, 3));
+        OtherObligation paid = CreateObligation("user-1", 99m, new DateTime(2026, 10, 3));
+        OtherObligation deleted = CreateObligation("user-1", 77m, new DateTime(2026, 10, 3));
         await SeedObligationsAsync(
-            TestDataFactory.CreateObligation("user-1", 10m, new DateTime(2026, 8, 1)),
-            TestDataFactory.CreateObligation("user-1", 5.25m, new DateTime(2026, 10, 31)),
-            TestDataFactory.CreateObligation("user-1", 1000m, new DateTime(2026, 11, 1)),
-            TestDataFactory.CreateObligation("user-2", 7m, new DateTime(2026, 10, 10)),
+            CreateObligation("user-1", 10m, new DateTime(2026, 8, 1)),
+            CreateObligation("user-1", 5.25m, new DateTime(2026, 10, 31)),
+            CreateObligation("user-1", 1000m, new DateTime(2026, 11, 1)),
+            CreateObligation("user-2", 7m, new DateTime(2026, 10, 10)),
             paid,
             deleted);
         await _repository.MarkAsPaidAsync("user-1", [paid.Id], DateTime.Now, "admin-id");
@@ -231,23 +236,32 @@ public sealed class OtherObligationRepositoryTests : IDisposable
     {
         await SeedUsersAsync();
         await SeedObligationsAsync(
-            TestDataFactory.CreateObligation("user-1", 10m),
-            TestDataFactory.CreateObligation("user-2", 7m));
+            CreateObligation("user-1", 10m),
+            CreateObligation("user-2", 7m));
 
         IReadOnlyList<EmployeeObligationSummary> result = await _repository.GetOutstandingSummariesAsync(null, "user-2");
 
         Assert.Equal("user-2", Assert.Single(result).UserId);
     }
 
+    // Seeds the users and the expense types the obligations reference.
     private async Task SeedUsersAsync()
     {
         _context.Users.AddRange(
             TestDataFactory.CreateUser("user-1", "U1", "User One"),
             TestDataFactory.CreateUser("user-2", "U2", "User Two"),
             TestDataFactory.CreateUser("admin-id", "AD", "Admin User"));
+        _context.ObligationTypes.AddRange(_toner, _keyboard);
         await _context.SaveChangesAsync();
         _context.ChangeTracker.Clear();
     }
+
+    private OtherObligation CreateObligation(
+        string userId,
+        decimal amount = 12.5m,
+        DateTime? date = null,
+        string createdByUserId = "admin-id") =>
+        TestDataFactory.CreateObligation(userId, _toner, amount, date, createdByUserId);
 
     private async Task SeedObligationsAsync(params OtherObligation[] obligations)
     {

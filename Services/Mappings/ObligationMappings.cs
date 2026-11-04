@@ -1,3 +1,4 @@
+using Domain.Entities;
 using Domain.Models.Obligations;
 using Mapster;
 using Shared.DTOs.Obligations;
@@ -10,5 +11,6 @@ public class ObligationMappings : IRegister
     {
         // PaymentStatus -> PaymentStatusDto is configured in OrderMappings.
         config.NewConfig<OtherObligationItem, OtherObligationDto>();
+        config.NewConfig<ObligationType, ObligationTypeDto>();
     }
 }

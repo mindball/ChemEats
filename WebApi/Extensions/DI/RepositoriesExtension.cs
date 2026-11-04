@@ -29,6 +29,7 @@ public static class RepositoriesExtension
         services.AddScoped<ISupplierRepository, SupplierRepository>();
         services.AddScoped<IOrderReminderRepository, OrderReminderRepository>();
         services.AddScoped<IOtherObligationRepository, OtherObligationRepository>();
+        services.AddScoped<IObligationTypeRepository, ObligationTypeRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IMealOrderRepository, MealOrderRepository>();
         services.AddScoped<IMealRepository, MealRepository>();

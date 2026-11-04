@@ -28,12 +28,12 @@ public class ObligationsEndpointsTests
         Mock<IOtherObligationRepository> repositoryMock = new();
         repositoryMock.Setup(repository => repository.GetForUserAsync("user-1", startDate, endDate, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync([
-                new OtherObligationItem(obligationId, "user-1", "User One", "Toner", 12.5m, startDate, DateTime.Now, "Admin", PaymentStatus.Unpaid, null, null)
+                new OtherObligationItem(obligationId, "user-1", "User One", null, "Toner", 12.5m, startDate, DateTime.Now, "Admin", PaymentStatus.Unpaid, null, null)
             ]);
 
         Mock<IMapper> mapperMock = new();
         mapperMock.Setup(mapper => mapper.Map<OtherObligationDto>(It.IsAny<OtherObligationItem>()))
-            .Returns(new OtherObligationDto(obligationId, "user-1", "User One", "Toner", 12.5m, startDate, DateTime.Now, "Admin", PaymentStatusDto.Unpaid, null, null));
+            .Returns(new OtherObligationDto(obligationId, "user-1", "User One", null, "Toner", 12.5m, startDate, DateTime.Now, "Admin", PaymentStatusDto.Unpaid, null, null));
 
         IResult result = await InvokePrivateResultMethodAsync(
             "GetMyObligationsAsync",

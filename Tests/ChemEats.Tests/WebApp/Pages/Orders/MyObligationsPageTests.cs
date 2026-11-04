@@ -72,6 +72,6 @@ public class MyObligationsPageTests : TestContext
     }
 
     private static OtherObligationDto CreateDto(string description, decimal amount, PaymentStatusDto status) =>
-        new(Guid.NewGuid(), "u1", "User One", description, amount, DateTime.Today, DateTime.Now, "Admin",
+        new(Guid.NewGuid(), "u1", "User One", Guid.NewGuid(), description, amount, DateTime.Today, DateTime.Now, "Admin",
             status, status == PaymentStatusDto.Paid ? DateTime.Today : null, null);
 }

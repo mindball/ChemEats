@@ -107,6 +107,17 @@ public static class ApiRoutes
         public static string PayAllUnpaid() => $"{Base}/{PayAll}";
     }
 
+    public static class AdminObligationTypes
+    {
+        public const string Base = "api/admin/obligation-types";
+
+        // Route templates (used by WebApi endpoint mapping)
+        public const string ByIdRoute = "{obligationTypeId:guid}";
+
+        // URL builders (used by WebApp HTTP client)
+        public static string ById(Guid obligationTypeId) => $"{Base}/{obligationTypeId}";
+    }
+
     private static string DateRangeQuery(DateTime? startDate, DateTime? endDate)
     {
         List<string> query = [];

@@ -17,6 +17,9 @@
             <li class="nav-item">
                 <a class="nav-link active" aria-current="page" href="admin/payments/obligations"><i class="bi bi-bag me-1"></i>Other Obligations</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="admin/payments/obligation-types"><i class="bi bi-tags me-1"></i>Expense Types</a>
+            </li>
         </ul>
     </div>
 
@@ -119,9 +122,20 @@
                     </h6>
                     <div class="row g-2 align-items-end">
                         <div class="col-md-5">
-                            <label class="form-label small fw-semibold" for="obligationDescription">Description</label>
-                            <input id="obligationDescription" type="text" class="form-control" maxlength="@DescriptionMaxLength"
-                                   placeholder="e.g. Printer toner for personal use" @bind="FormDescription" />
+                            <label class="form-label small fw-semibold" for="obligationType">Expense type</label>
+                            <select id="obligationType" class="form-select" @bind="FormTypeValue">
+                                <option value="">-- Select expense type --</option>
+                                @foreach (ObligationTypeDto type in ObligationTypes)
+                                {
+                                    <option value="@type.Id">@type.Name</option>
+                                }
+                            </select>
+                            @if (ObligationTypes.Count == 0)
+                            {
+                                <div class="form-text text-danger">
+                                    No expense types yet. Add them on the <a href="admin/payments/obligation-types">Expense Types</a> tab.
+                                </div>
+                            }
                         </div>
                         <div class="col-md-2">
                             <label class="form-label small fw-semibold" for="obligationAmount">Amount (€)</label>
@@ -188,7 +202,7 @@
                                 <tr>
                                     <th style="width: 40px;"></th>
                                     <th><i class="bi bi-calendar-event me-1"></i>Date</th>
-                                    <th><i class="bi bi-card-text me-1"></i>Description</th>
+                                    <th><i class="bi bi-tag me-1"></i>Expense type</th>
                                     <th class="text-end"><i class="bi bi-tag me-1"></i>Amount</th>
                                     <th><i class="bi bi-person-plus me-1"></i>Added by</th>
                                     <th class="text-center"><i class="bi bi-credit-card me-1"></i>Status</th>

@@ -166,6 +166,27 @@ namespace WebApi.Migrations
                     b.ToTable("MenuReminderLogs", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.ObligationType", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("VARCHAR(36)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("BOOLEAN");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("VARCHAR(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsDeleted")
+                        .HasDatabaseName("IX_OblTypes_IsDeleted");
+
+                    b.ToTable("ObligationTypes", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.OtherObligation", b =>
                 {
                     b.Property<string>("Id")
@@ -193,6 +214,9 @@ namespace WebApi.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("BOOLEAN");
 
+                    b.Property<string>("ObligationTypeId")
+                        .HasColumnType("VARCHAR(36)");
+
                     b.Property<string>("PaidByUserId")
                         .HasMaxLength(450)
                         .HasColumnType("VARCHAR(450)");
@@ -212,6 +236,9 @@ namespace WebApi.Migrations
 
                     b.HasIndex("Date")
                         .HasDatabaseName("IX_OtherObl_Date");
+
+                    b.HasIndex("ObligationTypeId")
+                        .HasDatabaseName("IX_OtherObl_TypeId");
 
                     b.HasIndex("PaymentStatus")
                         .HasDatabaseName("IX_OtherObl_PaymentStatus");
@@ -560,6 +587,12 @@ namespace WebApi.Migrations
 
             modelBuilder.Entity("Domain.Entities.OtherObligation", b =>
                 {
+                    b.HasOne("Domain.Entities.ObligationType", null)
+                        .WithMany()
+                        .HasForeignKey("ObligationTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_OtherObl_OblTypes");
+
                     b.HasOne("Domain.Infrastructure.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")

@@ -27,6 +27,7 @@ builder.Services.AddScoped<IEmployeeDataService, EmployeeDataService>();
 builder.Services.AddScoped<IMenuReportService, MenuReportService>();
 builder.Services.AddScoped<INotificationDataService, NotificationDataService>();
 builder.Services.AddScoped<IObligationDataService, ObligationDataService>();
+builder.Services.AddScoped<IObligationTypeDataService, ObligationTypeDataService>();
 
 
 builder.Services.AddScoped(sp => new HttpClient

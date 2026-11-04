@@ -20,6 +20,10 @@ public class OtherObligationConfiguration : IEntityTypeConfiguration<OtherObliga
         builder.Property(o => o.UserId)
             .IsRequired();
 
+        builder.Property<Guid?>(o => o.ObligationTypeId)
+            .HasColumnType("VARCHAR(36)")
+            .IsRequired(false);
+
         builder.Property(o => o.Description)
             .HasMaxLength(OtherObligation.DescriptionMaxLength)
             .IsRequired();
@@ -59,6 +63,16 @@ public class OtherObligationConfiguration : IEntityTypeConfiguration<OtherObliga
             .HasForeignKey(o => o.UserId)
             .HasConstraintName("FK_OtherObl_Users")
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne<ObligationType>()
+            .WithMany()
+            .HasForeignKey(o => o.ObligationTypeId)
+            .HasConstraintName("FK_OtherObl_OblTypes")
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(o => o.ObligationTypeId)
+            .HasDatabaseName("IX_OtherObl_TypeId");
 
         builder.HasIndex(o => o.UserId)
             .HasDatabaseName("IX_OtherObl_UserId");

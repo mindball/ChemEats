@@ -14,6 +14,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<MenuReminderLog> MenuReminderLogs => Set<MenuReminderLog>();
     public DbSet<Supplier> Suppliers => Set<Supplier>();
     public DbSet<OtherObligation> OtherObligations => Set<OtherObligation>();
+    public DbSet<ObligationType> ObligationTypes => Set<ObligationType>();
 
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
@@ -33,6 +34,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
         modelBuilder.Entity<OtherObligation>()
             .HasQueryFilter(o => !o.IsDeleted);
+
+        modelBuilder.Entity<ObligationType>()
+            .HasQueryFilter(t => !t.IsDeleted);
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

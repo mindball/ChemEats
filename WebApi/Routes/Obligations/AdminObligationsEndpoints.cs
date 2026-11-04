@@ -88,6 +88,7 @@ public static class AdminObligationsEndpoints
     private static async Task<IResult> CreateObligationAsync(
         CreateOtherObligationDto? requestDto,
         IOtherObligationRepository obligationRepository,
+        IObligationTypeRepository obligationTypeRepository,
         UserManager<ApplicationUser> userManager,
         HttpContext httpContext,
         IMapper mapper,
@@ -108,7 +109,7 @@ public static class AdminObligationsEndpoints
                 return Results.BadRequest("User ID is required.");
             }
 
-            string? validationError = ValidateFields(requestDto.Description, requestDto.Amount, requestDto.Date);
+            string? validationError = ValidateFields(requestDto.ObligationTypeId, requestDto.Amount, requestDto.Date);
             if (validationError is not null)
             {
                 logger.LogWarning("Create obligation rejected for user {UserId} - {ValidationError}",
@@ -128,9 +129,16 @@ public static class AdminObligationsEndpoints
                 return Results.NotFound("Employee not found.");
             }
 
+            ObligationType? obligationType = await obligationTypeRepository.GetByIdAsync(requestDto.ObligationTypeId, cancellationToken);
+            if (obligationType is null)
+            {
+                logger.LogWarning("Create obligation rejected - expense type {TypeId} not found", requestDto.ObligationTypeId);
+                return Results.BadRequest("Unknown expense type.");
+            }
+
             OtherObligation obligation = OtherObligation.Create(
                 employee.Id,
-                requestDto.Description,
+                obligationType,
                 requestDto.Amount,
                 requestDto.Date,
                 DateTime.Now,
@@ -166,6 +174,7 @@ public static class AdminObligationsEndpoints
         Guid obligationId,
         UpdateOtherObligationDto? requestDto,
         IOtherObligationRepository obligationRepository,
+        IObligationTypeRepository obligationTypeRepository,
         UserManager<ApplicationUser> userManager,
         HttpContext httpContext,
         IMapper mapper,
@@ -180,7 +189,7 @@ public static class AdminObligationsEndpoints
                 return Results.BadRequest("Request body is required.");
             }
 
-            string? validationError = ValidateFields(requestDto.Description, requestDto.Amount, requestDto.Date);
+            string? validationError = ValidateFields(requestDto.ObligationTypeId, requestDto.Amount, requestDto.Date);
             if (validationError is not null)
             {
                 logger.LogWarning("Update obligation {ObligationId} rejected - {ValidationError}",
@@ -193,9 +202,18 @@ public static class AdminObligationsEndpoints
             if (admin is null)
                 return Results.Unauthorized();
 
+            ObligationType? obligationType = await obligationTypeRepository.GetByIdAsync(requestDto.ObligationTypeId, cancellationToken);
+            if (obligationType is null)
+            {
+                logger.LogWarning("Update obligation {ObligationId} rejected - expense type {TypeId} not found",
+                    obligationId,
+                    requestDto.ObligationTypeId);
+                return Results.BadRequest("Unknown expense type.");
+            }
+
             bool updated = await obligationRepository.UpdateAsync(
                 obligationId,
-                requestDto.Description,
+                obligationType,
                 requestDto.Amount,
                 requestDto.Date,
                 cancellationToken);
@@ -370,13 +388,10 @@ public static class AdminObligationsEndpoints
         }
     }
 
-    private static string? ValidateFields(string? description, decimal amount, DateTime date)
+    private static string? ValidateFields(Guid obligationTypeId, decimal amount, DateTime date)
     {
-        if (string.IsNullOrWhiteSpace(description))
-            return "Description is required.";
-
-        if (description.Trim().Length > OtherObligation.DescriptionMaxLength)
-            return $"Description cannot be longer than {OtherObligation.DescriptionMaxLength} characters.";
+        if (obligationTypeId == Guid.Empty)
+            return "Expense type is required.";
 
         if (amount <= 0m)
             return "Amount must be greater than zero.";

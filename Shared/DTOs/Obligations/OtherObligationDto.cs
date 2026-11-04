@@ -6,6 +6,7 @@ public sealed record OtherObligationDto(
     Guid Id,
     string UserId,
     string EmployeeName,
+    Guid? ObligationTypeId,
     string Description,
     decimal Amount,
     DateTime Date,
