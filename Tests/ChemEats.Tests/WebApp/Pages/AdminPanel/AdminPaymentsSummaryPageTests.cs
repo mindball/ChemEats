@@ -92,7 +92,52 @@ public class AdminPaymentsSummaryPageTests : TestContext
             IElement row = component.Find("tbody tr");
             List<string> cells = row.QuerySelectorAll("td").Select(cell => cell.TextContent.Trim()).ToList();
             Assert.Contains("(2)", cells[5]);
-            Assert.Contains("12", cells[6]);
+            Assert.Equal("—", cells[6]);
+            Assert.Contains("12", cells[7]);
+        });
+    }
+
+    [Fact]
+    public void AdminPaymentsSummary_WhenEmployeeHasOtherObligations_ShouldShowLinkAndIncludeThemInTotalDue()
+    {
+        DateTime startDate = new(2026, 9, 1);
+        DateTime endDate = new(2026, 9, 30);
+
+        Mock<IOrderDataService> orderDataServiceMock = new();
+        orderDataServiceMock.Setup(service => service.GetOutstandingSummaryAsync(startDate, endDate, null))
+            .ReturnsAsync([new EmployeeOutstandingSummaryDto("u1", "Alpha User", 1, 10m, 3m, 7m, OtherUnpaidCount: 2, OtherAmount: 25m)]);
+
+        Services.AddSingleton(orderDataServiceMock.Object);
+
+        Services.GetRequiredService<NavigationManager>().NavigateTo(AdminPaymentsSummaryBase.PageUrl(startDate, endDate));
+        IRenderedComponent<AdminPaymentsSummary> component = RenderComponent<AdminPaymentsSummary>();
+
+        component.WaitForAssertion(() =>
+        {
+            IElement link = component.Find("a.other-obligations-link");
+            Assert.Contains("(2)", link.TextContent);
+            Assert.Equal("/admin/payments/obligations?userId=u1&endDate=2026-09-30", link.GetAttribute("href"));
+
+            List<string> cells = component.Find("tbody tr").QuerySelectorAll("td").Select(cell => cell.TextContent.Trim()).ToList();
+            Assert.Contains("32", cells[7]);
+        });
+    }
+
+    [Fact]
+    public void AdminPaymentsSummary_WhenEmployeeOwesOnlyOtherObligations_ShouldNotShowPayButton()
+    {
+        Mock<IOrderDataService> orderDataServiceMock = new();
+        orderDataServiceMock.Setup(service => service.GetOutstandingSummaryAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>(), null))
+            .ReturnsAsync([new EmployeeOutstandingSummaryDto("u1", "Alpha User", 0, 0m, 0m, 0m, OtherUnpaidCount: 1, OtherAmount: 9m)]);
+
+        Services.AddSingleton(orderDataServiceMock.Object);
+
+        IRenderedComponent<AdminPaymentsSummary> component = RenderComponent<AdminPaymentsSummary>();
+
+        component.WaitForAssertion(() =>
+        {
+            Assert.Single(component.FindAll("a.other-obligations-link"));
+            Assert.Empty(component.FindAll("button.pay-row-button"));
         });
     }
 

@@ -1,6 +1,8 @@
 using Domain.Infrastructure.Identity;
+using Domain.Models.Obligations;
 using Domain.Models.Orders;
 using Domain.Repositories.MealOrders;
+using Domain.Repositories.Obligations;
 using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Shared;
@@ -36,6 +38,7 @@ public static class AdminOrdersEndpoints
         string? userId,
         bool? allDates,
         IMealOrderRepository orderRepository,
+        IOtherObligationRepository obligationRepository,
         ISettingsRepository settingsRepository,
         IMapper mapper,
         UserManager<ApplicationUser> userManager,
@@ -72,14 +75,21 @@ public static class AdminOrdersEndpoints
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
+            string? userFilter = string.IsNullOrWhiteSpace(userId) ? null : userId;
+
             IReadOnlyList<EmployeeOutstandingSummary> summaries = await orderRepository.GetOutstandingSummariesAsync(
                 startDate,
                 endDate,
                 companyPortion,
-                string.IsNullOrWhiteSpace(userId) ? null : userId,
+                userFilter,
                 cancellationToken);
 
-            List<EmployeeOutstandingSummaryDto> dtos = summaries.Select(mapper.Map<EmployeeOutstandingSummaryDto>).ToList();
+            IReadOnlyList<EmployeeObligationSummary> obligationSummaries =
+                await obligationRepository.GetOutstandingSummariesAsync(endDate, userFilter, cancellationToken);
+
+            List<EmployeeOutstandingSummaryDto> dtos = MergeObligations(
+                summaries.Select(mapper.Map<EmployeeOutstandingSummaryDto>).ToList(),
+                obligationSummaries);
 
             stopwatch.Stop();
             logger.LogInformation(
@@ -103,6 +113,44 @@ public static class AdminOrdersEndpoints
                 ex.Message);
             throw;
         }
+    }
+
+    // Other obligations are paid separately from meals, but shown in the same summary;
+    // employees who only owe other obligations get a row with no meal amounts.
+    private static List<EmployeeOutstandingSummaryDto> MergeObligations(
+        List<EmployeeOutstandingSummaryDto> mealSummaries,
+        IReadOnlyList<EmployeeObligationSummary> obligationSummaries)
+    {
+        if (obligationSummaries.Count == 0)
+            return mealSummaries;
+
+        Dictionary<string, EmployeeObligationSummary> obligationsByUser =
+            obligationSummaries.ToDictionary(s => s.UserId, StringComparer.Ordinal);
+
+        List<EmployeeOutstandingSummaryDto> merged = mealSummaries
+            .Select(summary => obligationsByUser.TryGetValue(summary.UserId, out EmployeeObligationSummary? other)
+                ? summary with { OtherUnpaidCount = other.UnpaidCount, OtherAmount = other.Amount }
+                : summary)
+            .ToList();
+
+        HashSet<string> mealUserIds = mealSummaries.Select(s => s.UserId).ToHashSet(StringComparer.Ordinal);
+
+        merged.AddRange(obligationSummaries
+            .Where(other => !mealUserIds.Contains(other.UserId))
+            .Select(other => new EmployeeOutstandingSummaryDto(
+                other.UserId,
+                other.EmployeeName,
+                0,
+                0m,
+                0m,
+                0m,
+                OtherUnpaidCount: other.UnpaidCount,
+                OtherAmount: other.Amount)));
+
+        return merged
+            .OrderBy(s => s.EmployeeName, StringComparer.CurrentCultureIgnoreCase)
+            .ThenBy(s => s.UserId, StringComparer.Ordinal)
+            .ToList();
     }
 
     private static async Task<IResult> GetUnpaidOrdersAsync(

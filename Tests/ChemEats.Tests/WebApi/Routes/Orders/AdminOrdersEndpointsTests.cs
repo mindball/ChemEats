@@ -1,6 +1,8 @@
 using Domain.Infrastructure.Identity;
+using Domain.Models.Obligations;
 using Domain.Models.Orders;
 using Domain.Repositories.MealOrders;
+using Domain.Repositories.Obligations;
 using Domain.Repositories.Settings;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
@@ -178,6 +180,7 @@ public class AdminOrdersEndpointsTests
             null,
             null,
             orderRepositoryMock.Object,
+            CreateEmptyObligationRepositoryMock().Object,
             settingsRepositoryMock.Object,
             mapperMock.Object,
             userManagerMock.Object,
@@ -209,6 +212,7 @@ public class AdminOrdersEndpointsTests
             null,
             null,
             orderRepositoryMock.Object,
+            CreateEmptyObligationRepositoryMock().Object,
             settingsRepositoryMock.Object,
             mapperMock.Object,
             userManagerMock.Object,
@@ -240,6 +244,7 @@ public class AdminOrdersEndpointsTests
             null,
             null,
             orderRepositoryMock.Object,
+            CreateEmptyObligationRepositoryMock().Object,
             settingsRepositoryMock.Object,
             mapperMock.Object,
             userManagerMock.Object,
@@ -283,6 +288,7 @@ public class AdminOrdersEndpointsTests
             "user-1",
             null,
             orderRepositoryMock.Object,
+            CreateEmptyObligationRepositoryMock().Object,
             settingsRepositoryMock.Object,
             mapperMock.Object,
             userManagerMock.Object,
@@ -444,6 +450,7 @@ public class AdminOrdersEndpointsTests
             null,
             true,
             orderRepositoryMock.Object,
+            CreateEmptyObligationRepositoryMock().Object,
             settingsRepositoryMock.Object,
             mapperMock.Object,
             CreateAdminUserManagerMock().Object,
@@ -493,6 +500,75 @@ public class AdminOrdersEndpointsTests
         Ok<OrderPayResponseDto> okResult = Assert.IsType<Ok<OrderPayResponseDto>>(result);
         Assert.Equal(new OrderPayResponseDto(7, 49m), okResult.Value);
         orderRepositoryMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task GetOutstandingSummaryAsync_WhenEmployeesHaveOtherObligations_ShouldMergeThemAndAddObligationOnlyEmployees()
+    {
+        DateTime startDate = new(2026, 10, 1);
+        DateTime endDate = new(2026, 10, 31);
+        EmployeeOutstandingSummary mealSummary = new("user-2", "Beta User", 2, 20m, 3m, 17m, 0, 0m);
+        EmployeeOutstandingSummaryDto mealSummaryDto = new("user-2", "Beta User", 2, 20m, 3m, 17m);
+
+        Mock<IMealOrderRepository> orderRepositoryMock = new();
+        orderRepositoryMock.Setup(repository => repository.GetOutstandingSummariesAsync(
+                startDate,
+                endDate,
+                3m,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync([mealSummary]);
+
+        Mock<IOtherObligationRepository> obligationRepositoryMock = new();
+        obligationRepositoryMock.Setup(repository => repository.GetOutstandingSummariesAsync(
+                endDate,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync([
+                new EmployeeObligationSummary("user-1", "Alpha User", 1, 9m),
+                new EmployeeObligationSummary("user-2", "Beta User", 2, 15.5m)
+            ]);
+
+        Mock<ISettingsRepository> settingsRepositoryMock = new();
+        settingsRepositoryMock.Setup(repository => repository.GetCompanyPortionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(3m);
+
+        Mock<IMapper> mapperMock = new();
+        mapperMock.Setup(mapper => mapper.Map<EmployeeOutstandingSummaryDto>(mealSummary)).Returns(mealSummaryDto);
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "GetOutstandingSummaryAsync",
+            startDate,
+            endDate,
+            null,
+            null,
+            orderRepositoryMock.Object,
+            obligationRepositoryMock.Object,
+            settingsRepositoryMock.Object,
+            mapperMock.Object,
+            CreateAdminUserManagerMock().Object,
+            CreateHttpContext("admin"),
+            CreateProgramLogger(),
+            CancellationToken.None);
+
+        Ok<List<EmployeeOutstandingSummaryDto>> okResult = Assert.IsType<Ok<List<EmployeeOutstandingSummaryDto>>>(result);
+        Assert.Equal(
+        [
+            new EmployeeOutstandingSummaryDto("user-1", "Alpha User", 0, 0m, 0m, 0m, 0, 0m, 1, 9m),
+            new EmployeeOutstandingSummaryDto("user-2", "Beta User", 2, 20m, 3m, 17m, 0, 0m, 2, 15.5m)
+        ], okResult.Value);
+        obligationRepositoryMock.VerifyAll();
+    }
+
+    private static Mock<IOtherObligationRepository> CreateEmptyObligationRepositoryMock()
+    {
+        Mock<IOtherObligationRepository> obligationRepositoryMock = new();
+        obligationRepositoryMock.Setup(repository => repository.GetOutstandingSummariesAsync(
+                It.IsAny<DateTime?>(),
+                It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+        return obligationRepositoryMock;
     }
 
     private static Mock<UserManager<ApplicationUser>> CreateAdminUserManagerMock()

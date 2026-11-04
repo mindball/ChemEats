@@ -1,0 +1,112 @@
+@page "/orders/obligations"
+@using Shared.DTOs.Obligations
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inherits MyObligationsBase
+
+<div class="container-fluid">
+    <h3 class="mb-4" style="color: #003d61;"><i class="bi bi-bag me-2"></i>My Other Obligations</h3>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold" for="myObligationsFrom">
+                        <i class="bi bi-calendar-range me-1"></i>Date from
+                    </label>
+                    <input id="myObligationsFrom" type="date" class="form-control" @bind="StartDate" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold" for="myObligationsTo">
+                        <i class="bi bi-calendar-check me-1"></i>Date to
+                    </label>
+                    <input id="myObligationsTo" type="date" class="form-control" @bind="EndDate" />
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-primary w-100" @onclick="LoadObligationsAsync" disabled="@IsLoading">
+                        @if (IsLoading)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        }
+                        <i class="bi bi-search me-2"></i>Search
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@ErrorMessage
+        </div>
+    }
+
+    @if (IsLoading && Obligations is null)
+    {
+        <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (Obligations is not null)
+    {
+        @if (Obligations.Count == 0)
+        {
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>No other obligations for this period.
+            </div>
+        }
+        else
+        {
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th class="text-end">Amount</th>
+                                <th class="text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (OtherObligationDto item in Obligations)
+                            {
+                                bool isUnpaid = IsUnpaid(item);
+                                <tr class="@(isUnpaid ? string.Empty : "table-success")">
+                                    <td><small>@item.Date.ToString("dd.MM.yyyy")</small></td>
+                                    <td class="fw-semibold">@item.Description</td>
+                                    <td class="text-end fw-bold">@item.Amount.ToString("C")</td>
+                                    <td class="text-center">
+                                        @if (isUnpaid)
+                                        {
+                                            <span class="badge bg-danger">Unpaid</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">
+                                                Paid
+                                                @if (item.PaidOn.HasValue)
+                                                {
+                                                    <small class="d-block">@item.PaidOn.Value.ToString("dd.MM.yyyy")</small>
+                                                }
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr class="fw-bold">
+                                <td colspan="2">Unpaid (@UnpaidCount)</td>
+                                <td class="text-end text-danger my-obligations-unpaid-total">@UnpaidTotal.ToString("C")</td>
+                                <td class="text-center text-success">Paid: @PaidTotal.ToString("C")</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        }
+    }
+</div>

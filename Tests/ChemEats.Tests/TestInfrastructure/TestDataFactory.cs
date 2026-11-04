@@ -49,6 +49,16 @@ internal static class TestDataFactory
         return MealOrder.Create(userId, mealId, menuDate, price);
     }
 
+    public static OtherObligation CreateObligation(
+        string userId,
+        decimal amount = 12.5m,
+        DateTime? date = null,
+        string description = "Printer toner",
+        string createdByUserId = "admin-id")
+    {
+        return OtherObligation.Create(userId, description, amount, date ?? DateTime.Today, DateTime.Now, createdByUserId);
+    }
+
     // An order whose menu was finalized; only these can be paid.
     public static MealOrder CreateCompletedOrder(string userId, Guid mealId, DateTime menuDate, decimal price)
     {

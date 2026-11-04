@@ -59,6 +59,7 @@ else if (Summaries is not null)
                         <th class="text-end">Company Portion</th>
                         <th class="text-end">Balance Owed</th>
                         <th class="text-end">Earlier</th>
+                        <th class="text-end">Other</th>
                         <th class="text-end">Total Due</th>
                     </tr>
                 </thead>
@@ -74,7 +75,8 @@ else if (Summaries is not null)
                             <td class="text-end">@summary.PortionAmount.ToString("0.00 €")</td>
                             <td class="text-end">@summary.NetAmount.ToString("0.00 €")</td>
                             <td class="text-end">@summary.EarlierNetAmount.ToString("0.00 €")</td>
-                            <td class="text-end">@((summary.NetAmount + summary.EarlierNetAmount).ToString("0.00 €"))</td>
+                            <td class="text-end">@summary.OtherAmount.ToString("0.00 €")</td>
+                            <td class="text-end">@TotalDue(summary).ToString("0.00 €")</td>
                         </tr>
                     }
                 </tbody>
@@ -86,6 +88,7 @@ else if (Summaries is not null)
                         <td class="text-end">@TotalPortionAmount.ToString("0.00 €")</td>
                         <td class="text-end">@TotalNetAmount.ToString("0.00 €")</td>
                         <td class="text-end">@TotalEarlierNetAmount.ToString("0.00 €")</td>
+                        <td class="text-end">@TotalOtherAmount.ToString("0.00 €")</td>
                         <td class="text-end">@GrandTotalDue.ToString("0.00 €")</td>
                     </tr>
                 </tfoot>
@@ -101,7 +104,7 @@ else if (Summaries is not null)
 
         <p class="report-note">
             Only completed orders (finalized menus) are counted; paid, pending, cancelled and deleted orders are excluded. The company portion is applied once per employee per day at payment; unpaid days show the expected portion.
-            "Earlier" is unpaid orders before the start date.
+            "Earlier" is unpaid orders before the start date. "Other" is unpaid non-food obligations up to the end date.
         </p>
 
         <footer class="report-footer">

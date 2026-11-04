@@ -1,0 +1,279 @@
+@page "/admin/payments/obligations"
+@using Shared.DTOs.Employees
+@using Shared.DTOs.Obligations
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inherits AdminObligationsBase
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0" style="color: #003d61;"><i class="bi bi-cash-coin me-2"></i>Payments</h3>
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link" href="admin/payments"><i class="bi bi-person me-1"></i>By Employee</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="admin/payments/summary"><i class="bi bi-people me-1"></i>Outstanding Summary</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="admin/payments/obligations"><i class="bi bi-bag me-1"></i>Other Obligations</a>
+            </li>
+        </ul>
+    </div>
+
+    @if (IsLoading && AllEmployees is null)
+    {
+        <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="bi bi-funnel me-2"></i>Search Filters
+                </h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-person me-1"></i>Employee
+                        </label>
+                        <input type="text"
+                               class="form-control mb-2"
+                               placeholder="Search employee..."
+                               @bind="SearchTerm"
+                               @bind:event="oninput" />
+                        <select class="form-select" @bind="SelectedUserId" size="5">
+                            <option value="">-- Select employee --</option>
+                            @foreach (EmployeeDto emp in FilteredEmployees)
+                            {
+                                <option value="@emp.UserId">
+                                    @emp.FullName (@emp.Abbreviation)
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-calendar-range me-1"></i>Date from
+                        </label>
+                        <input type="date" class="form-control" @bind="StartDate" disabled="@AllDates" />
+                        <div class="form-check mt-2">
+                            <input type="checkbox" class="form-check-input" id="obligationsAllDates" @bind="AllDates" />
+                            <label class="form-check-label" for="obligationsAllDates">All dates</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-calendar-check me-1"></i>Date to
+                        </label>
+                        <input type="date" class="form-control" @bind="EndDate" disabled="@AllDates" />
+                    </div>
+
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button class="btn btn-primary w-100" @onclick="SearchAsync" disabled="@IsLoading">
+                            @if (IsLoading)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            }
+                            <i class="bi bi-search me-2"></i>Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@ErrorMessage
+                <button type="button" class="btn-close" @onclick="@(() => ErrorMessage = null)"></button>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(SuccessMessage))
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@SuccessMessage
+                <button type="button" class="btn-close" @onclick="@(() => SuccessMessage = null)"></button>
+            </div>
+        }
+
+        @if (Obligations is not null)
+        {
+            <div class="card mb-3 @(EditingId.HasValue ? "border-warning" : "border-primary")">
+                <div class="card-body">
+                    <h6 class="card-title mb-3">
+                        @if (EditingId.HasValue)
+                        {
+                            <i class="bi bi-pencil me-2"></i><span>Edit obligation of @LoadedEmployeeName</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-plus-circle me-2"></i><span>New obligation for @LoadedEmployeeName</span>
+                        }
+                    </h6>
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-5">
+                            <label class="form-label small fw-semibold" for="obligationDescription">Description</label>
+                            <input id="obligationDescription" type="text" class="form-control" maxlength="@DescriptionMaxLength"
+                                   placeholder="e.g. Printer toner for personal use" @bind="FormDescription" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-semibold" for="obligationAmount">Amount (€)</label>
+                            <input id="obligationAmount" type="number" class="form-control" min="0.01" step="0.01" @bind="FormAmount" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-semibold" for="obligationDate">Date</label>
+                            <input id="obligationDate" type="date" class="form-control" @bind="FormDate" />
+                        </div>
+                        <div class="col-md-3 d-flex gap-2">
+                            <button class="btn btn-primary flex-fill save-obligation-button" @onclick="SaveAsync" disabled="@IsProcessing">
+                                <i class="bi bi-save me-1"></i>@(EditingId.HasValue ? "Save" : "Add")
+                            </button>
+                            @if (EditingId.HasValue)
+                            {
+                                <button class="btn btn-outline-secondary" @onclick="ResetForm" disabled="@IsProcessing">Cancel</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (UnpaidCount > 0)
+            {
+                <div class="card mb-3 border-success">
+                    <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <div>
+                            <span class="fw-semibold">Unpaid in this list:</span>
+                            <span class="fw-bold text-danger fs-5 ms-1">@FormatEuro(UnpaidTotal)</span>
+                            <span class="text-muted ms-1">(@UnpaidCount obligations)</span>
+                        </div>
+                        <button class="btn btn-success pay-all-obligations-button" @onclick="PayAllUnpaidAsync" disabled="@IsProcessing">
+                            <i class="bi bi-cash-stack me-2"></i>Pay all unpaid @PayAllScopeText
+                        </button>
+                    </div>
+                </div>
+            }
+
+            <div class="mb-3">
+                <div class="btn-group w-100" role="group">
+                    <input type="radio" class="btn-check" name="obligationStatus" id="obligationStatusAll"
+                           checked="@(PaymentStatusFilter == "All")"
+                           @onchange="@(() => PaymentStatusFilter = "All")" />
+                    <label class="btn btn-outline-primary" for="obligationStatusAll">All (@TotalCount)</label>
+
+                    <input type="radio" class="btn-check" name="obligationStatus" id="obligationStatusUnpaid"
+                           checked="@(PaymentStatusFilter == "Unpaid")"
+                           @onchange="@(() => PaymentStatusFilter = "Unpaid")" />
+                    <label class="btn btn-outline-danger" for="obligationStatusUnpaid">Unpaid (@UnpaidCount) – @FormatEuro(UnpaidTotal)</label>
+
+                    <input type="radio" class="btn-check" name="obligationStatus" id="obligationStatusPaid"
+                           checked="@(PaymentStatusFilter == "Paid")"
+                           @onchange="@(() => PaymentStatusFilter = "Paid")" />
+                    <label class="btn btn-outline-success" for="obligationStatusPaid">Paid (@PaidCount) – @FormatEuro(PaidTotal)</label>
+                </div>
+            </div>
+
+            @if (FilteredObligations.Count > 0)
+            {
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 40px;"></th>
+                                    <th><i class="bi bi-calendar-event me-1"></i>Date</th>
+                                    <th><i class="bi bi-card-text me-1"></i>Description</th>
+                                    <th class="text-end"><i class="bi bi-tag me-1"></i>Amount</th>
+                                    <th><i class="bi bi-person-plus me-1"></i>Added by</th>
+                                    <th class="text-center"><i class="bi bi-credit-card me-1"></i>Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (OtherObligationDto item in FilteredObligations)
+                                {
+                                    bool isUnpaid = IsUnpaid(item);
+                                    bool isSelected = SelectedIds.Contains(item.Id);
+                                    string rowClass = !isUnpaid ? "table-success" : isSelected ? "table-primary" : EditingId == item.Id ? "table-warning" : "";
+
+                                    <tr class="@rowClass">
+                                        <td>
+                                            <input type="checkbox" class="form-check-input"
+                                                   checked="@isSelected"
+                                                   disabled="@(!isUnpaid)"
+                                                   @onchange="@(e => ToggleSelection(item.Id, e.Value is true))" />
+                                        </td>
+                                        <td><small>@item.Date.ToString("dd.MM.yyyy")</small></td>
+                                        <td class="fw-semibold">@item.Description</td>
+                                        <td class="text-end fw-bold">@FormatEuro(item.Amount)</td>
+                                        <td><small>@item.CreatedByName</small></td>
+                                        <td class="text-center">
+                                            @if (isUnpaid)
+                                            {
+                                                <span class="badge bg-danger"><i class="bi bi-exclamation-circle me-1"></i>Unpaid</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check-circle me-1"></i>Paid
+                                                    @if (item.PaidOn.HasValue)
+                                                    {
+                                                        <small class="d-block">@item.PaidOn.Value.ToString("dd.MM.yyyy")</small>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(item.PaidByName))
+                                                    {
+                                                        <small class="d-block paid-by">by @item.PaidByName</small>
+                                                    }
+                                                </span>
+                                            }
+                                        </td>
+                                        <td class="text-end text-nowrap">
+                                            @if (isUnpaid)
+                                            {
+                                                <button class="btn btn-sm btn-outline-primary me-1" title="Edit"
+                                                        @onclick="() => StartEdit(item)" disabled="@IsProcessing">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" title="Delete"
+                                                        @onclick="() => DeleteAsync(item)" disabled="@IsProcessing">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="card-footer bg-light d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-semibold">Selected:</span>
+                            <span class="badge bg-primary rounded-pill ms-1">@SelectedIds.Count</span>
+                            <span class="mx-2">|</span>
+                            <span class="fw-bold">Total:</span>
+                            <span class="fw-bold text-primary fs-5 ms-1">@FormatEuro(SelectedTotal)</span>
+                        </div>
+                        <button class="btn btn-success px-4 pay-selected-obligations-button"
+                                @onclick="PaySelectedAsync"
+                                disabled="@(!HasSelection || IsProcessing)">
+                            <i class="bi bi-check-circle me-2"></i>Mark as Paid
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>No obligations match the selected filters.
+                </div>
+            }
+        }
+    }
+</div>

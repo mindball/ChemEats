@@ -7,6 +7,7 @@ using WebApp.Infrastructure.States;
 using WebApp.Services.Employees;
 using WebApp.Services.Menus;
 using WebApp.Services.Notifications;
+using WebApp.Services.Obligations;
 using WebApp.Services.Orders;
 using WebApp.Services.Settings;
 using WebApp.Services.Suppliers;
@@ -25,6 +26,7 @@ builder.Services.AddScoped<ISettingsDataService, SettingsDataService>();
 builder.Services.AddScoped<IEmployeeDataService, EmployeeDataService>();
 builder.Services.AddScoped<IMenuReportService, MenuReportService>();
 builder.Services.AddScoped<INotificationDataService, NotificationDataService>();
+builder.Services.AddScoped<IObligationDataService, ObligationDataService>();
 
 
 builder.Services.AddScoped(sp => new HttpClient

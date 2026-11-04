@@ -13,6 +13,9 @@
             <li class="nav-item">
                 <a class="nav-link active" aria-current="page" href="admin/payments/summary"><i class="bi bi-people me-1"></i>Outstanding Summary</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="admin/payments/obligations"><i class="bi bi-bag me-1"></i>Other Obligations</a>
+            </li>
         </ul>
     </div>
 
@@ -86,7 +89,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <span class="fw-semibold">
-                                <i class="bi bi-people me-2"></i>Employees with unpaid orders (@Summaries.Count)
+                                <i class="bi bi-people me-2"></i>Employees with unpaid amounts (@Summaries.Count)
                             </span>
                             <span class="ms-2 text-muted outstanding-period">
                                 <i class="bi bi-calendar-range me-1"></i>Period: @LoadedPeriodText
@@ -108,6 +111,7 @@
                                 <th class="text-end"><i class="bi bi-percent me-1"></i>Company Portion</th>
                                 <th class="text-end"><i class="bi bi-cash me-1"></i>Balance Owed</th>
                                 <th class="text-end"><i class="bi bi-hourglass-split me-1"></i>Earlier</th>
+                                <th class="text-end"><i class="bi bi-bag me-1"></i>Other</th>
                                 <th class="text-end"><i class="bi bi-wallet2 me-1"></i>Total Due</th>
                                 <th class="text-center"></th>
                             </tr>
@@ -143,20 +147,36 @@
                                             <span class="text-muted">—</span>
                                         }
                                     </td>
+                                    <td class="text-end">
+                                        @if (summary.OtherUnpaidCount > 0)
+                                        {
+                                            <a class="other-obligations-link fw-semibold" href="@OtherObligationsUrl(summary)"
+                                               title="@summary.OtherUnpaidCount unpaid other obligations - paid separately">
+                                                @FormatEuro(summary.OtherAmount) (@summary.OtherUnpaidCount)
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
                                     <td class="text-end fw-bold text-danger">@FormatEuro(TotalDue(summary))</td>
                                     <td class="text-center">
-                                        <button class="btn btn-sm btn-success pay-row-button"
-                                                @onclick="() => PayEmployeeAsync(summary)"
-                                                disabled="@(PayingUserId is not null)">
-                                            @if (isPaying)
-                                            {
-                                                <span class="spinner-border spinner-border-sm" role="status"></span>
-                                            }
-                                            else
-                                            {
-                                                <i class="bi bi-cash-stack me-1"></i><span>Pay</span>
-                                            }
-                                        </button>
+                                        @if (HasUnpaidMeals(summary))
+                                        {
+                                            <button class="btn btn-sm btn-success pay-row-button"
+                                                    @onclick="() => PayEmployeeAsync(summary)"
+                                                    disabled="@(PayingUserId is not null)">
+                                                @if (isPaying)
+                                                {
+                                                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                                                }
+                                                else
+                                                {
+                                                    <i class="bi bi-cash-stack me-1"></i><span>Pay</span>
+                                                }
+                                            </button>
+                                        }
                                     </td>
                                 </tr>
                             }
@@ -169,6 +189,7 @@
                                 <td class="text-end text-success">-@FormatEuro(TotalPortionAmount)</td>
                                 <td class="text-end">@FormatEuro(TotalNetAmount)</td>
                                 <td class="text-end">@FormatEuro(TotalEarlierNetAmount)</td>
+                                <td class="text-end">@FormatEuro(TotalOtherAmount)</td>
                                 <td class="text-end text-danger fs-5">@FormatEuro(GrandTotalDue)</td>
                                 <td></td>
                             </tr>
@@ -178,7 +199,8 @@
 
                 <div class="card-footer bg-light small text-muted">
                     <i class="bi bi-info-circle me-1"></i>Only completed orders (finalized menus) are counted; paid, pending, cancelled and deleted orders are excluded. The company portion is applied once per employee per day at payment; unpaid days show the expected portion.
-                    "Earlier" is unpaid orders before the start date; "Pay" settles everything up to the end date.
+                    "Earlier" is unpaid orders before the start date; "Pay" settles the meals up to the end date.
+                    "Other" is unpaid non-food obligations up to the end date; they are paid separately on the Other Obligations page.
                 </div>
             </div>
         }

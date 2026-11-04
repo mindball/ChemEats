@@ -79,6 +79,42 @@ public static class ApiRoutes
             + (string.IsNullOrWhiteSpace(userId) ? string.Empty : $"&userId={Uri.EscapeDataString(userId)}");
     }
 
+    public static class Obligations
+    {
+        public const string Base = "api/obligations";
+        public const string Me = "me";
+
+        // URL builders (used by WebApp HTTP client)
+        public static string MyObligations(DateTime? startDate = null, DateTime? endDate = null) =>
+            $"{Base}/{Me}" + DateRangeQuery(startDate, endDate);
+    }
+
+    public static class AdminObligations
+    {
+        public const string Base = "api/admin/obligations";
+        public const string Pay = "pay";
+        public const string PayAll = "pay-all";
+
+        // Route templates (used by WebApi endpoint mapping)
+        public const string ByIdRoute = "{obligationId:guid}";
+        public const string ByUserRoute = "user/{userId}";
+
+        // URL builders (used by WebApp HTTP client)
+        public static string ById(Guid obligationId) => $"{Base}/{obligationId}";
+        public static string ByUser(string userId, DateTime? startDate = null, DateTime? endDate = null) =>
+            $"{Base}/user/{Uri.EscapeDataString(userId)}" + DateRangeQuery(startDate, endDate);
+        public static string PayObligations() => $"{Base}/{Pay}";
+        public static string PayAllUnpaid() => $"{Base}/{PayAll}";
+    }
+
+    private static string DateRangeQuery(DateTime? startDate, DateTime? endDate)
+    {
+        List<string> query = [];
+        if (startDate.HasValue) query.Add($"startDate={startDate.Value:yyyy-MM-dd}");
+        if (endDate.HasValue) query.Add($"endDate={endDate.Value:yyyy-MM-dd}");
+        return query.Count > 0 ? "?" + string.Join("&", query) : string.Empty;
+    }
+
     public static class Suppliers
     {
         public const string Base = "api/suppliers";

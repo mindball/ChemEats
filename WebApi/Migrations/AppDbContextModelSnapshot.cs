@@ -166,6 +166,62 @@ namespace WebApi.Migrations
                     b.ToTable("MenuReminderLogs", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.OtherObligation", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("VARCHAR(36)");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("DECIMAL(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TIMESTAMP");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("VARCHAR(450)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("TIMESTAMP");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("VARCHAR(300)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("BOOLEAN");
+
+                    b.Property<string>("PaidByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("VARCHAR(450)");
+
+                    b.Property<DateTime?>("PaidOn")
+                        .HasColumnType("TIMESTAMP");
+
+                    b.Property<int>("PaymentStatus")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Date")
+                        .HasDatabaseName("IX_OtherObl_Date");
+
+                    b.HasIndex("PaymentStatus")
+                        .HasDatabaseName("IX_OtherObl_PaymentStatus");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_OtherObl_UserId");
+
+                    b.ToTable("OtherObligations", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.Supplier", b =>
                 {
                     b.Property<string>("Id")
@@ -500,6 +556,16 @@ namespace WebApi.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_MenuRemLogs_Users");
+                });
+
+            modelBuilder.Entity("Domain.Entities.OtherObligation", b =>
+                {
+                    b.HasOne("Domain.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_OtherObl_Users");
                 });
 
             modelBuilder.Entity("Domain.Entities.Supplier", b =>

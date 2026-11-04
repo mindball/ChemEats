@@ -33,7 +33,11 @@ public class OutstandingReportBase : ComponentBase
     protected decimal TotalPortionAmount => Summaries?.Sum(s => s.PortionAmount) ?? 0m;
     protected decimal TotalNetAmount => Summaries?.Sum(s => s.NetAmount) ?? 0m;
     protected decimal TotalEarlierNetAmount => Summaries?.Sum(s => s.EarlierNetAmount) ?? 0m;
-    protected decimal GrandTotalDue => TotalNetAmount + TotalEarlierNetAmount;
+    protected decimal TotalOtherAmount => Summaries?.Sum(s => s.OtherAmount) ?? 0m;
+    protected decimal GrandTotalDue => TotalNetAmount + TotalEarlierNetAmount + TotalOtherAmount;
+
+    protected static decimal TotalDue(EmployeeOutstandingSummaryDto summary) =>
+        summary.NetAmount + summary.EarlierNetAmount + summary.OtherAmount;
 
     protected string PeriodText =>
         IsAllDates

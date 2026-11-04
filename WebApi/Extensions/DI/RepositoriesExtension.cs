@@ -3,6 +3,7 @@ using Domain.Repositories.MealOrders;
 using Domain.Repositories.Meals;
 using Domain.Repositories.Menus;
 using Domain.Repositories.Notifications;
+using Domain.Repositories.Obligations;
 using Domain.Repositories.Settings;
 using Domain.Repositories.Suppliers;
 using Services.Repositories.Employees;
@@ -10,6 +11,7 @@ using Services.Repositories.MealOrders;
 using Services.Repositories.Meals;
 using Services.Repositories.Menus;
 using Services.Repositories.Notifications;
+using Services.Repositories.Obligations;
 using Services.Repositories.Settings;
 using Services.Repositories.Suppliers;
 
@@ -26,6 +28,7 @@ public static class RepositoriesExtension
         services.AddScoped<IMenuRepository, MenuRepository>();
         services.AddScoped<ISupplierRepository, SupplierRepository>();
         services.AddScoped<IOrderReminderRepository, OrderReminderRepository>();
+        services.AddScoped<IOtherObligationRepository, OtherObligationRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IMealOrderRepository, MealOrderRepository>();
         services.AddScoped<IMealRepository, MealRepository>();

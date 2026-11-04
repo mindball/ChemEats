@@ -40,13 +40,35 @@ public class OutstandingReportPageTests : TestContext
             .ToList();
         Assert.Equal(
         [
-            $"1|Иван Петров|3|{30m:0.00 €}|{6m:0.00 €}|{24m:0.00 €}|{0m:0.00 €}|{24m:0.00 €}",
-            $"2|Мария Иванова|1|{9m:0.00 €}|{3m:0.00 €}|{6m:0.00 €}|{0m:0.00 €}|{6m:0.00 €}"
+            $"1|Иван Петров|3|{30m:0.00 €}|{6m:0.00 €}|{24m:0.00 €}|{0m:0.00 €}|{0m:0.00 €}|{24m:0.00 €}",
+            $"2|Мария Иванова|1|{9m:0.00 €}|{3m:0.00 €}|{6m:0.00 €}|{0m:0.00 €}|{0m:0.00 €}|{6m:0.00 €}"
         ], rows);
 
         IElement totalRow = component.Find("table.report-table tfoot tr");
         Assert.Contains("Grand Total", totalRow.TextContent);
         Assert.Contains(30m.ToString("0.00 €"), component.Find(".report-total-amount").TextContent);
+    }
+
+    [Fact]
+    public void OutstandingReport_WhenEmployeeHasOtherObligations_ShouldShowOtherColumnAndIncludeItInTotals()
+    {
+        _orderDataServiceMock.Setup(service => service.GetOutstandingSummaryAsync(StartDate, EndDate))
+            .ReturnsAsync([
+                new EmployeeOutstandingSummaryDto("u1", "Иван Петров", 2, 20m, 6m, 14m, 1, 4m, OtherUnpaidCount: 2, OtherAmount: 15.5m),
+                new EmployeeOutstandingSummaryDto("u2", "Мария Иванова", 0, 0m, 0m, 0m, OtherUnpaidCount: 1, OtherAmount: 8m)
+            ]);
+
+        IRenderedComponent<OutstandingReport> component = RenderReport(StartDate, EndDate);
+
+        List<string> rows = component.FindAll("table.report-table tbody tr")
+            .Select(row => string.Join("|", row.QuerySelectorAll("td").Select(cell => cell.TextContent.Trim())))
+            .ToList();
+        Assert.Equal(
+        [
+            $"1|Иван Петров|2|{20m:0.00 €}|{6m:0.00 €}|{14m:0.00 €}|{4m:0.00 €}|{15.5m:0.00 €}|{33.5m:0.00 €}",
+            $"2|Мария Иванова|0|{0m:0.00 €}|{0m:0.00 €}|{0m:0.00 €}|{0m:0.00 €}|{8m:0.00 €}|{8m:0.00 €}"
+        ], rows);
+        Assert.Contains(41.5m.ToString("0.00 €"), component.Find(".report-total-amount").TextContent);
     }
 
     [Fact]

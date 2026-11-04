@@ -56,10 +56,23 @@ public class AdminPaymentsSummaryBase : ComponentBase
     protected decimal TotalPortionAmount => Summaries?.Sum(s => s.PortionAmount) ?? 0m;
     protected decimal TotalNetAmount => Summaries?.Sum(s => s.NetAmount) ?? 0m;
     protected decimal TotalEarlierNetAmount => Summaries?.Sum(s => s.EarlierNetAmount) ?? 0m;
-    protected decimal GrandTotalDue => TotalNetAmount + TotalEarlierNetAmount;
+    protected int TotalOtherCount => Summaries?.Sum(s => s.OtherUnpaidCount) ?? 0;
+    protected decimal TotalOtherAmount => Summaries?.Sum(s => s.OtherAmount) ?? 0m;
+    protected decimal GrandTotalDue => TotalNetAmount + TotalEarlierNetAmount + TotalOtherAmount;
+
+    // Meals and other obligations are paid separately; "Pay" settles only the meals.
+    protected static decimal MealsDue(EmployeeOutstandingSummaryDto summary) =>
+        summary.NetAmount + summary.EarlierNetAmount;
+
+    protected static bool HasUnpaidMeals(EmployeeOutstandingSummaryDto summary) =>
+        summary.UnpaidCount + summary.EarlierUnpaidCount > 0;
 
     protected static decimal TotalDue(EmployeeOutstandingSummaryDto summary) =>
-        summary.NetAmount + summary.EarlierNetAmount;
+        MealsDue(summary) + summary.OtherAmount;
+
+    // The summary counts other obligations up to the period end with no lower bound, so the link does the same.
+    protected string OtherObligationsUrl(EmployeeOutstandingSummaryDto summary) =>
+        AdminObligationsBase.EmployeeUnpaidPageUrl(summary.UserId, LoadedAllDates ? null : LoadedEndDate);
 
     protected override async Task OnInitializedAsync()
     {
@@ -132,14 +145,14 @@ public class AdminPaymentsSummaryBase : ComponentBase
 
     protected async Task PayEmployeeAsync(EmployeeOutstandingSummaryDto summary)
     {
-        if ((!LoadedAllDates && !LoadedEndDate.HasValue) || PayingUserId is not null)
+        if ((!LoadedAllDates && !LoadedEndDate.HasValue) || PayingUserId is not null || !HasUnpaidMeals(summary))
             return;
 
         int orderCount = summary.UnpaidCount + summary.EarlierUnpaidCount;
         string scope = LoadedAllDates ? "regardless of date" : $"up to {LoadedEndDate:dd.MM.yyyy}";
         bool confirmed = await JsRuntime.InvokeAsync<bool>(
             "confirm",
-            $"Mark all {orderCount} unpaid orders of {summary.EmployeeName} {scope} as paid?\nTotal: {FormatEuro(TotalDue(summary))}");
+            $"Mark all {orderCount} unpaid orders of {summary.EmployeeName} {scope} as paid?\nTotal: {FormatEuro(MealsDue(summary))}");
 
         if (!confirmed)
             return;
