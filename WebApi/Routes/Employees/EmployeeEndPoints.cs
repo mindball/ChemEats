@@ -1,5 +1,6 @@
 ﻿using Domain.Infrastructure.Identity;
 using Domain.Repositories.Employees;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Shared;
@@ -51,6 +52,7 @@ public static class EmployeeEndPoints
     private static async Task<IResult> CreateEmployeeAsync(
         CreateEmployeeRequestDto? request,
         IUserRepository userRepository,
+        UserManager<ApplicationUser> userManager,
         ILogger<Program> logger,
         CancellationToken cancellationToken)
     {
@@ -82,8 +84,11 @@ public static class EmployeeEndPoints
 
             ApplicationUser user = ApplicationUser.CreateEmployee(abbreviation, request.FullName, request.Email);
 
-            // Initial password is the abbreviation; login flags RequiresPasswordChange until the user changes it.
-            IdentityResult result = await userRepository.AddAsync(user, abbreviation, EmployeeRole, cancellationToken);
+            string temporaryPassword = PasswordChangeRequirement.GenerateTemporaryPassword();
+            IdentityResult result = await userRepository.AddAsync(user, temporaryPassword, EmployeeRole, cancellationToken);
+            if (result.Succeeded)
+                result = await RequirePasswordChangeAsync(userManager, user);
+
             if (!result.Succeeded)
             {
                 string errors = string.Join(", ", result.Errors.Select(error => error.Description));
@@ -93,17 +98,42 @@ public static class EmployeeEndPoints
 
             logger.LogInformation("Employee {Abbreviation} ({UserId}) created manually", abbreviation, user.Id);
 
-            EmployeeDto dto = new(user.Id, user.FullName, user.Email ?? string.Empty, user.Abbreviation)
-            {
-                Roles = [EmployeeRole]
-            };
-            return Results.Created(ApiRoutes.Employees.Base, dto);
+            // The temporary password is returned once so the admin can hand it over; it is never logged.
+            return Results.Created(
+                ApiRoutes.Employees.Base,
+                new TemporaryPasswordDto(user.Id, user.Abbreviation, temporaryPassword));
         }
         catch (Exception ex) when (ex is not Domain.Infrastructure.Exceptions.DomainException)
         {
             logger.LogError(ex, "Error creating employee {Abbreviation}", abbreviation);
             return Results.Problem("Failed to create employee.");
         }
+    }
+
+    private static async Task<IdentityResult> RequirePasswordChangeAsync(
+        UserManager<ApplicationUser> userManager,
+        ApplicationUser user)
+    {
+        IList<Claim> claims = await userManager.GetClaimsAsync(user);
+        if (claims.Any(claim => claim.Type == PasswordChangeRequirement.ClaimType))
+            return IdentityResult.Success;
+
+        return await userManager.AddClaimAsync(
+            user,
+            new Claim(PasswordChangeRequirement.ClaimType, PasswordChangeRequirement.ClaimValue));
+    }
+
+    private static async Task<bool> IsPasswordChangeRequiredAsync(
+        UserManager<ApplicationUser> userManager,
+        ApplicationUser user,
+        string password)
+    {
+        // Legacy accounts still use their abbreviation as password.
+        if (string.Equals(password, user.Abbreviation, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        IList<Claim> claims = await userManager.GetClaimsAsync(user);
+        return claims.Any(claim => claim.Type == PasswordChangeRequirement.ClaimType);
     }
 
     private static async Task<IResult> GetAllEmployeesAsync(
@@ -235,7 +265,16 @@ public static class EmployeeEndPoints
             SignInResult result = await signInManager.CheckPasswordSignInAsync(
                 user,
                 req.Password,
-                lockoutOnFailure: false);
+                lockoutOnFailure: true);
+
+            if (result.IsLockedOut)
+            {
+                logger.LogWarning("Login rejected - account locked out: {Abbreviation}", user.Abbreviation);
+                return Results.Problem(
+                    title: "Account locked",
+                    detail: "Too many failed login attempts. Try again later.",
+                    statusCode: StatusCodes.Status423Locked);
+            }
 
             if (!result.Succeeded)
             {
@@ -248,15 +287,12 @@ public static class EmployeeEndPoints
             logger.LogInformation("Password validated successfully. User {UserName} ({Abbreviation}) has roles: {Roles}",
                 user.UserName, user.Abbreviation, string.Join(", ", roles));
 
-            string accessToken = jwtProvider.GenerateToken(user, roles);
+            bool requiresPasswordChange = await IsPasswordChangeRequiredAsync(userManager, user, req.Password);
+
+            string accessToken = jwtProvider.GenerateToken(user, roles, requiresPasswordChange);
 
             logger.LogInformation("JWT token generated successfully for user: {UserName} ({Abbreviation})",
                 user.UserName, user.Abbreviation);
-
-            bool requiresPasswordChange = string.Equals(
-                req.Password,
-                user.Abbreviation,
-                StringComparison.OrdinalIgnoreCase);
 
             return Results.Ok(new
             {
@@ -309,6 +345,13 @@ public static class EmployeeEndPoints
             return Results.BadRequest(errors);
         }
 
+        IList<Claim> claims = await userManager.GetClaimsAsync(user);
+        Claim[] passwordChangeClaims = claims
+            .Where(claim => claim.Type == PasswordChangeRequirement.ClaimType)
+            .ToArray();
+        if (passwordChangeClaims.Length > 0)
+            await userManager.RemoveClaimsAsync(user, passwordChangeClaims);
+
         logger.LogInformation("Password changed successfully for user {UserId}", user.Id);
         return Results.Ok("Password changed successfully.");
     }
@@ -316,6 +359,7 @@ public static class EmployeeEndPoints
     private static async Task<IResult> ResetUserPasswordAsync(
         string userId,
         IUserRepository userRepository,
+        UserManager<ApplicationUser> userManager,
         ILogger<Program> logger,
         CancellationToken cancellationToken)
     {
@@ -326,7 +370,17 @@ public static class EmployeeEndPoints
         if (user is null)
             return Results.NotFound("User not found.");
 
-        IdentityResult result = await userRepository.ResetPasswordAsync(user, user.Abbreviation, cancellationToken);
+        string temporaryPassword = PasswordChangeRequirement.GenerateTemporaryPassword();
+        IdentityResult result = await userRepository.ResetPasswordAsync(user, temporaryPassword, cancellationToken);
+        if (result.Succeeded)
+            result = await RequirePasswordChangeAsync(userManager, user);
+        if (result.Succeeded)
+        {
+            // A reset also lifts a lockout; use the instance tracked by UserManager to avoid a tracking conflict.
+            ApplicationUser? managedUser = await userManager.FindByIdAsync(user.Id);
+            if (managedUser is not null)
+                result = await userManager.SetLockoutEndDateAsync(managedUser, null);
+        }
 
         if (!result.Succeeded)
         {
@@ -335,7 +389,7 @@ public static class EmployeeEndPoints
             return Results.BadRequest(errors);
         }
 
-        logger.LogInformation("Password reset successfully for user {UserId}", user.Id);
-        return Results.Ok("User password reset to abbreviation.");
+        logger.LogInformation("Password reset to a temporary password for user {UserId}", user.Id);
+        return Results.Ok(new TemporaryPasswordDto(user.Id, user.Abbreviation, temporaryPassword));
     }
 }

@@ -1,4 +1,4 @@
-using Moq;
+﻿using Moq;
 using Shared.DTOs.Employees;
 using Shared.DTOs.Orders;
 using WebApp.Pages.AdminPanel;
@@ -135,7 +135,7 @@ public class AdminPanelBaseTests
         Mock<IEmployeeDataService> employeeDataServiceMock = new();
         employeeDataServiceMock
             .Setup(service => service.CreateEmployeeAsync(new CreateEmployeeRequestDto("MM", "Mincho", null)))
-            .ReturnsAsync((true, (string?)null));
+            .ReturnsAsync((new TemporaryPasswordDto("u1", "MM", "Temp1234x"), (string?)null));
         employeeDataServiceMock.Setup(service => service.GetAllEmployeesAsync()).ReturnsAsync([]);
 
         AdminPanelBaseTestHarness harness = new(new Mock<IOrderDataService>().Object, new Mock<ISettingsDataService>().Object, employeeDataServiceMock.Object);
@@ -144,6 +144,7 @@ public class AdminPanelBaseTests
         await harness.CreateEmployeeAsyncPublic();
 
         Assert.NotNull(harness.UserManagementSuccessPublic);
+        Assert.Contains("Temp1234x", harness.UserManagementSuccessPublic);
         Assert.Null(harness.UserManagementErrorPublic);
         employeeDataServiceMock.Verify(service => service.GetAllEmployeesAsync(), Times.Once);
     }
@@ -154,7 +155,7 @@ public class AdminPanelBaseTests
         Mock<IEmployeeDataService> employeeDataServiceMock = new();
         employeeDataServiceMock
             .Setup(service => service.CreateEmployeeAsync(It.IsAny<CreateEmployeeRequestDto>()))
-            .ReturnsAsync((false, "Abbreviation already exists."));
+            .ReturnsAsync(((TemporaryPasswordDto?)null, "Abbreviation already exists."));
 
         AdminPanelBaseTestHarness harness = new(new Mock<IOrderDataService>().Object, new Mock<ISettingsDataService>().Object, employeeDataServiceMock.Object);
         harness.SetNewEmployee("MM", "Mincho", null);

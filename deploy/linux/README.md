@@ -9,11 +9,10 @@ dotnet publish WebApi/WebApi.csproj -c Release -r linux-x64 --self-contained tru
 ## 2. Install on the Linux host (first time)
 
 ```bash
-sudo useradd --system --no-create-home --shell /usr/sbin/nologin chemeats
-sudo mkdir -p /opt/chemeats /etc/chemeats /var/log/chemeats
-# copy ./publish-linux/* to /opt/chemeats (scp / rsync)
-sudo chmod +x /opt/chemeats/WebApi
-sudo chown -R chemeats:chemeats /opt/chemeats /var/log/chemeats   # App_Data/company-settings.json is written at runtime
+sudo mkdir -p /var/www/chemeats /etc/chemeats /var/log/chemeats
+# copy ./publish-linux/* to /var/www/chemeats (scp / rsync)
+sudo chmod +x /var/www/chemeats/WebApi
+sudo chown -R www-data:www-data /var/www/chemeats /var/log/chemeats   # App_Data/company-settings.json is written at runtime
 
 sudo cp chemeats.env.example /etc/chemeats/chemeats.env   # then fill it in
 sudo chmod 600 /etc/chemeats/chemeats.env
@@ -30,8 +29,8 @@ The app listens on `http://0.0.0.0:12345` (Kestrel section in `appsettings.Produ
 
 ```bash
 sudo systemctl stop chemeats
-# copy new files over /opt/chemeats, keep App_Data/company-settings.json
-sudo chmod +x /opt/chemeats/WebApi && sudo chown -R chemeats:chemeats /opt/chemeats
+# copy new files over /var/www/chemeats, keep App_Data/company-settings.json
+sudo chmod +x /var/www/chemeats/WebApi && sudo chown -R www-data:www-data /var/www/chemeats
 sudo systemctl start chemeats
 ```
 

@@ -178,16 +178,18 @@ public class AdminPanelBase : ComponentBase
         {
             IsCreatingEmployee = true;
             string? email = string.IsNullOrWhiteSpace(NewEmployeeEmail) ? null : NewEmployeeEmail.Trim();
-            (bool success, string? error) = await EmployeeDataService.CreateEmployeeAsync(
+            (TemporaryPasswordDto? created, string? error) = await EmployeeDataService.CreateEmployeeAsync(
                 new CreateEmployeeRequestDto(abbreviation, fullName, email));
 
-            if (!success)
+            if (created is null)
             {
                 UserManagementError = error ?? "Failed to create employee.";
                 return;
             }
 
-            UserManagementSuccess = $"Employee '{abbreviation}' created. Initial password is the abbreviation.";
+            UserManagementSuccess =
+                $"Employee '{created.Abbreviation}' created. Temporary password: {created.TemporaryPassword} " +
+                "(shown only once; the employee must change it at first login).";
             NewEmployeeAbbreviation = null;
             NewEmployeeFullName = null;
             NewEmployeeEmail = null;
@@ -258,10 +260,12 @@ public class AdminPanelBase : ComponentBase
 
         try
         {
-            bool result = await EmployeeDataService.ResetPasswordAsync(user.UserId);
-            if (result)
+            TemporaryPasswordDto? reset = await EmployeeDataService.ResetPasswordAsync(user.UserId);
+            if (reset is not null)
             {
-                UserManagementSuccess = $"Password for '{user.Abbreviation}' reset to abbreviation.";
+                UserManagementSuccess =
+                    $"Password for '{reset.Abbreviation}' reset. Temporary password: {reset.TemporaryPassword} " +
+                    "(shown only once; the employee must change it at next login).";
                 await LoadUsersAsync();
             }
             else

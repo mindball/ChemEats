@@ -1,4 +1,7 @@
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
+using System.Security.Claims;
+using ChemEats.Tests.TestInfrastructure;
 using Domain.Infrastructure.Identity;
 using Domain.Repositories.Employees;
 using Microsoft.AspNetCore.Http;
@@ -15,30 +18,148 @@ namespace ChemEats.Tests.WebApi.Routes.Employees;
 public class EmployeeEndpointsTests
 {
     [Fact]
-    public async Task CreateEmployeeAsync_WhenRequestIsValid_ShouldCreateUserWithAbbreviationAsPassword()
+    public async Task CreateEmployeeAsync_WhenRequestIsValid_ShouldCreateUserWithTemporaryPasswordThatMustBeChanged()
     {
         Mock<IUserRepository> userRepositoryMock = new();
         userRepositoryMock
             .Setup(repository => repository.FindByUserNameAsync("MM", It.IsAny<CancellationToken>()))
             .ReturnsAsync((ApplicationUser?)null);
         ApplicationUser? createdUser = null;
+        string? usedPassword = null;
         userRepositoryMock
-            .Setup(repository => repository.AddAsync(It.IsAny<ApplicationUser>(), "MM", "Employee", It.IsAny<CancellationToken>()))
-            .Callback<ApplicationUser, string?, string?, CancellationToken>((user, _, _, _) => createdUser = user)
+            .Setup(repository => repository.AddAsync(It.IsAny<ApplicationUser>(), It.IsAny<string?>(), "Employee", It.IsAny<CancellationToken>()))
+            .Callback<ApplicationUser, string?, string?, CancellationToken>((user, password, _, _) =>
+            {
+                createdUser = user;
+                usedPassword = password;
+            })
             .ReturnsAsync(IdentityResult.Success);
+        Mock<UserManager<ApplicationUser>> userManagerMock = CreateUserManagerMockWithClaims();
 
         IResult result = await InvokePrivateResultMethodAsync(
             "CreateEmployeeAsync",
             new CreateEmployeeRequestDto(" mm ", "Mincho M", null),
             userRepositoryMock.Object,
+            userManagerMock.Object,
             CreateProgramLogger(),
             CancellationToken.None);
 
         AssertHttpResultType(result, "Created");
+        TemporaryPasswordDto dto = Assert.IsType<TemporaryPasswordDto>(((IValueHttpResult)result).Value);
         Assert.NotNull(createdUser);
         Assert.Equal("MM", createdUser.Abbreviation);
         Assert.Equal("MM", createdUser.UserName);
         Assert.Equal("Mincho M", createdUser.FullName);
+        Assert.Equal(usedPassword, dto.TemporaryPassword);
+        Assert.NotEqual("MM", dto.TemporaryPassword, StringComparer.OrdinalIgnoreCase);
+        userManagerMock.Verify(manager => manager.AddClaimAsync(
+            createdUser,
+            It.Is<Claim>(claim => claim.Type == PasswordChangeRequirement.ClaimType)), Times.Once);
+    }
+
+    [Fact]
+    public async Task ResetUserPasswordAsync_WhenUserExists_ShouldReturnTemporaryPasswordAndRequireChange()
+    {
+        ApplicationUser user = TestDataFactory.CreateUser(Guid.NewGuid().ToString(), "MM", "Mincho");
+        Mock<IUserRepository> userRepositoryMock = new();
+        userRepositoryMock
+            .Setup(repository => repository.GetByIdAsync(Guid.Parse(user.Id), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        userRepositoryMock
+            .Setup(repository => repository.ResetPasswordAsync(user, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(IdentityResult.Success);
+        Mock<UserManager<ApplicationUser>> userManagerMock = CreateUserManagerMockWithClaims();
+        userManagerMock.Setup(manager => manager.FindByIdAsync(user.Id)).ReturnsAsync(user);
+        userManagerMock.Setup(manager => manager.SetLockoutEndDateAsync(user, null)).ReturnsAsync(IdentityResult.Success);
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "ResetUserPasswordAsync",
+            user.Id,
+            userRepositoryMock.Object,
+            userManagerMock.Object,
+            CreateProgramLogger(),
+            CancellationToken.None);
+
+        AssertHttpResultType(result, "Ok");
+        TemporaryPasswordDto dto = Assert.IsType<TemporaryPasswordDto>(((IValueHttpResult)result).Value);
+        Assert.True(dto.TemporaryPassword.Length >= 8);
+        userRepositoryMock.Verify(repository => repository.ResetPasswordAsync(user, dto.TemporaryPassword, It.IsAny<CancellationToken>()), Times.Once);
+        userManagerMock.Verify(manager => manager.SetLockoutEndDateAsync(user, null), Times.Once);
+    }
+
+    [Fact]
+    public async Task ResetUserPasswordAsync_WhenUserIsMissing_ShouldReturnNotFound()
+    {
+        Mock<IUserRepository> userRepositoryMock = new();
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "ResetUserPasswordAsync",
+            Guid.NewGuid().ToString(),
+            userRepositoryMock.Object,
+            CreateUserManagerMock().Object,
+            CreateProgramLogger(),
+            CancellationToken.None);
+
+        AssertHttpResultType(result, "NotFound");
+    }
+
+    [Fact]
+    public async Task LoginAsync_WhenAccountIsLockedOut_ShouldReturnLockedProblem()
+    {
+        ApplicationUser user = TestDataFactory.CreateUser(Guid.NewGuid().ToString(), "MM", "Mincho");
+        LoginRequest request = new() { Email = "MM", Password = "wrong-password1" };
+        Mock<IUserRepository> userRepositoryMock = new();
+        userRepositoryMock.Setup(repository => repository.FindByEmailAsync("MM", It.IsAny<CancellationToken>())).ReturnsAsync((ApplicationUser?)null);
+        userRepositoryMock.Setup(repository => repository.FindByUserNameAsync("MM", It.IsAny<CancellationToken>())).ReturnsAsync(user);
+        Mock<SignInManager<ApplicationUser>> signInManagerMock = CreateSignInManagerMock();
+        signInManagerMock
+            .Setup(manager => manager.CheckPasswordSignInAsync(user, request.Password, true))
+            .ReturnsAsync(SignInResult.LockedOut);
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "LoginAsync",
+            request,
+            userRepositoryMock.Object,
+            signInManagerMock.Object,
+            CreateUserManagerMock().Object,
+            CreateTokenProvider(),
+            new Mock<ILogger<JwtTokenProvider>>().Object);
+
+        IStatusCodeHttpResult statusResult = Assert.IsAssignableFrom<IStatusCodeHttpResult>(result);
+        Assert.Equal(StatusCodes.Status423Locked, statusResult.StatusCode);
+    }
+
+    [Fact]
+    public async Task LoginAsync_WhenPasswordIsAbbreviation_ShouldIssueTokenThatRequiresPasswordChange()
+    {
+        ApplicationUser user = TestDataFactory.CreateUser(Guid.NewGuid().ToString(), "MM", "Mincho");
+        LoginRequest request = new() { Email = "MM", Password = "mm" };
+        Mock<IUserRepository> userRepositoryMock = new();
+        userRepositoryMock.Setup(repository => repository.FindByEmailAsync("MM", It.IsAny<CancellationToken>())).ReturnsAsync((ApplicationUser?)null);
+        userRepositoryMock.Setup(repository => repository.FindByUserNameAsync("MM", It.IsAny<CancellationToken>())).ReturnsAsync(user);
+        Mock<SignInManager<ApplicationUser>> signInManagerMock = CreateSignInManagerMock();
+        signInManagerMock
+            .Setup(manager => manager.CheckPasswordSignInAsync(user, request.Password, true))
+            .ReturnsAsync(SignInResult.Success);
+        Mock<UserManager<ApplicationUser>> userManagerMock = CreateUserManagerMockWithClaims();
+        userManagerMock.Setup(manager => manager.GetRolesAsync(user)).ReturnsAsync(["Employee"]);
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "LoginAsync",
+            request,
+            userRepositoryMock.Object,
+            signInManagerMock.Object,
+            userManagerMock.Object,
+            CreateTokenProvider(),
+            new Mock<ILogger<JwtTokenProvider>>().Object);
+
+        AssertHttpResultType(result, "Ok");
+        object? value = ((IValueHttpResult)result).Value;
+        Assert.NotNull(value);
+        Assert.True((bool)value.GetType().GetProperty("RequiresPasswordChange")!.GetValue(value)!);
+        string token = (string)value.GetType().GetProperty("AccessToken")!.GetValue(value)!;
+        JwtSecurityToken jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
+        Assert.Contains(jwt.Claims, claim => claim.Type == PasswordChangeRequirement.ClaimType);
     }
 
     [Fact]
@@ -53,6 +174,7 @@ public class EmployeeEndpointsTests
             "CreateEmployeeAsync",
             new CreateEmployeeRequestDto("MM", "Another", null),
             userRepositoryMock.Object,
+            CreateUserManagerMock().Object,
             CreateProgramLogger(),
             CancellationToken.None);
 
@@ -74,6 +196,7 @@ public class EmployeeEndpointsTests
             "CreateEmployeeAsync",
             new CreateEmployeeRequestDto(abbreviation, fullName, email),
             userRepositoryMock.Object,
+            CreateUserManagerMock().Object,
             CreateProgramLogger(),
             CancellationToken.None);
 
@@ -197,6 +320,17 @@ public class EmployeeEndpointsTests
             null!,
             null!);
     }
+
+    private static Mock<UserManager<ApplicationUser>> CreateUserManagerMockWithClaims()
+    {
+        Mock<UserManager<ApplicationUser>> userManagerMock = CreateUserManagerMock();
+        userManagerMock.Setup(manager => manager.GetClaimsAsync(It.IsAny<ApplicationUser>())).ReturnsAsync([]);
+        userManagerMock.Setup(manager => manager.AddClaimAsync(It.IsAny<ApplicationUser>(), It.IsAny<Claim>())).ReturnsAsync(IdentityResult.Success);
+        return userManagerMock;
+    }
+
+    private static JwtTokenProvider CreateTokenProvider() =>
+        new(new JwtSettings("issuer", "audience", "super_secret_key_that_is_long_enough_123", 60));
 
     private static Mock<SignInManager<ApplicationUser>> CreateSignInManagerMock()
     {

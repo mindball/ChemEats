@@ -30,6 +30,31 @@ public class JwtTokenProviderTests
     }
 
     [Fact]
+    public void GenerateToken_WhenEmailIsMissing_ShouldOmitEmailClaim()
+    {
+        JwtTokenProvider provider = CreateProvider();
+        ApplicationUser user = ApplicationUser.CreateEmployee("MM", "Mincho", null);
+
+        string token = provider.GenerateToken(user, ["Employee"]);
+
+        System.IdentityModel.Tokens.Jwt.JwtSecurityToken jwt = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().ReadJwtToken(token);
+        Assert.DoesNotContain(jwt.Claims, claim => claim.Type == System.Security.Claims.ClaimTypes.Email);
+        Assert.DoesNotContain(jwt.Claims, claim => claim.Type == PasswordChangeRequirement.ClaimType);
+    }
+
+    [Fact]
+    public void GenerateToken_WhenPasswordChangeRequired_ShouldAddClaim()
+    {
+        JwtTokenProvider provider = CreateProvider();
+        ApplicationUser user = ApplicationUser.CreateEmployee("MM", "Mincho", null);
+
+        string token = provider.GenerateToken(user, ["Employee"], mustChangePassword: true);
+
+        System.IdentityModel.Tokens.Jwt.JwtSecurityToken jwt = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().ReadJwtToken(token);
+        Assert.Contains(jwt.Claims, claim => claim.Type == PasswordChangeRequirement.ClaimType);
+    }
+
+    [Fact]
     public void GenerateToken_ShouldContainExpectedClaims()
     {
         JwtTokenProvider provider = CreateProvider();

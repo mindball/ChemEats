@@ -19,15 +19,19 @@ public class EmployeeDataService : IEmployeeDataService
         return employees ?? [];
     }
 
-    public async Task<(bool Success, string? Error)> CreateEmployeeAsync(CreateEmployeeRequestDto request)
+    public async Task<(TemporaryPasswordDto? Created, string? Error)> CreateEmployeeAsync(CreateEmployeeRequestDto request)
     {
         HttpResponseMessage response = await _httpClient.PostAsJsonAsync(ApiRoutes.Employees.Create(), request);
         if (response.IsSuccessStatusCode)
-            return (true, null);
+            return (await response.Content.ReadFromJsonAsync<TemporaryPasswordDto>(), null);
 
+        return (null, await ReadErrorAsync(response));
+    }
+
+    private static async Task<string?> ReadErrorAsync(HttpResponseMessage response)
+    {
         string body = await response.Content.ReadAsStringAsync();
-        string? error = string.IsNullOrWhiteSpace(body) ? null : body.Trim().Trim('"');
-        return (false, error);
+        return string.IsNullOrWhiteSpace(body) ? null : body.Trim().Trim('"');
     }
 
     public async Task<bool> AssignRoleAsync(string userId, string roleName)
@@ -44,19 +48,21 @@ public class EmployeeDataService : IEmployeeDataService
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<bool> ChangeMyPasswordAsync(ChangePasswordRequestDto request)
+    public async Task<(bool Success, string? Error)> ChangeMyPasswordAsync(ChangePasswordRequestDto request)
     {
         HttpResponseMessage response = await _httpClient.PostAsJsonAsync(
             ApiRoutes.Employees.ChangeMyPassword(),
             request);
-        return response.IsSuccessStatusCode;
+        return response.IsSuccessStatusCode ? (true, null) : (false, await ReadErrorAsync(response));
     }
 
-    public async Task<bool> ResetPasswordAsync(string userId)
+    public async Task<TemporaryPasswordDto?> ResetPasswordAsync(string userId)
     {
         HttpResponseMessage response = await _httpClient.PostAsync(
             ApiRoutes.Employees.ResetPassword(userId),
             null);
-        return response.IsSuccessStatusCode;
+        return response.IsSuccessStatusCode
+            ? await response.Content.ReadFromJsonAsync<TemporaryPasswordDto>()
+            : null;
     }
 }

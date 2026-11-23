@@ -5,9 +5,9 @@ namespace WebApp.Services.Employees;
 public interface IEmployeeDataService
 {
     Task<List<EmployeeDto>> GetAllEmployeesAsync();
-    Task<(bool Success, string? Error)> CreateEmployeeAsync(CreateEmployeeRequestDto request);
+    Task<(TemporaryPasswordDto? Created, string? Error)> CreateEmployeeAsync(CreateEmployeeRequestDto request);
     Task<bool> AssignRoleAsync(string userId, string roleName);
     Task<bool> RemoveRoleAsync(string userId, string roleName);
-    Task<bool> ChangeMyPasswordAsync(ChangePasswordRequestDto request);
-    Task<bool> ResetPasswordAsync(string userId);
+    Task<(bool Success, string? Error)> ChangeMyPasswordAsync(ChangePasswordRequestDto request);
+    Task<TemporaryPasswordDto?> ResetPasswordAsync(string userId);
 }

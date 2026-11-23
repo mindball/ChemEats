@@ -43,6 +43,9 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
     public async Task<FormResult> LoginAsync(string email, string password)
     {
         HttpResponseMessage response = await _httpClient.PostAsJsonAsync(ApiRoutes.Employees.Login, new { email, password });
+        if (response.StatusCode == System.Net.HttpStatusCode.Locked)
+            return new FormResult { Succeeded = false, Errors = ["Too many failed attempts. The account is locked for 15 minutes."] };
+
         if (!response.IsSuccessStatusCode)
             return new FormResult { Succeeded = false, Errors = ["Bad Email or Password"] };
 

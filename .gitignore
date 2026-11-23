@@ -372,3 +372,7 @@ FodyWeavers.xsd
 /.claude
 
 publish-linux/
+*.fbk
+*.FBK
+*.fdb
+*.FDB

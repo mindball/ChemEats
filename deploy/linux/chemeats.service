@@ -1,13 +1,14 @@
 [Unit]
 Description=ChemEats WebApi
-After=network.target
+After=network.target firebird.service
+Wants=firebird.service
 
 [Service]
 Type=notify
-User=chemeats
-Group=chemeats
-WorkingDirectory=/opt/chemeats
-ExecStart=/opt/chemeats/WebApi
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/chemeats
+ExecStart=/var/www/chemeats/WebApi
 EnvironmentFile=/etc/chemeats/chemeats.env
 Restart=always
 RestartSec=10

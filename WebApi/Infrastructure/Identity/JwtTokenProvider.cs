@@ -1,4 +1,4 @@
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Domain.Infrastructure.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -14,21 +14,27 @@ public class JwtTokenProvider
         _settings = settings;
     }
 
-    public string GenerateToken(ApplicationUser user, IList<string> roles)
+    public string GenerateToken(ApplicationUser user, IList<string> roles, bool mustChangePassword = false)
     {
         ArgumentNullException.ThrowIfNull(user);
 
-        if (user is not { UserName: not null, Email: not null })
+        if (user.UserName is null)
         {
-            throw new ArgumentException("User must have non-null UserName and Email.", nameof(user));
+            throw new ArgumentException("User must have a non-null UserName.", nameof(user));
         }
 
         List<Claim> claims =
         [
             new Claim(ClaimTypes.NameIdentifier, user.Id),
-            new Claim(ClaimTypes.Name, user.UserName),
-            new Claim(ClaimTypes.Email, user.Email)
+            new Claim(ClaimTypes.Name, user.UserName)
         ];
+
+        // Manually created employees may have no email.
+        if (!string.IsNullOrWhiteSpace(user.Email))
+            claims.Add(new Claim(ClaimTypes.Email, user.Email));
+
+        if (mustChangePassword)
+            claims.Add(new Claim(PasswordChangeRequirement.ClaimType, PasswordChangeRequirement.ClaimValue));
 
         foreach (string role in roles)
         {

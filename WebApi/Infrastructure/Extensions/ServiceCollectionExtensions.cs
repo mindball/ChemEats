@@ -25,12 +25,21 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddAppCors(this IServiceCollection services)
+    public const string CorsPolicyName = "AllowedOrigins";
+
+    // The WASM client is served by this API (same origin), so no cross-origin access is needed by default.
+    // Extra origins can be allowed via the "Cors:AllowedOrigins" configuration array.
+    public static IServiceCollection AddAppCors(this IServiceCollection services, IConfiguration configuration)
     {
+        string[] allowedOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+
         services.AddCors(options =>
         {
-            options.AddPolicy("Open", cors =>
-                cors.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+            options.AddPolicy(CorsPolicyName, cors =>
+            {
+                if (allowedOrigins.Length > 0)
+                    cors.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod();
+            });
         });
         return services;
     }
@@ -62,12 +71,16 @@ public static class ServiceCollectionExtensions
 
         services.Configure<IdentityOptions>(options =>
         {
-            options.Password.RequireDigit = false;
-            options.Password.RequireLowercase = false;
+            // The app is reachable from the internet: enforce a real password policy and lockout.
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
             options.Password.RequireNonAlphanumeric = false;
             options.Password.RequireUppercase = false;
-            options.Password.RequiredLength = 1;
-            options.Password.RequiredUniqueChars = 0;
+            options.Password.RequiredLength = 8;
+            options.Password.RequiredUniqueChars = 4;
+            options.Lockout.AllowedForNewUsers = true;
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
             options.User.RequireUniqueEmail = false;
             options.SignIn.RequireConfirmedEmail = false;
         });

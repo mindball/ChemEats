@@ -23,23 +23,17 @@ public static class ApplicationBuilderExtensions
 
     public static WebApplication UseAppSwagger(this WebApplication app, IHostEnvironment env)
     {
-        app.UseSwagger();
+        // Swagger exposes the whole API surface, so it is only available in Development.
+        if (!env.IsDevelopment())
+            return app;
 
-        if (env.IsDevelopment())
+        app.UseSwagger();
+        app.UseSwaggerUI(options =>
         {
-            app.UseSwaggerUI(options =>
-            {
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "ChemEats API v1");
-                options.RoutePrefix = "swagger";
-            });
-            app.UseWebAssemblyDebugging();
-        }
-        else
-        {
-            app.UseSwaggerUI();
-            // Protect Swagger in non-dev
-            app.MapSwagger().RequireAuthorization();
-        }
+            options.SwaggerEndpoint("/swagger/v1/swagger.json", "ChemEats API v1");
+            options.RoutePrefix = "swagger";
+        });
+        app.UseWebAssemblyDebugging();
 
         return app;
     }
@@ -56,15 +50,16 @@ public static class ApplicationBuilderExtensions
     public static WebApplication UseAppSecurity(this WebApplication app)
     {
         // CORS, Authentication, Authorization
-        app.UseCors("Open");
+        app.UseCors(ServiceCollectionExtensions.CorsPolicyName);
         app.UseAuthentication();
         app.UseAuthorization();
+        app.UseMiddleware<PasswordChangeRequiredMiddleware>();
         return app;
     }
 
     public static WebApplication MapAppEndpoints(this WebApplication app)
     {
-        app.MapIdentityApi<Domain.Infrastructure.Identity.ApplicationUser>();
+        // MapIdentityApi is intentionally not mapped: it exposes an anonymous /register endpoint.
         app.MapMenuEndpoints();
         app.MapSupplierEndpoints();
         app.MapEmployeeEndpoints();

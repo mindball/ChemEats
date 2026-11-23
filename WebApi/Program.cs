@@ -24,7 +24,7 @@ builder.Host.UseSerilog();
 
 // Services
 builder.Services.AddAppOpenApi()
-    .AddAppCors()
+    .AddAppCors(builder.Configuration)
     .AddSingleton<IHttpContextAccessor, HttpContextAccessor>()
     .AddAppDb(builder.Configuration)
     .AddAppEmail(builder.Configuration)
