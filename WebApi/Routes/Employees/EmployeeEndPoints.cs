@@ -1,10 +1,9 @@
-using Domain.Infrastructure.Identity;
+﻿using Domain.Infrastructure.Identity;
 using Domain.Repositories.Employees;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Shared;
 using Shared.DTOs.Employees;
-using WebApi.Infrastructure.Employees;
 using WebApi.Infrastructure.Filters;
 using WebApi.Infrastructure.Identity;
 
@@ -12,14 +11,16 @@ namespace WebApi.Routes.Employees;
 
 public static class EmployeeEndPoints
 {
+    private const string EmployeeRole = "Employee";
+
     public static void MapEmployeeEndpoints(this WebApplication app)
     {
-        app.MapPost(ApiRoutes.Employees.SyncEmployees, SyncEmployeesAsync)
+        app.MapGet(ApiRoutes.Employees.Base, GetAllEmployeesAsync)
             .RequireAuthorization("AdminPolicy")
-            .WithTags("System Maintenance")
+            .WithTags("Employees")
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
 
-        app.MapGet(ApiRoutes.Employees.Base, GetAllEmployeesAsync)
+        app.MapPost(ApiRoutes.Employees.Base, CreateEmployeeAsync)
             .RequireAuthorization("AdminPolicy")
             .WithTags("Employees")
             .AddEndpointFilter<AuthorizedRequestLoggingFilter>();
@@ -47,26 +48,61 @@ public static class EmployeeEndPoints
         app.MapPost(ApiRoutes.Employees.Login, LoginAsync);
     }
 
-    private static async Task<IResult> SyncEmployeesAsync(
-        IEmployeeSyncService syncService,
-        ILogger<IEmployeeSyncService> logger)
+    private static async Task<IResult> CreateEmployeeAsync(
+        CreateEmployeeRequestDto? request,
+        IUserRepository userRepository,
+        ILogger<Program> logger,
+        CancellationToken cancellationToken)
     {
+        if (request is null)
+            return Results.BadRequest("Request body is required.");
+
+        string abbreviation = ApplicationUser.NormalizeAbbreviation(request.Abbreviation);
+
+        if (string.IsNullOrWhiteSpace(abbreviation))
+            return Results.BadRequest("Abbreviation is required.");
+
+        if (abbreviation.Length > ApplicationUser.AbbreviationMaxLength)
+            return Results.BadRequest($"Abbreviation must be at most {ApplicationUser.AbbreviationMaxLength} characters.");
+
+        if (string.IsNullOrWhiteSpace(request.FullName))
+            return Results.BadRequest("Full name is required.");
+
+        if (!string.IsNullOrWhiteSpace(request.Email) && !ApplicationUser.IsValidEmail(request.Email.Trim()))
+            return Results.BadRequest("Email is not a valid email address.");
+
         try
         {
-            logger.LogInformation("Starting employee synchronization process");
-            System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
+            ApplicationUser? existing = await userRepository.FindByUserNameAsync(abbreviation, cancellationToken);
+            if (existing is not null)
+            {
+                logger.LogWarning("Employee creation rejected - abbreviation {Abbreviation} already exists", abbreviation);
+                return Results.Conflict($"An employee with abbreviation '{abbreviation}' already exists.");
+            }
 
-            await syncService.SyncEmployeesAsync();
+            ApplicationUser user = ApplicationUser.CreateEmployee(abbreviation, request.FullName, request.Email);
 
-            sw.Stop();
-            logger.LogInformation("Employee synchronization completed successfully in {ElapsedMs} ms", sw.ElapsedMilliseconds);
+            // Initial password is the abbreviation; login flags RequiresPasswordChange until the user changes it.
+            IdentityResult result = await userRepository.AddAsync(user, abbreviation, EmployeeRole, cancellationToken);
+            if (!result.Succeeded)
+            {
+                string errors = string.Join(", ", result.Errors.Select(error => error.Description));
+                logger.LogWarning("Employee creation failed for {Abbreviation}: {Errors}", abbreviation, errors);
+                return Results.BadRequest(errors);
+            }
 
-            return Results.Ok("Employees synchronized successfully.");
+            logger.LogInformation("Employee {Abbreviation} ({UserId}) created manually", abbreviation, user.Id);
+
+            EmployeeDto dto = new(user.Id, user.FullName, user.Email ?? string.Empty, user.Abbreviation)
+            {
+                Roles = [EmployeeRole]
+            };
+            return Results.Created(ApiRoutes.Employees.Base, dto);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not Domain.Infrastructure.Exceptions.DomainException)
         {
-            logger.LogError(ex, "Employee synchronization failed with error: {ErrorMessage}", ex.Message);
-            throw;
+            logger.LogError(ex, "Error creating employee {Abbreviation}", abbreviation);
+            return Results.Problem("Failed to create employee.");
         }
     }
 

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace WebApi.Infrastructure.Employees;
 
+[Obsolete("External HR employee integration is disabled: the isolated host has no access to the HR service. Employees are created manually by an admin. Kept for a possible future integration.")]
 public class EmployeeCacheService : IEmployeeCacheService
 {
     private const string CacheKey = "EmployeeCache";

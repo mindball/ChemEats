@@ -2,6 +2,7 @@
 
 namespace Shared.DTOs.Employees;
 
+[Obsolete("External HR employee integration is disabled: the isolated host has no access to the HR service. Employees are created manually by an admin. Kept for a possible future integration.")]
 public class UserDto
 {
     [JsonPropertyName("Code")]

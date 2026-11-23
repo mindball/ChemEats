@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.Extensions.Logging;
 using Moq;
-using WebApi.Infrastructure.Employees;
+using Shared.DTOs.Employees;
 using WebApi.Infrastructure.Identity;
 using WebApi.Routes.Employees;
 
@@ -15,17 +15,69 @@ namespace ChemEats.Tests.WebApi.Routes.Employees;
 public class EmployeeEndpointsTests
 {
     [Fact]
-    public async Task SyncEmployeesAsync_ShouldReturnOk_WhenServiceSucceeds()
+    public async Task CreateEmployeeAsync_WhenRequestIsValid_ShouldCreateUserWithAbbreviationAsPassword()
     {
-        Mock<IEmployeeSyncService> syncServiceMock = new();
-        Mock<ILogger<IEmployeeSyncService>> loggerMock = new();
+        Mock<IUserRepository> userRepositoryMock = new();
+        userRepositoryMock
+            .Setup(repository => repository.FindByUserNameAsync("MM", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ApplicationUser?)null);
+        ApplicationUser? createdUser = null;
+        userRepositoryMock
+            .Setup(repository => repository.AddAsync(It.IsAny<ApplicationUser>(), "MM", "Employee", It.IsAny<CancellationToken>()))
+            .Callback<ApplicationUser, string?, string?, CancellationToken>((user, _, _, _) => createdUser = user)
+            .ReturnsAsync(IdentityResult.Success);
 
         IResult result = await InvokePrivateResultMethodAsync(
-            "SyncEmployeesAsync",
-            syncServiceMock.Object,
-            loggerMock.Object);
+            "CreateEmployeeAsync",
+            new CreateEmployeeRequestDto(" mm ", "Mincho M", null),
+            userRepositoryMock.Object,
+            CreateProgramLogger(),
+            CancellationToken.None);
 
-        AssertHttpResultType(result, "Ok");
+        AssertHttpResultType(result, "Created");
+        Assert.NotNull(createdUser);
+        Assert.Equal("MM", createdUser.Abbreviation);
+        Assert.Equal("MM", createdUser.UserName);
+        Assert.Equal("Mincho M", createdUser.FullName);
+    }
+
+    [Fact]
+    public async Task CreateEmployeeAsync_WhenAbbreviationExists_ShouldReturnConflict()
+    {
+        Mock<IUserRepository> userRepositoryMock = new();
+        userRepositoryMock
+            .Setup(repository => repository.FindByUserNameAsync("MM", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApplicationUser.CreateEmployee("MM", "Mincho", null));
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "CreateEmployeeAsync",
+            new CreateEmployeeRequestDto("MM", "Another", null),
+            userRepositoryMock.Object,
+            CreateProgramLogger(),
+            CancellationToken.None);
+
+        AssertHttpResultType(result, "Conflict");
+        userRepositoryMock.Verify(repository => repository.AddAsync(
+            It.IsAny<ApplicationUser>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData("", "Name", null)]
+    [InlineData("ABCD", "Name", null)]
+    [InlineData("MM", " ", null)]
+    [InlineData("MM", "Name", "not-an-email")]
+    public async Task CreateEmployeeAsync_WhenRequestIsInvalid_ShouldReturnBadRequest(string abbreviation, string fullName, string? email)
+    {
+        Mock<IUserRepository> userRepositoryMock = new();
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "CreateEmployeeAsync",
+            new CreateEmployeeRequestDto(abbreviation, fullName, email),
+            userRepositoryMock.Object,
+            CreateProgramLogger(),
+            CancellationToken.None);
+
+        AssertHttpResultType(result, "BadRequest");
     }
 
     [Fact]

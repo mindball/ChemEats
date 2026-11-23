@@ -1,3 +1,5 @@
+﻿// Tests for the disabled (obsolete) HR employee integration, kept while the code is retained.
+#pragma warning disable CS0618
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.Extensions.Logging;

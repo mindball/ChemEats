@@ -19,10 +19,15 @@ public class EmployeeDataService : IEmployeeDataService
         return employees ?? [];
     }
 
-    public async Task<bool> SyncEmployeesAsync()
+    public async Task<(bool Success, string? Error)> CreateEmployeeAsync(CreateEmployeeRequestDto request)
     {
-        HttpResponseMessage response = await _httpClient.PostAsync(ApiRoutes.Employees.SyncEmployees, null);
-        return response.IsSuccessStatusCode;
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync(ApiRoutes.Employees.Create(), request);
+        if (response.IsSuccessStatusCode)
+            return (true, null);
+
+        string body = await response.Content.ReadAsStringAsync();
+        string? error = string.IsNullOrWhiteSpace(body) ? null : body.Trim().Trim('"');
+        return (false, error);
     }
 
     public async Task<bool> AssignRoleAsync(string userId, string roleName)

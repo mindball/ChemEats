@@ -39,7 +39,10 @@ public class AdminPanelBase : ComponentBase
     protected string? UserManagementError { get; set; }
     protected string? UserManagementSuccess { get; set; }
     protected bool IsLoadingUsers { get; private set; }
-    protected bool IsSyncingEmployees { get; private set; }
+    protected bool IsCreatingEmployee { get; private set; }
+    protected string? NewEmployeeAbbreviation { get; set; }
+    protected string? NewEmployeeFullName { get; set; }
+    protected string? NewEmployeeEmail { get; set; }
 
     protected List<EmployeeDto> FilteredUsers
     {
@@ -157,32 +160,46 @@ public class AdminPanelBase : ComponentBase
         }
     }
 
-    protected async Task SyncEmployeesAsync()
+    protected async Task CreateEmployeeAsync()
     {
         UserManagementError = null;
         UserManagementSuccess = null;
 
+        string abbreviation = NewEmployeeAbbreviation?.Trim().ToUpperInvariant() ?? string.Empty;
+        string fullName = NewEmployeeFullName?.Trim() ?? string.Empty;
+
+        if (abbreviation.Length == 0 || fullName.Length == 0)
+        {
+            UserManagementError = "Abbreviation and full name are required.";
+            return;
+        }
+
         try
         {
-            IsSyncingEmployees = true;
-            bool result = await EmployeeDataService.SyncEmployeesAsync();
+            IsCreatingEmployee = true;
+            string? email = string.IsNullOrWhiteSpace(NewEmployeeEmail) ? null : NewEmployeeEmail.Trim();
+            (bool success, string? error) = await EmployeeDataService.CreateEmployeeAsync(
+                new CreateEmployeeRequestDto(abbreviation, fullName, email));
 
-            if (!result)
+            if (!success)
             {
-                UserManagementError = "Failed to synchronize employees.";
+                UserManagementError = error ?? "Failed to create employee.";
                 return;
             }
 
-            UserManagementSuccess = "Employees synchronized successfully.";
+            UserManagementSuccess = $"Employee '{abbreviation}' created. Initial password is the abbreviation.";
+            NewEmployeeAbbreviation = null;
+            NewEmployeeFullName = null;
+            NewEmployeeEmail = null;
             await LoadUsersAsync();
         }
         catch (Exception ex)
         {
-            UserManagementError = $"Error synchronizing employees: {ex.Message}";
+            UserManagementError = $"Error creating employee: {ex.Message}";
         }
         finally
         {
-            IsSyncingEmployees = false;
+            IsCreatingEmployee = false;
         }
     }
 

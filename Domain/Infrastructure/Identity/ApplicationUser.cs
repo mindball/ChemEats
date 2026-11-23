@@ -14,8 +14,10 @@ public class ApplicationUser : IdentityUser
     public string FullName { get; private set; } = null!;
 
     public const int NotificationEmailMaxLength = 256;
+    public const int AbbreviationMaxLength = 3;
+    public const int FullNameMaxLength = 256;
 
-    // Separate from the registration Email, which is owned by the HR employee sync.
+    // Separate from the registration Email, which is set when the employee is created.
     public string? NotificationEmail { get; private set; }
     public bool OrderRemindersEnabled { get; private set; }
 
@@ -23,6 +25,39 @@ public class ApplicationUser : IdentityUser
 
     public IReadOnlyCollection<Supplier> SupervisedSuppliers => _supervisedSuppliers.AsReadOnly();
 
+
+    public static ApplicationUser CreateEmployee(string abbreviation, string fullName, string? email)
+    {
+        string code = NormalizeAbbreviation(abbreviation);
+        if (code.Length == 0)
+            throw new DomainException("Abbreviation is required.");
+        if (code.Length > AbbreviationMaxLength)
+            throw new DomainException($"Abbreviation must be at most {AbbreviationMaxLength} characters.");
+        if (!code.All(char.IsLetterOrDigit))
+            throw new DomainException("Abbreviation may contain only letters and digits.");
+
+        string name = fullName?.Trim() ?? string.Empty;
+        if (name.Length == 0)
+            throw new DomainException("Full name is required.");
+        if (name.Length > FullNameMaxLength)
+            throw new DomainException($"Full name must be at most {FullNameMaxLength} characters.");
+
+        string? normalizedEmail = string.IsNullOrWhiteSpace(email) ? null : email.Trim();
+        if (normalizedEmail is not null && !IsValidEmail(normalizedEmail))
+            throw new DomainException("Email is not a valid email address.");
+
+        ApplicationUser user = new()
+        {
+            UserName = code,
+            Email = normalizedEmail,
+            EmailConfirmed = normalizedEmail is not null
+        };
+        user.SetProfile(name, code);
+        return user;
+    }
+
+    public static string NormalizeAbbreviation(string? abbreviation) =>
+        abbreviation?.Trim().ToUpperInvariant() ?? string.Empty;
 
     public void AddOrder(MealOrder order)
     {

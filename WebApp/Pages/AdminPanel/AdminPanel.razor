@@ -125,10 +125,7 @@
     <div class="card-header d-flex justify-content-between align-items-center">
         <strong><i class="bi bi-people-fill me-2"></i>User Management</strong>
         <div class="d-flex gap-2">
-            <button class="btn btn-sm btn-outline-success" @onclick="SyncEmployeesAsync" disabled="@(IsLoadingUsers || IsSyncingEmployees)">
-                <i class="bi bi-arrow-repeat me-1"></i>Sync Employees
-            </button>
-            <button class="btn btn-sm btn-outline-primary" @onclick="LoadUsersAsync" disabled="@(IsLoadingUsers || IsSyncingEmployees)">
+            <button class="btn btn-sm btn-outline-primary" @onclick="LoadUsersAsync" disabled="@(IsLoadingUsers || IsCreatingEmployee)">
                 <i class="bi bi-arrow-clockwise me-1"></i>Refresh
             </button>
         </div>
@@ -148,6 +145,27 @@
                 <button type="button" class="btn-close" @onclick="@(() => UserManagementError = null)"></button>
             </div>
         }
+
+        <form class="row g-2 align-items-end mb-3" @onsubmit="CreateEmployeeAsync" @onsubmit:preventDefault>
+            <div class="col-6 col-md-2">
+                <label class="form-label small mb-1" for="new-employee-abbreviation">Abbreviation</label>
+                <input id="new-employee-abbreviation" class="form-control form-control-sm text-uppercase" maxlength="3"
+                       placeholder="e.g. MM" @bind="NewEmployeeAbbreviation" />
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label small mb-1" for="new-employee-name">Full name</label>
+                <input id="new-employee-name" class="form-control form-control-sm" maxlength="256" @bind="NewEmployeeFullName" />
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label small mb-1" for="new-employee-email">Email (optional)</label>
+                <input id="new-employee-email" type="email" class="form-control form-control-sm" @bind="NewEmployeeEmail" />
+            </div>
+            <div class="col-6 col-md-2">
+                <button type="submit" class="btn btn-sm btn-success w-100" disabled="@IsCreatingEmployee">
+                    <i class="bi bi-person-plus me-1"></i>Add Employee
+                </button>
+            </div>
+        </form>
 
         @if (IsLoadingUsers)
         {

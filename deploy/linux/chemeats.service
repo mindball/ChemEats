@@ -1,0 +1,18 @@
+[Unit]
+Description=ChemEats WebApi
+After=network.target
+
+[Service]
+Type=notify
+User=chemeats
+Group=chemeats
+WorkingDirectory=/opt/chemeats
+ExecStart=/opt/chemeats/WebApi
+EnvironmentFile=/etc/chemeats/chemeats.env
+Restart=always
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=chemeats
+
+[Install]
+WantedBy=multi-user.target

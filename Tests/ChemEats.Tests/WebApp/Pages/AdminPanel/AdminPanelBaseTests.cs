@@ -129,6 +129,55 @@ public class AdminPanelBaseTests
         Assert.Null(harness.OutstandingEmployeesPublic);
     }
 
+    [Fact]
+    public async Task CreateEmployeeAsync_WhenServerAccepts_ShouldSetSuccessAndReloadUsers()
+    {
+        Mock<IEmployeeDataService> employeeDataServiceMock = new();
+        employeeDataServiceMock
+            .Setup(service => service.CreateEmployeeAsync(new CreateEmployeeRequestDto("MM", "Mincho", null)))
+            .ReturnsAsync((true, (string?)null));
+        employeeDataServiceMock.Setup(service => service.GetAllEmployeesAsync()).ReturnsAsync([]);
+
+        AdminPanelBaseTestHarness harness = new(new Mock<IOrderDataService>().Object, new Mock<ISettingsDataService>().Object, employeeDataServiceMock.Object);
+        harness.SetNewEmployee(" mm ", " Mincho ", " ");
+
+        await harness.CreateEmployeeAsyncPublic();
+
+        Assert.NotNull(harness.UserManagementSuccessPublic);
+        Assert.Null(harness.UserManagementErrorPublic);
+        employeeDataServiceMock.Verify(service => service.GetAllEmployeesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateEmployeeAsync_WhenServerRejects_ShouldShowServerError()
+    {
+        Mock<IEmployeeDataService> employeeDataServiceMock = new();
+        employeeDataServiceMock
+            .Setup(service => service.CreateEmployeeAsync(It.IsAny<CreateEmployeeRequestDto>()))
+            .ReturnsAsync((false, "Abbreviation already exists."));
+
+        AdminPanelBaseTestHarness harness = new(new Mock<IOrderDataService>().Object, new Mock<ISettingsDataService>().Object, employeeDataServiceMock.Object);
+        harness.SetNewEmployee("MM", "Mincho", null);
+
+        await harness.CreateEmployeeAsyncPublic();
+
+        Assert.Equal("Abbreviation already exists.", harness.UserManagementErrorPublic);
+    }
+
+    [Fact]
+    public async Task CreateEmployeeAsync_WhenFieldsAreMissing_ShouldNotCallServer()
+    {
+        Mock<IEmployeeDataService> employeeDataServiceMock = new();
+
+        AdminPanelBaseTestHarness harness = new(new Mock<IOrderDataService>().Object, new Mock<ISettingsDataService>().Object, employeeDataServiceMock.Object);
+        harness.SetNewEmployee("MM", " ", null);
+
+        await harness.CreateEmployeeAsyncPublic();
+
+        Assert.NotNull(harness.UserManagementErrorPublic);
+        employeeDataServiceMock.Verify(service => service.CreateEmployeeAsync(It.IsAny<CreateEmployeeRequestDto>()), Times.Never);
+    }
+
     private sealed class AdminPanelBaseTestHarness : AdminPanelBase
     {
         public AdminPanelBaseTestHarness(
@@ -160,6 +209,15 @@ public class AdminPanelBaseTests
         public Task RemoveRoleAsyncPublic(string userId, string roleName) => RemoveRoleAsync(userId, roleName);
 
         public Task SaveAsyncPublic() => SaveAsync();
+
+        public Task CreateEmployeeAsyncPublic() => CreateEmployeeAsync();
+
+        public void SetNewEmployee(string? abbreviation, string? fullName, string? email)
+        {
+            NewEmployeeAbbreviation = abbreviation;
+            NewEmployeeFullName = fullName;
+            NewEmployeeEmail = email;
+        }
 
         public void SetPortionAmount(decimal portionAmount)
         {

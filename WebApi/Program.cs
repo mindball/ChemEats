@@ -3,7 +3,6 @@ using MenuParser.Extensions;
 using Microsoft.AspNetCore.Diagnostics;
 using Serilog;
 using Shared.DTOs.Errors;
-using WebApi.Infrastructure.Employees;
 using WebApi.Infrastructure.Extensions;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -12,6 +11,9 @@ builder.Host.UseWindowsService(options =>
 {
     options.ServiceName = "ChemEats WebApi";
 });
+
+// Each is a no-op unless the process is started by that service manager.
+builder.Host.UseSystemd();
 
 // Logging
 Log.Logger = new LoggerConfiguration()
@@ -67,29 +69,8 @@ app.UseExceptionHandler(appBuilder =>
     });
 });
 
-// Startup tasks (cache + sync)
-using (IServiceScope scope = app.Services.CreateScope())
-{
-    IEmployeeCacheService employeeCache = scope.ServiceProvider.GetRequiredService<IEmployeeCacheService>();
-    IEmployeeSyncService syncService = scope.ServiceProvider.GetRequiredService<IEmployeeSyncService>();
-
-    var logger = scope.ServiceProvider
-        .GetRequiredService<ILogger<Program>>();
-
-    try
-    {
-        await syncService.SyncEmployeesAsync();
-    }
-    catch (Exception ex)
-    {
-        logger.LogCritical(ex, "Employee sync failed on startup");
-    }
-    finally
-    {
-        await employeeCache.InitializeAsync();
-
-        app.UseAppFallback();
-    }
-}
+// Startup tasks (roles + optional bootstrap admin)
+await app.SeedAppIdentityAsync();
+app.UseAppFallback();
 
 await app.RunAsync();

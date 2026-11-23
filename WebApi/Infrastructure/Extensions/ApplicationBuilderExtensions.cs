@@ -1,3 +1,4 @@
+﻿using WebApi.Infrastructure.Employees;
 using WebApi.Infrastructure.Middleware;
 using WebApi.Routes.Emails;
 using WebApi.Routes.Employees;
@@ -78,6 +79,24 @@ public static class ApplicationBuilderExtensions
         app.MapReportEndpoints();
         app.MapNotificationEndpoints();
         app.MapRobotsEndpoints();
+        return app;
+    }
+
+    public static async Task<WebApplication> SeedAppIdentityAsync(this WebApplication app)
+    {
+        using IServiceScope scope = app.Services.CreateScope();
+        IIdentitySeedService seedService = scope.ServiceProvider.GetRequiredService<IIdentitySeedService>();
+        ILogger<Program> logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+        try
+        {
+            await seedService.SeedAsync();
+        }
+        catch (Exception ex)
+        {
+            logger.LogCritical(ex, "Identity seeding failed on startup");
+        }
+
         return app;
     }
 

@@ -1,4 +1,4 @@
-namespace Shared;
+﻿namespace Shared;
 
 public static class ApiRoutes
 {
@@ -145,7 +145,6 @@ public static class ApiRoutes
 
     public static class Employees
     {
-        public const string SyncEmployees = "api/sync-employees";
         public const string Base = "api/employees";
         public const string Login = "api/login";
         public const string MyPassword = "me/password";
@@ -155,6 +154,8 @@ public static class ApiRoutes
         public const string ResetPasswordRoute = "{userId}/password/reset";
 
         // URL builders (used by WebApp HTTP client)
+        public static string Create() => Base;
+
         public static string RoleAction(string userId, string roleName) =>
             $"{Base}/{Uri.EscapeDataString(userId)}/roles/{Uri.EscapeDataString(roleName)}";
 

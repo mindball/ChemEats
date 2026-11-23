@@ -7,6 +7,36 @@ namespace ChemEats.Tests.Domain.Infrastructure.Identity;
 public class ApplicationUserTests
 {
     [Fact]
+    public void CreateEmployee_WhenInputIsValid_ShouldNormalizeAbbreviationAndUseItAsUserName()
+    {
+        ApplicationUser user = ApplicationUser.CreateEmployee(" dm ", " Dimitar M ", " dm@example.com ");
+
+        Assert.Equal("DM", user.Abbreviation);
+        Assert.Equal("DM", user.UserName);
+        Assert.Equal("Dimitar M", user.FullName);
+        Assert.Equal("dm@example.com", user.Email);
+    }
+
+    [Fact]
+    public void CreateEmployee_WhenEmailIsEmpty_ShouldLeaveEmailNull()
+    {
+        ApplicationUser user = ApplicationUser.CreateEmployee("DM", "Dimitar", "  ");
+
+        Assert.Null(user.Email);
+    }
+
+    [Theory]
+    [InlineData("", "Name", null)]
+    [InlineData("ABCD", "Name", null)]
+    [InlineData("A-B", "Name", null)]
+    [InlineData("DM", "", null)]
+    [InlineData("DM", "Name", "bad email")]
+    public void CreateEmployee_WhenInputIsInvalid_ShouldThrow(string abbreviation, string fullName, string? email)
+    {
+        Assert.Throws<DomainException>(() => ApplicationUser.CreateEmployee(abbreviation, fullName, email));
+    }
+
+    [Fact]
     public void UpdateNotificationSettings_WhenEmailIsValid_ShouldStoreTrimmedEmailAndFlag()
     {
         ApplicationUser user = TestDataFactory.CreateUser("u1", "MM", "Mincho");

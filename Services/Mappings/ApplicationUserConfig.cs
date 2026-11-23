@@ -25,6 +25,8 @@ public class ApplicationUserConfig : IRegister
     //
     // .Map(dest => dest.IsActive, src => src.IsActive)
 
+    // Mappings for the disabled HR integration DTO (UserDto), kept for a possible future integration.
+#pragma warning disable CS0618
     public void Register(TypeAdapterConfig config)
     {
         TypeAdapterConfig<UserDto, ApplicationUser>.NewConfig()
@@ -40,4 +42,5 @@ public class ApplicationUserConfig : IRegister
             .Map(dest => dest.Name, src => src.FullName)
             .IgnoreNonMapped(true);
     }
+#pragma warning restore CS0618
 }

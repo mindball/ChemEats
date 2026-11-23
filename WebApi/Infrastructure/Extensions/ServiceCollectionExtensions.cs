@@ -1,4 +1,4 @@
-using Domain;
+﻿using Domain;
 using Domain.Infrastructure.Identity;
 using Mapster;
 using MapsterMapper;
@@ -137,15 +137,10 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddAppEmployees(this IServiceCollection services, IConfiguration configuration)
     {
-        IConfigurationSection employeeAddress = configuration.GetSection("EmployeesAddress");
-        services.AddHttpClient<IEmployeeExternalService, EmployeeExternalService>(client =>
-        {
-            if (employeeAddress.Value != null)
-                client.BaseAddress = new Uri(employeeAddress.Value);
-        });
-        services.AddMemoryCache();
-        services.AddScoped<IEmployeeCacheService, EmployeeCacheService>();
-        services.AddScoped<IEmployeeSyncService, EmployeeSyncService>();
+        // The external HR employee integration (IEmployeeExternalService / sync / cache) is disabled:
+        // the isolated host cannot reach the HR service, so employees are created manually by an admin.
+        services.Configure<BootstrapAdminOptions>(configuration.GetSection(BootstrapAdminOptions.SectionName));
+        services.AddScoped<IIdentitySeedService, IdentitySeedService>();
         return services;
     }
 
