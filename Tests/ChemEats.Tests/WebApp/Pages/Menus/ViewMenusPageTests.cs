@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using Bunit;
 using Bunit.TestDoubles;
 using Microsoft.AspNetCore.Components;
@@ -15,7 +17,7 @@ using WebApp.Services.Suppliers;
 
 namespace ChemEats.Tests.WebApp.Pages.Menus;
 
-public class ViewMenusPageTests : TestContext
+public class ViewMenusPageTests : LocalizedTestContext
 {
     [Fact]
     public void ViewMenus_WhenAuthorizedAndSearched_ShouldRenderMenusTable()

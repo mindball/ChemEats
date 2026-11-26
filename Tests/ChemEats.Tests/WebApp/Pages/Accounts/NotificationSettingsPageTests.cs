@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using Bunit;
 using Bunit.TestDoubles;
 using Microsoft.AspNetCore.Components;
@@ -9,7 +11,7 @@ using WebApp.Services.Notifications;
 
 namespace ChemEats.Tests.WebApp.Pages.Accounts;
 
-public class NotificationSettingsPageTests : TestContext
+public class NotificationSettingsPageTests : LocalizedTestContext
 {
     [Fact]
     public void NotificationSettings_WhenAuthorized_ShouldRenderLoadedSettings()

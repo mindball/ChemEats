@@ -2,10 +2,11 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Shared.DTOs.Obligations;
 using WebApp.Services.Obligations;
+using WebApp.Infrastructure.Localization;
 
 namespace WebApp.Pages.AdminPanel;
 
-public class AdminObligationTypesBase : ComponentBase
+public class AdminObligationTypesBase : LocalizedComponentBase
 {
     public const string BasePageUrl = "/admin/payments/obligation-types";
     public const int NameMaxLength = 150;
@@ -40,11 +41,11 @@ public class AdminObligationTypesBase : ComponentBase
             ObligationTypes = await ObligationTypeDataService.GetObligationTypesAsync();
 
             if (ObligationTypes is null)
-                ErrorMessage = "Failed to load the expense types. Please try again.";
+                ErrorMessage = L["Failed to load the expense types. Please try again."];
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to load the expense types: {ex.Message}";
+            ErrorMessage = L["Failed to load the expense types: {0}", ex.Message];
         }
         finally
         {
@@ -73,17 +74,17 @@ public class AdminObligationTypesBase : ComponentBase
             ObligationTypeDto? created = await ObligationTypeDataService.CreateObligationTypeAsync(NewName!.Trim());
             if (created is null)
             {
-                ErrorMessage = "Failed to add the expense type. The name may already exist.";
+                ErrorMessage = L["Failed to add the expense type. The name may already exist."];
                 return;
             }
 
-            SuccessMessage = $"Expense type \"{created.Name}\" added.";
+            SuccessMessage = L["Expense type \"{0}\" added.", created.Name];
             NewName = null;
             await LoadTypesAsync();
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to add the expense type: {ex.Message}";
+            ErrorMessage = L["Failed to add the expense type: {0}", ex.Message];
         }
         finally
         {
@@ -124,17 +125,17 @@ public class AdminObligationTypesBase : ComponentBase
             ObligationTypeDto? renamed = await ObligationTypeDataService.RenameObligationTypeAsync(EditingId.Value, EditingName!.Trim());
             if (renamed is null)
             {
-                ErrorMessage = "Failed to rename the expense type. The name may already exist.";
+                ErrorMessage = L["Failed to rename the expense type. The name may already exist."];
                 return;
             }
 
-            SuccessMessage = $"Expense type renamed to \"{renamed.Name}\".";
+            SuccessMessage = L["Expense type renamed to \"{0}\".", renamed.Name];
             CancelRename();
             await LoadTypesAsync();
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to rename the expense type: {ex.Message}";
+            ErrorMessage = L["Failed to rename the expense type: {0}", ex.Message];
         }
         finally
         {
@@ -149,7 +150,7 @@ public class AdminObligationTypesBase : ComponentBase
 
         bool confirmed = await JsRuntime.InvokeAsync<bool>(
             "confirm",
-            $"Delete the expense type \"{obligationType.Name}\"? Existing obligations keep their text.");
+            L["Delete the expense type \"{0}\"? Existing obligations keep their text.", obligationType.Name].Value);
 
         if (!confirmed)
             return;
@@ -163,11 +164,11 @@ public class AdminObligationTypesBase : ComponentBase
             bool deleted = await ObligationTypeDataService.DeleteObligationTypeAsync(obligationType.Id);
             if (!deleted)
             {
-                ErrorMessage = "Failed to delete the expense type. Please try again.";
+                ErrorMessage = L["Failed to delete the expense type. Please try again."];
                 return;
             }
 
-            SuccessMessage = $"Expense type \"{obligationType.Name}\" deleted.";
+            SuccessMessage = L["Expense type \"{0}\" deleted.", obligationType.Name];
             if (EditingId == obligationType.Id)
                 CancelRename();
 
@@ -175,7 +176,7 @@ public class AdminObligationTypesBase : ComponentBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to delete the expense type: {ex.Message}";
+            ErrorMessage = L["Failed to delete the expense type: {0}", ex.Message];
         }
         finally
         {
@@ -183,13 +184,13 @@ public class AdminObligationTypesBase : ComponentBase
         }
     }
 
-    private static string? ValidateName(string? name)
+    private string? ValidateName(string? name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            return "Name is required.";
+            return L["Name is required."];
 
         if (name.Trim().Length > NameMaxLength)
-            return $"Name cannot be longer than {NameMaxLength} characters.";
+            return L["Name cannot be longer than {0} characters.", NameMaxLength];
 
         return null;
     }

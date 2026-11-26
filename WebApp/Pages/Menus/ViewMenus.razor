@@ -6,22 +6,22 @@
 
 <div class="container-fluid">
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="mb-0" style="color: #003d61;"><i class="bi bi-journal-text me-2"></i>Lab Menus</h3>
+    <h3 class="mb-0" style="color: #003d61;"><i class="bi bi-journal-text me-2"></i>@L["Lab Menus"]</h3>
 </div>
 
 <div class="card mb-4">
     <div class="card-body">
         <h5 class="card-title mb-3">
-            <i class="bi bi-funnel me-2"></i>Filters
+            <i class="bi bi-funnel me-2"></i>@L["Filters"]
         </h5>
 
         <div class="row g-3">
             <div class="col-md-3">
                 <label class="form-label fw-semibold">
-                    <i class="bi bi-shop me-1"></i>Supplier
+                    <i class="bi bi-shop me-1"></i>@L["Supplier"]
                 </label>
                 <select class="form-select" @bind="SelectedSupplierId">
-                    <option value="">All suppliers</option>
+                    <option value="">@L["All suppliers"]</option>
                     @foreach (SupplierDto supplier in Suppliers)
                     {
                         <option value="@supplier.Id">@supplier.Name</option>
@@ -31,14 +31,14 @@
 
             <div class="col-md-3">
                 <label class="form-label fw-semibold">
-                    <i class="bi bi-calendar-range me-1"></i>Start Date
+                    <i class="bi bi-calendar-range me-1"></i>@L["Start Date"]
                 </label>
                 <input type="date" class="form-control" @bind="StartDate"/>
             </div>
 
             <div class="col-md-3">
                 <label class="form-label fw-semibold">
-                    <i class="bi bi-calendar-check me-1"></i>End Date
+                    <i class="bi bi-calendar-check me-1"></i>@L["End Date"]
                 </label>
                 <input type="date" class="form-control" @bind="EndDate"/>
             </div>
@@ -48,11 +48,11 @@
                     <div class="form-check form-switch mb-2">
                         <input class="form-check-input" type="checkbox" role="switch" id="includeDeleted" @bind="IncludeDeleted"/>
                         <label class="form-check-label" for="includeDeleted">
-                            <i class="bi bi-trash me-1"></i>Include deleted
+                            <i class="bi bi-trash me-1"></i>@L["Include deleted"]
                         </label>
                     </div>
                     <button class="btn btn-primary w-100" @onclick="OnSearchClickedAsync">
-                        <i class="bi bi-search me-2"></i>Search
+                        <i class="bi bi-search me-2"></i>@L["Search"]
                     </button>
                 </div>
             </div>
@@ -71,14 +71,14 @@ else if (IsLoading)
 {
     <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
         <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading menus...</span>
+            <span class="visually-hidden">@L["Loading menus..."]</span>
         </div>
     </div>
 }
 else if (Menus is null || !Menus.Any())
 {
     <div class="alert alert-info">
-        <i class="bi bi-info-circle me-2"></i>No menus found for the selected filters.
+        <i class="bi bi-info-circle me-2"></i>@L["No menus found for the selected filters."]
     </div>
 }
 else
@@ -87,10 +87,10 @@ else
         <div class="card-header bg-white">
             <div class="d-flex justify-content-between align-items-center">
                 <span class="fw-semibold">
-                    <i class="bi bi-list-check me-2"></i>Found Menus (@TotalMenus)
+                    <i class="bi bi-list-check me-2"></i>@L["Found Menus ({0})", TotalMenus]
                 </span>
                 <span class="text-muted small">
-                    Showing @((CurrentPage - 1) * PageSize + 1) - @(Math.Min(CurrentPage * PageSize, TotalMenus))
+                    @L["Showing {0} - {1}", (CurrentPage - 1) * PageSize + 1, Math.Min(CurrentPage * PageSize, TotalMenus)]
                 </span>
             </div>
         </div>
@@ -100,27 +100,27 @@ else
                     <thead class="table-light">
                     <tr class="text-center">
                         <th class="text-start ps-3">
-                            <i class="bi bi-shop me-1"></i>Supplier
+                            <i class="bi bi-shop me-1"></i>@L["Supplier"]
                         </th>
                         <th>
-                            <i class="bi bi-calendar3 me-1"></i>Date
+                            <i class="bi bi-calendar3 me-1"></i>@L["Date"]
                         </th>
                         <th>
-                            <i class="bi bi-clock me-1"></i>Active Until
+                            <i class="bi bi-clock me-1"></i>@L["Active Until"]
                         </th>
                         <th class="text-start">
-                            <i class="bi bi-egg-fried me-1"></i>Meals
+                            <i class="bi bi-egg-fried me-1"></i>@L["Meals"]
                         </th>
                         @if (CanManageMenus)
                         {
                             <th style="width: 280px">
-                                <i class="bi bi-gear me-1"></i>Actions
+                                <i class="bi bi-gear me-1"></i>@L["Actions"]
                             </th>
                         }
                         else
                         {
                             <th style="width: 100px">
-                                <i class="bi bi-file-earmark-pdf me-1"></i>Report
+                                <i class="bi bi-file-earmark-pdf me-1"></i>@L["Report"]
                             </th>
                         }
                     </tr>
@@ -149,13 +149,13 @@ else
                                         @if (isExpired)
                                         {
                                             <span class="badge bg-warning text-dark mt-1">
-                                                <i class="bi bi-exclamation-triangle me-1"></i>Expired
+                                                <i class="bi bi-exclamation-triangle me-1"></i>@L["Expired"]
                                             </span>
                                         }
                                         else
                                         {
                                             <span class="badge bg-success mt-1">
-                                                <i class="bi bi-check-circle me-1"></i>Active
+                                                <i class="bi bi-check-circle me-1"></i>@L["Active"]
                                             </span>
                                         }
                                     }
@@ -178,7 +178,7 @@ else
                                 else
                                 {
                                     <span class="text-muted">
-                                        <i class="bi bi-inbox me-1"></i>No meals
+                                        <i class="bi bi-inbox me-1"></i>@L["No meals"]
                                     </span>
                                 }
                             </td>
@@ -190,35 +190,35 @@ else
                                         <button class="btn btn-outline-warning"
                                                 disabled="@(menu.IsDeleted || menu.PendingOrdersCount == 0)"
                                                 @onclick="() => FinalizeMenuAsync(menu.Id)"
-                                                title="@(menu.PendingOrdersCount == 0 ? "No pending orders to finalize" : "Finalize and complete all pending orders")">
-                                            <i class="bi bi-check-circle me-1"></i>Finalize (@menu.PendingOrdersCount)
+                                                title="@(menu.PendingOrdersCount == 0 ? L["No pending orders to finalize"] : L["Finalize and complete all pending orders"])">
+                                            <i class="bi bi-check-circle me-1"></i>@L["Finalize ({0})", menu.PendingOrdersCount]
                                         </button>
 
                                         <button class="btn btn-outline-success"
                                                 disabled="@menu.IsDeleted"
                                                 @onclick="() => EditActiveUntilAsync(menu.Id, menu.ActiveUntil)"
-                                                title="Edit ActiveUntil time (reactivate menu)">
-                                            <i class="bi bi-clock-history me-1"></i>Extend
+                                                title="@L["Edit ActiveUntil time (reactivate menu)"]">
+                                            <i class="bi bi-clock-history me-1"></i>@L["Extend"]
                                         </button>
 
                                         <button class="btn btn-outline-primary"
                                                 disabled="@(menu.IsDeleted || isExpired)"
                                                 @onclick="() => EditDateAsync(menu.Id, menu.Date)"
-                                                title="@(isExpired ? "Cannot edit expired menu" : "Edit date")">
-                                            <i class="bi bi-pencil-fill me-1"></i>Edit
+                                                title="@(isExpired ? L["Cannot edit expired menu"] : L["Edit date"])">
+                                            <i class="bi bi-pencil-fill me-1"></i>@L["Edit"]
                                         </button>
 
                                         <button class="btn btn-outline-danger"
                                                 disabled="@(menu.IsDeleted || isExpired)"
                                                 @onclick="() => SoftDeleteAsync(menu.Id)"
-                                                title="@(isExpired ? "Cannot delete expired menu" : "Soft delete")">
-                                            <i class="bi bi-trash-fill me-1"></i>Delete
+                                                title="@(isExpired ? L["Cannot delete expired menu"] : L["Soft delete"])">
+                                            <i class="bi bi-trash-fill me-1"></i>@L["Delete"]
                                         </button>
 
                                         <button class="btn btn-outline-info report-button"
                                                 disabled="@menu.IsDeleted"
                                                 @onclick="() => OpenReport(menu.Id)"
-                                                title="Open printable orders report">
+                                                title="@L["Open printable orders report"]">
                                             <i class="bi bi-printer"></i>
                                         </button>
                                     </div>
@@ -230,7 +230,7 @@ else
                             @*         <button class="btn btn-outline-info btn-sm" *@
                             @*                 disabled="@(menu.IsDeleted || isReportLoading)" *@
                             @*                 @onclick="() => DownloadReportAsync(menu.Id)" *@
-                            @*                 title="Download my orders report for this menu"> *@
+                            @*                 title="@L["Download my orders report for this menu"]"> *@
                             @*             @if (isReportLoading) *@
                             @*             { *@
                             @*                 <span class="spinner-border spinner-border-sm" role="status"></span> *@
@@ -252,7 +252,7 @@ else
             <nav class="d-flex justify-content-between align-items-center">
                 <div class="text-muted">
                     <i class="bi bi-info-circle me-1"></i>
-                    Page @CurrentPage of @TotalPages
+                    @L["Page {0} of {1}", CurrentPage, TotalPages]
                 </div>
 
                 <ul class="pagination mb-0">

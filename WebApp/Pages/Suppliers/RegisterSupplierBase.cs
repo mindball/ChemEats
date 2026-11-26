@@ -3,10 +3,11 @@ using Shared.DTOs.Employees;
 using Shared.DTOs.Suppliers;
 using WebApp.Services.Employees;
 using WebApp.Services.Suppliers;
+using WebApp.Infrastructure.Localization;
 
 namespace WebApp.Pages.Suppliers;
 
-public class RegisterSupplierBase : ComponentBase
+public class RegisterSupplierBase : LocalizedComponentBase
 {
     [Inject] protected ISupplierDataService SupplierService { get; set; } = default!;
     [Inject] protected IEmployeeDataService EmployeeService { get; set; } = default!;
@@ -31,7 +32,7 @@ public class RegisterSupplierBase : ComponentBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Error loading users: {ex.Message}";
+            ErrorMessage = L["Error loading users: {0}", ex.Message];
         }
     }
 
@@ -47,7 +48,7 @@ public class RegisterSupplierBase : ComponentBase
 
             if (createdSupplier is not null)
             {
-                SuccessMessage = $"Supplier '{createdSupplier.Name}' registered successfully!";
+                SuccessMessage = L["Supplier '{0}' registered successfully!", createdSupplier.Name];
                 ResetForm();
 
                 await Task.Delay(2000);
@@ -55,7 +56,7 @@ public class RegisterSupplierBase : ComponentBase
             }
             else
             {
-                ErrorMessage = "Failed to register supplier.";
+                ErrorMessage = L["Failed to register supplier."];
             }
         }
         catch (Exception ex)

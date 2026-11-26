@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using Bunit;
 using Bunit.TestDoubles;
 using AngleSharp.Dom;
@@ -5,7 +7,7 @@ using WebApp.Layout;
 
 namespace ChemEats.Tests.WebApp.Layout;
 
-public class NavMenuTests : TestContext
+public class NavMenuTests : LocalizedTestContext
 {
     [Fact]
     public void NavMenu_WhenTogglerIsClicked_ShouldExpandAndCollapseMenu()

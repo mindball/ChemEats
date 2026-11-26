@@ -1,20 +1,20 @@
 ﻿@using Shared.DTOs.Menus
 @inherits MenuListComponentBase
 
-<h3>MenuListComponent</h3>
+<h3>@L["MenuListComponent"]</h3>
 
 @if (Menus is null || !Menus.Any())
 {
-    <p>No menus found.</p>
+    <p>@L["No menus found."]</p>
 }
 else
 {
     <table class="table">
         <thead>
             <tr>
-                <th>Supplier</th>
-                <th>Date</th>
-                <th>Meals</th>
+                <th>@L["Supplier"]</th>
+                <th>@L["Date"]</th>
+                <th>@L["Meals"]</th>
             </tr>
         </thead>
         <tbody>
@@ -35,7 +35,7 @@ else
                         }
                         else
                         {
-                            <span>No meals</span>
+                            <span>@L["No meals"]</span>
                         }
                     </td>
                 </tr>

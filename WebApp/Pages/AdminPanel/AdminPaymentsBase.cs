@@ -8,10 +8,11 @@ using Shared.DTOs.Orders;
 using WebApp.Services.Employees;
 using WebApp.Services.Orders;
 using WebApp.Services.Settings;
+using WebApp.Infrastructure.Localization;
 
 namespace WebApp.Pages.AdminPanel;
 
-public class AdminPaymentsBase : ComponentBase
+public class AdminPaymentsBase : LocalizedComponentBase
 {
     public const string BasePageUrl = "/admin/payments";
 
@@ -57,7 +58,7 @@ public class AdminPaymentsBase : ComponentBase
     protected bool LoadedAllDates { get; private set; }
     protected bool HasLoadedRange => LoadedAllDates || LoadedEndDate.HasValue;
     protected string PayAllScopeText =>
-        LoadedAllDates ? "regardless of date" : $"up to {LoadedEndDate:dd.MM.yyyy}";
+        LoadedAllDates ? L["regardless of date"] : L["up to {0:dd.MM.yyyy}", LoadedEndDate.GetValueOrDefault()];
 
     protected int EarlierUnpaidCount => Outstanding?.EarlierUnpaidCount ?? 0;
     protected decimal EarlierNetAmount => Outstanding?.EarlierNetAmount ?? 0m;
@@ -147,7 +148,7 @@ public class AdminPaymentsBase : ComponentBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to load employees: {ex.Message}";
+            ErrorMessage = L["Failed to load employees: {0}", ex.Message];
         }
         finally
         {
@@ -192,7 +193,7 @@ public class AdminPaymentsBase : ComponentBase
     {
         if (string.IsNullOrWhiteSpace(SelectedUserId))
         {
-            ErrorMessage = "Please select an employee.";
+            ErrorMessage = L["Please select an employee."];
             return;
         }
 
@@ -236,11 +237,11 @@ public class AdminPaymentsBase : ComponentBase
             Outstanding = outstanding?.FirstOrDefault(s => s.UserId == SelectedUserId);
 
             if (AllOrders.Count == 0 && EarlierUnpaidCount == 0)
-                SuccessMessage ??= LoadedAllDates ? "No unpaid orders." : "No orders found for this period.";
+                SuccessMessage ??= LoadedAllDates ? L["No unpaid orders."] : L["No orders found for this period."];
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to load orders: {ex.Message}";
+            ErrorMessage = L["Failed to load orders: {0}", ex.Message];
         }
         finally
         {
@@ -311,18 +312,18 @@ public class AdminPaymentsBase : ComponentBase
 
             if (result is null)
             {
-                ErrorMessage = "Failed to process payment. Please try again.";
+                ErrorMessage = L["Failed to process payment. Please try again."];
                 return;
             }
 
-            SuccessMessage = $"Successfully marked {result.PaidCount} orders as paid. Total: {FormatEuro(result.TotalPaid)}";
+            SuccessMessage = L["Successfully marked {0} orders as paid. Total: {1}", result.PaidCount, FormatEuro(result.TotalPaid)];
             SelectedOrderIds.Clear();
 
             await LoadOrdersAsync();
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Payment processing failed: {ex.Message}";
+            ErrorMessage = L["Payment processing failed: {0}", ex.Message];
         }
         finally
         {
@@ -338,7 +339,7 @@ public class AdminPaymentsBase : ComponentBase
         string employeeName = AllEmployees?.FirstOrDefault(e => e.UserId == SelectedUserId)?.FullName ?? SelectedUserId;
         bool confirmed = await JsRuntime.InvokeAsync<bool>(
             "confirm",
-            $"Mark all {UnpaidUpToEndCount} unpaid orders of {employeeName} {PayAllScopeText} as paid?\nTotal: {FormatEuro(TotalDueUpToEnd)}");
+            L["Mark all {0} unpaid orders of {1} {2} as paid?\nTotal: {3}", UnpaidUpToEndCount, employeeName, PayAllScopeText, FormatEuro(TotalDueUpToEnd)].Value);
 
         if (!confirmed)
             return;
@@ -354,18 +355,18 @@ public class AdminPaymentsBase : ComponentBase
 
             if (result is null)
             {
-                ErrorMessage = "Failed to process payment. Please try again.";
+                ErrorMessage = L["Failed to process payment. Please try again."];
                 return;
             }
 
-            SuccessMessage = $"Successfully marked {result.PaidCount} orders as paid. Total: {FormatEuro(result.TotalPaid)}";
+            SuccessMessage = L["Successfully marked {0} orders as paid. Total: {1}", result.PaidCount, FormatEuro(result.TotalPaid)];
             SelectedOrderIds.Clear();
 
             await LoadOrdersAsync();
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Payment processing failed: {ex.Message}";
+            ErrorMessage = L["Payment processing failed: {0}", ex.Message];
         }
         finally
         {

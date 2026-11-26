@@ -2,10 +2,11 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Shared.DTOs.Reports;
 using WebApp.Services.Menus;
+using WebApp.Infrastructure.Localization;
 
 namespace WebApp.Pages.Reports;
 
-public class MenuReportBase : ComponentBase
+public class MenuReportBase : LocalizedComponentBase
 {
     public const string MenusPageUrl = "/menus/view";
 
@@ -28,7 +29,7 @@ public class MenuReportBase : ComponentBase
     // Browsers use the document title as the default file name in "Save as PDF".
     protected string DocumentTitle =>
         Report is null
-            ? "Menu Report"
+            ? L["Menu Report"]
             : $"menu-report-{Report.SupplierName}-{Report.MenuDate:yyyyMMdd}";
 
     protected override async Task OnParametersSetAsync()
@@ -46,7 +47,7 @@ public class MenuReportBase : ComponentBase
 
             if (Report is null)
             {
-                ErrorMessage = "The report could not be loaded. The menu may not exist or you may not have access to it.";
+                ErrorMessage = L["The report could not be loaded. The menu may not exist or you may not have access to it."];
                 return;
             }
 
@@ -60,7 +61,7 @@ public class MenuReportBase : ComponentBase
         }
         catch (Exception)
         {
-            ErrorMessage = "Unexpected error while loading the report.";
+            ErrorMessage = L["Unexpected error while loading the report."];
         }
         finally
         {

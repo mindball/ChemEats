@@ -5,10 +5,11 @@ using Shared.DTOs.Orders;
 using WebApp.Services.Employees;
 using WebApp.Services.Orders;
 using WebApp.Services.Settings;
+using WebApp.Infrastructure.Localization;
 
 namespace WebApp.Pages.AdminPanel;
 
-public class AdminPanelBase : ComponentBase
+public class AdminPanelBase : LocalizedComponentBase
 {
     // Fallback only if server settings are unavailable
     private readonly decimal _fallbackPortion = 3.00m;
@@ -80,7 +81,7 @@ public class AdminPanelBase : ComponentBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to load portion: {ex.Message}";
+            ErrorMessage = L["Failed to load portion: {0}", ex.Message];
             PortionAmount = _fallbackPortion;
         }
     }
@@ -93,7 +94,7 @@ public class AdminPanelBase : ComponentBase
 
             if (outstanding is null)
             {
-                ErrorMessage = "Failed to load outstanding payments.";
+                ErrorMessage = L["Failed to load outstanding payments."];
                 return;
             }
 
@@ -103,7 +104,7 @@ public class AdminPanelBase : ComponentBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to load outstanding payments: {ex.Message}";
+            ErrorMessage = L["Failed to load outstanding payments: {0}", ex.Message];
         }
     }
 
@@ -114,7 +115,7 @@ public class AdminPanelBase : ComponentBase
 
         if (PortionAmount < 0)
         {
-            ErrorMessage = "Portion amount must be >= 0.";
+            ErrorMessage = L["Portion amount must be >= 0."];
             return;
         }
 
@@ -123,15 +124,15 @@ public class AdminPanelBase : ComponentBase
             bool ok = await SettingsDataService.SetCompanyPortionAsync(PortionAmount);
             if (!ok)
             {
-                ErrorMessage = "Failed to save portion on server.";
+                ErrorMessage = L["Failed to save portion on server."];
                 return;
             }
 
-            SuccessMessage = $"Saved portion amount: {PortionAmount:F2} лв.";
+            SuccessMessage = L["Saved portion amount: {0:F2} €", PortionAmount];
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to save portion: {ex.Message}";
+            ErrorMessage = L["Failed to save portion: {0}", ex.Message];
         }
     }
 
@@ -152,7 +153,7 @@ public class AdminPanelBase : ComponentBase
         }
         catch (Exception ex)
         {
-            UserManagementError = $"Failed to load users: {ex.Message}";
+            UserManagementError = L["Failed to load users: {0}", ex.Message];
         }
         finally
         {
@@ -170,7 +171,7 @@ public class AdminPanelBase : ComponentBase
 
         if (abbreviation.Length == 0 || fullName.Length == 0)
         {
-            UserManagementError = "Abbreviation and full name are required.";
+            UserManagementError = L["Abbreviation and full name are required."];
             return;
         }
 
@@ -183,13 +184,12 @@ public class AdminPanelBase : ComponentBase
 
             if (created is null)
             {
-                UserManagementError = error ?? "Failed to create employee.";
+                UserManagementError = error ?? L["Failed to create employee."];
                 return;
             }
 
             UserManagementSuccess =
-                $"Employee '{created.Abbreviation}' created. Temporary password: {created.TemporaryPassword} " +
-                "(shown only once; the employee must change it at first login).";
+                L["Employee '{0}' created. Temporary password: {1} (shown only once; the employee must change it at first login).", created.Abbreviation, created.TemporaryPassword];
             NewEmployeeAbbreviation = null;
             NewEmployeeFullName = null;
             NewEmployeeEmail = null;
@@ -197,7 +197,7 @@ public class AdminPanelBase : ComponentBase
         }
         catch (Exception ex)
         {
-            UserManagementError = $"Error creating employee: {ex.Message}";
+            UserManagementError = L["Error creating employee: {0}", ex.Message];
         }
         finally
         {
@@ -215,17 +215,17 @@ public class AdminPanelBase : ComponentBase
             bool result = await EmployeeDataService.AssignRoleAsync(userId, roleName);
             if (result)
             {
-                UserManagementSuccess = $"Role '{roleName}' assigned successfully.";
+                UserManagementSuccess = L["Role '{0}' assigned successfully.", roleName];
                 await LoadUsersAsync();
             }
             else
             {
-                UserManagementError = "Failed to assign role.";
+                UserManagementError = L["Failed to assign role."];
             }
         }
         catch (Exception ex)
         {
-            UserManagementError = $"Error assigning role: {ex.Message}";
+            UserManagementError = L["Error assigning role: {0}", ex.Message];
         }
     }
 
@@ -239,17 +239,17 @@ public class AdminPanelBase : ComponentBase
             bool result = await EmployeeDataService.RemoveRoleAsync(userId, roleName);
             if (result)
             {
-                UserManagementSuccess = $"Role '{roleName}' removed successfully.";
+                UserManagementSuccess = L["Role '{0}' removed successfully.", roleName];
                 await LoadUsersAsync();
             }
             else
             {
-                UserManagementError = "Failed to remove role.";
+                UserManagementError = L["Failed to remove role."];
             }
         }
         catch (Exception ex)
         {
-            UserManagementError = $"Error removing role: {ex.Message}";
+            UserManagementError = L["Error removing role: {0}", ex.Message];
         }
     }
 
@@ -264,18 +264,17 @@ public class AdminPanelBase : ComponentBase
             if (reset is not null)
             {
                 UserManagementSuccess =
-                    $"Password for '{reset.Abbreviation}' reset. Temporary password: {reset.TemporaryPassword} " +
-                    "(shown only once; the employee must change it at next login).";
+                    L["Password for '{0}' reset. Temporary password: {1} (shown only once; the employee must change it at next login).", reset.Abbreviation, reset.TemporaryPassword];
                 await LoadUsersAsync();
             }
             else
             {
-                UserManagementError = "Failed to reset password.";
+                UserManagementError = L["Failed to reset password."];
             }
         }
         catch (Exception ex)
         {
-            UserManagementError = $"Error resetting password: {ex.Message}";
+            UserManagementError = L["Error resetting password: {0}", ex.Message];
         }
     }
 

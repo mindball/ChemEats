@@ -4,10 +4,11 @@ using Microsoft.JSInterop;
 using Shared.DTOs.Orders;
 using WebApp.Pages.Reports;
 using WebApp.Services.Orders;
+using WebApp.Infrastructure.Localization;
 
 namespace WebApp.Pages.AdminPanel;
 
-public class AdminPaymentsSummaryBase : ComponentBase
+public class AdminPaymentsSummaryBase : LocalizedComponentBase
 {
     public const string BasePageUrl = "/admin/payments/summary";
 
@@ -37,7 +38,7 @@ public class AdminPaymentsSummaryBase : ComponentBase
 
     protected string LoadedPeriodText =>
         LoadedAllDates
-            ? "All dates"
+            ? L["All dates"]
             : LoadedStartDate.HasValue && LoadedEndDate.HasValue
                 ? $"{LoadedStartDate.Value:dd.MM.yyyy} – {LoadedEndDate.Value:dd.MM.yyyy}"
                 : string.Empty;
@@ -91,13 +92,13 @@ public class AdminPaymentsSummaryBase : ComponentBase
         {
             if (!StartDate.HasValue || !EndDate.HasValue)
             {
-                ErrorMessage = "Please select a start and end date.";
+                ErrorMessage = L["Please select a start and end date."];
                 return;
             }
 
             if (EndDate.Value.Date < StartDate.Value.Date)
             {
-                ErrorMessage = "End date cannot be before start date.";
+                ErrorMessage = L["End date cannot be before start date."];
                 return;
             }
         }
@@ -117,7 +118,7 @@ public class AdminPaymentsSummaryBase : ComponentBase
 
             if (summaries is null)
             {
-                ErrorMessage = "Failed to load the outstanding summary. Please try again.";
+                ErrorMessage = L["Failed to load the outstanding summary. Please try again."];
                 return;
             }
 
@@ -135,7 +136,7 @@ public class AdminPaymentsSummaryBase : ComponentBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to load the outstanding summary: {ex.Message}";
+            ErrorMessage = L["Failed to load the outstanding summary: {0}", ex.Message];
         }
         finally
         {
@@ -149,10 +150,10 @@ public class AdminPaymentsSummaryBase : ComponentBase
             return;
 
         int orderCount = summary.UnpaidCount + summary.EarlierUnpaidCount;
-        string scope = LoadedAllDates ? "regardless of date" : $"up to {LoadedEndDate:dd.MM.yyyy}";
+        string scope = LoadedAllDates ? L["regardless of date"] : L["up to {0:dd.MM.yyyy}", LoadedEndDate.GetValueOrDefault()];
         bool confirmed = await JsRuntime.InvokeAsync<bool>(
             "confirm",
-            $"Mark all {orderCount} unpaid orders of {summary.EmployeeName} {scope} as paid?\nTotal: {FormatEuro(MealsDue(summary))}");
+            L["Mark all {0} unpaid orders of {1} {2} as paid?\nTotal: {3}", orderCount, summary.EmployeeName, scope, FormatEuro(MealsDue(summary))].Value);
 
         if (!confirmed)
             return;
@@ -168,11 +169,11 @@ public class AdminPaymentsSummaryBase : ComponentBase
 
             if (result is null)
             {
-                ErrorMessage = $"Failed to process the payment for {summary.EmployeeName}. Please try again.";
+                ErrorMessage = L["Failed to process the payment for {0}. Please try again.", summary.EmployeeName];
                 return;
             }
 
-            SuccessMessage = $"{summary.EmployeeName}: {result.PaidCount} orders marked as paid. Total: {FormatEuro(result.TotalPaid)}";
+            SuccessMessage = L["{0}: {1} orders marked as paid. Total: {2}", summary.EmployeeName, result.PaidCount, FormatEuro(result.TotalPaid)];
 
             // Reload what was paid, even if the filters were changed in the meantime.
             AllDates = LoadedAllDates;
@@ -186,7 +187,7 @@ public class AdminPaymentsSummaryBase : ComponentBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Payment processing failed: {ex.Message}";
+            ErrorMessage = L["Payment processing failed: {0}", ex.Message];
         }
         finally
         {

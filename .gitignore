@@ -376,3 +376,6 @@ publish-linux/
 *.FBK
 *.fdb
 *.FDB
+# deploy artifacts / VPN configs
+*.tgz
+peer*.conf

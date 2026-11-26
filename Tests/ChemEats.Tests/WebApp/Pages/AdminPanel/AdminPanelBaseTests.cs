@@ -1,4 +1,6 @@
-﻿using Moq;
+﻿using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
+using Moq;
 using Shared.DTOs.Employees;
 using Shared.DTOs.Orders;
 using WebApp.Pages.AdminPanel;
@@ -181,10 +183,15 @@ public class AdminPanelBaseTests
 
     private sealed class AdminPanelBaseTestHarness : AdminPanelBase
     {
+        public AdminPanelBaseTestHarness()
+        {
+            L = new PassThroughStringLocalizer<SharedResource>();
+        }
+
         public AdminPanelBaseTestHarness(
             IOrderDataService orderDataService,
             ISettingsDataService settingsDataService,
-            IEmployeeDataService employeeDataService)
+            IEmployeeDataService employeeDataService) : this()
         {
             OrderDataService = orderDataService;
             SettingsDataService = settingsDataService;

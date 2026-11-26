@@ -1,4 +1,4 @@
-﻿# ChemEats
+# ChemEats
 
 A small food-ordering sample application built with Blazor WebAssembly and ASP.NET Core.  
 Provides menu browsing, ordering, and per-user order management (view, aggregated summary, and deletion). The solution is split into clear layers (Web UI, API, Services, Domain, Shared DTOs) to demonstrate a maintainable, testable architecture.
@@ -11,7 +11,7 @@ Provides menu browsing, ordering, and per-user order management (view, aggregate
 - Backend: ASP.NET Core Minimal API (WebApi)
 - Domain + EF Core: Domain, Services (repositories)
 - Shared DTOs: Shared project used across client and server
-- Language / platform: C# 13 (.NET 9)
+- Language / platform: C# (.NET 11, see `global.json`)
 - Recommended IDE: __Visual Studio 2022__ or the __dotnet__ CLI
 
 Architecture (see diagram below for a visual summary)
@@ -54,7 +54,7 @@ Mapster is used for mapping domain read-models to shared DTOs (`Services/Mapping
 ## How to run locally
 
 Prereqs:
-- .NET 9 SDK installed
+- .NET 11 SDK installed
 - Optionally __Visual Studio 2022__ (recommended for debugging WASM + API together)
 
 Build and run (CLI)
@@ -152,6 +152,12 @@ All endpoints require authorization.
 ## Visual architecture
 
 (See below — a compact mermaid diagram representing components and data flow.)
+
+---
+
+## Deployment
+
+Production runs on a Debian server (self-contained `linux-x64` build, systemd service `chemeats`, nginx in front). Access is VPN-only. See `.claude/docs/production.md`; deploys go through the Claude Code `/deploy` skill.
 
 ---
 

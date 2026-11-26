@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using Bunit;
 using Bunit.TestDoubles;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +12,7 @@ using WebApp.Services.Suppliers;
 
 namespace ChemEats.Tests.WebApp.Pages.Menus;
 
-public class UploadMenuPageTests : TestContext
+public class UploadMenuPageTests : LocalizedTestContext
 {
     [Fact]
     public void UploadMenu_WhenAuthorized_ShouldRenderCreateMenuUi()

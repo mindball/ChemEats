@@ -62,3 +62,8 @@
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
 deploy/linux/** text eol=lf
+
+# Linux deploy files must keep LF line endings (bash/sudo break on CRLF)
+deploy/linux/*.sh text eol=lf
+deploy/linux/*.sudoers text eol=lf
+deploy/linux/*.service text eol=lf

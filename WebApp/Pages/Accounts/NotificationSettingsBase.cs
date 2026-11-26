@@ -2,10 +2,11 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Components;
 using Shared.DTOs.Notifications;
 using WebApp.Services.Notifications;
+using WebApp.Infrastructure.Localization;
 
 namespace WebApp.Pages.Accounts;
 
-public class NotificationSettingsBase : ComponentBase
+public class NotificationSettingsBase : LocalizedComponentBase
 {
     [Inject] protected INotificationDataService NotificationDataService { get; set; } = null!;
 
@@ -25,7 +26,7 @@ public class NotificationSettingsBase : ComponentBase
             NotificationSettingsDto? settings = await NotificationDataService.GetMySettingsAsync();
             if (settings is null)
             {
-                ErrorMessage = "Could not load your notification settings.";
+                ErrorMessage = L["Could not load your notification settings."];
                 return;
             }
 
@@ -33,7 +34,7 @@ public class NotificationSettingsBase : ComponentBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Could not load your notification settings: {ex.Message}";
+            ErrorMessage = L["Could not load your notification settings: {0}", ex.Message];
         }
         finally
         {
@@ -49,14 +50,14 @@ public class NotificationSettingsBase : ComponentBase
         string? email = string.IsNullOrWhiteSpace(Model.Email) ? null : Model.Email.Trim();
         if (Model.RemindersEnabled && email is null)
         {
-            ErrorMessage = "Enter an email address to receive order reminders.";
+            ErrorMessage = L["Enter an email address to receive order reminders."];
             return;
         }
 
         // The server performs the strict check; this only catches obvious typos early.
         if (email is not null && (email.Length > 256 || !new EmailAddressAttribute().IsValid(email)))
         {
-            ErrorMessage = "Please enter a valid email address.";
+            ErrorMessage = L["Please enter a valid email address."];
             return;
         }
 
@@ -69,16 +70,16 @@ public class NotificationSettingsBase : ComponentBase
 
             if (saved is null)
             {
-                ErrorMessage = "Saving failed. Please check the email address and try again.";
+                ErrorMessage = L["Saving failed. Please check the email address and try again."];
                 return;
             }
 
             ApplySettings(saved);
-            SuccessMessage = "Notification settings saved.";
+            SuccessMessage = L["Notification settings saved."];
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Saving failed: {ex.Message}";
+            ErrorMessage = L["Saving failed: {0}", ex.Message];
         }
         finally
         {

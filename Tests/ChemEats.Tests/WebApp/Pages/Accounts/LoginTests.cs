@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -10,7 +12,7 @@ using WebApp.Pages.Accounts;
 
 namespace ChemEats.Tests.WebApp.Pages.Accounts;
 
-public class LoginTests : TestContext
+public class LoginTests : LocalizedTestContext
 {
     [Fact]
     public void Login_WhenCredentialsAreInvalid_ShouldRenderErrorMessage()

@@ -1,9 +1,11 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using Bunit;
 using WebApp.Pages.Accounts;
 
 namespace ChemEats.Tests.WebApp.Pages.Accounts;
 
-public class StatusMessageTests : TestContext
+public class StatusMessageTests : LocalizedTestContext
 {
     [Fact]
     public void StatusMessage_WhenMessageIsNull_ShouldRenderNothing()

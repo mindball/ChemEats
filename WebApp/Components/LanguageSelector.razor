@@ -1,0 +1,24 @@
+@inject IJSRuntime JsRuntime
+@inject NavigationManager NavigationManager
+
+<div class="btn-group btn-group-sm" role="group" aria-label="@L["Language"]">
+    <button type="button"
+            class="btn @(AppCulture.CurrentLanguage == AppCulture.Bulgarian ? "btn-primary" : "btn-outline-primary")"
+            @onclick="() => ChangeAsync(AppCulture.Bulgarian)">БГ</button>
+    <button type="button"
+            class="btn @(AppCulture.CurrentLanguage == AppCulture.English ? "btn-primary" : "btn-outline-primary")"
+            @onclick="() => ChangeAsync(AppCulture.English)">EN</button>
+</div>
+
+@code {
+    private async Task ChangeAsync(string language)
+    {
+        if (language == AppCulture.CurrentLanguage)
+        {
+            return;
+        }
+
+        await AppCulture.SetLanguageAsync(JsRuntime, language);
+        NavigationManager.Refresh(forceReload: true);
+    }
+}

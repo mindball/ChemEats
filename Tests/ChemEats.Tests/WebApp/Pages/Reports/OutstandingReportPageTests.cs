@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
@@ -9,7 +11,7 @@ using WebApp.Services.Orders;
 
 namespace ChemEats.Tests.WebApp.Pages.Reports;
 
-public class OutstandingReportPageTests : TestContext
+public class OutstandingReportPageTests : LocalizedTestContext
 {
     private static readonly DateTime StartDate = new(2026, 10, 1);
     private static readonly DateTime EndDate = new(2026, 10, 24);

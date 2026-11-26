@@ -5,14 +5,14 @@
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="mb-0" style="color: #003d61;"><i class="bi bi-receipt me-2"></i>My Orders</h3>
+        <h3 class="mb-0" style="color: #003d61;"><i class="bi bi-receipt me-2"></i>@L["My Orders"]</h3>
     </div>
 
     @if (IsLoading)
     {
         <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
             <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
+                <span class="visually-hidden">@L["Loading..."]</span>
             </div>
         </div>
     }
@@ -25,30 +25,30 @@
         <div class="card mb-4">
             <div class="card-body">
                 <h5 class="card-title mb-3">
-                    <i class="bi bi-funnel me-2"></i>Filters
+                    <i class="bi bi-funnel me-2"></i>@L["Filters"]
                 </h5>
                 
                 <div class="row g-3">
                     <div class="col-md-6 col-lg-3">
                         <label class="form-label fw-semibold">
-                            <i class="bi bi-calendar-range me-1"></i>Menu date from
+                            <i class="bi bi-calendar-range me-1"></i>@L["Menu date from"]
                         </label>
                         <input type="date" class="form-control" @bind="StartDate" />
                     </div>
 
                     <div class="col-md-6 col-lg-3">
                         <label class="form-label fw-semibold">
-                            <i class="bi bi-calendar-check me-1"></i>Menu date to
+                            <i class="bi bi-calendar-check me-1"></i>@L["Menu date to"]
                         </label>
                         <input type="date" class="form-control" @bind="EndDate" />
                     </div>
 
                     <div class="col-md-6 col-lg-3">
                         <label class="form-label fw-semibold">
-                            <i class="bi bi-shop me-1"></i>Supplier
+                            <i class="bi bi-shop me-1"></i>@L["Supplier"]
                         </label>
                         <select class="form-select" @bind="SelectedSupplierId">
-                            <option value="">All suppliers</option>
+                            <option value="">@L["All suppliers"]</option>
                             @foreach ((Guid SupplierId, string SupplierName) s in AvailableSuppliers)
                             {
                                 <option value="@s.SupplierId">@s.SupplierName</option>
@@ -58,12 +58,12 @@
 
                     <div class="col-md-6 col-lg-3">
                         <label class="form-label fw-semibold">
-                            <i class="bi bi-flag me-1"></i>Status
+                            <i class="bi bi-flag me-1"></i>@L["Status"]
                         </label>
                         <select class="form-select" @bind="SelectedStatus">
                             @foreach (string status in AvailableStatuses)
                             {
-                                <option value="@status">@status</option>
+                                <option value="@status">@L[status]</option>
                             }
                         </select>
                     </div>
@@ -76,11 +76,11 @@
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" role="switch" id="includeDeleted" @bind="IncludeDeleted"/>
                                 <label class="form-check-label" for="includeDeleted">
-                                    <i class="bi bi-trash me-1"></i>Include deleted orders
+                                    <i class="bi bi-trash me-1"></i>@L["Include deleted orders"]
                                 </label>
                             </div>
                             <button class="btn btn-primary px-4" @onclick="LoadOrdersAsync">
-                                <i class="bi bi-search me-2"></i>Apply Filters
+                                <i class="bi bi-search me-2"></i>@L["Apply Filters"]
                             </button>
                         </div>
                     </div>
@@ -91,7 +91,7 @@
         @if (Orders is null || !Orders.Any())
         {
             <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i>No orders found for the selected criteria.
+                <i class="bi bi-info-circle me-2"></i>@L["No orders found for the selected criteria."]
             </div>
         }
         else
@@ -103,9 +103,9 @@
                 <div class="card-header bg-white">
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="fw-semibold">
-                            <i class="bi bi-list-check me-2"></i>Order Items (@Orders.Count)
+                            <i class="bi bi-list-check me-2"></i>@L["Order Items ({0})", Orders.Count]
                         </span>
-                        <span class="badge bg-primary rounded-pill">Total: @totalNet.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
+                        <span class="badge bg-primary rounded-pill">@L["Total: {0:C}", totalNet]</span>
                     </div>
                 </div>
                 <ul class="list-group list-group-flush">
@@ -118,31 +118,31 @@
                                         @item.MealName
                                         @if (item.IsDeleted)
                                         {
-                                            <span class="badge text-bg-danger ms-2">Deleted</span>
+                                            <span class="badge text-bg-danger ms-2">@L["Deleted"]</span>
                                         }
                                         else if (string.Equals(item.Status, "Completed", StringComparison.OrdinalIgnoreCase))
                                         {
-                                            <span class="badge text-bg-success ms-2">Completed</span>
+                                            <span class="badge text-bg-success ms-2">@L["Completed"]</span>
                                         }
                                         else if (string.Equals(item.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
                                         {
-                                            <span class="badge text-bg-warning ms-2">Cancelled</span>
+                                            <span class="badge text-bg-warning ms-2">@L["Cancelled"]</span>
                                         }
                                         else if (string.Equals(item.Status, "Pending", StringComparison.OrdinalIgnoreCase))
                                         {
-                                            <span class="badge text-bg-info ms-2">Pending</span>
+                                            <span class="badge text-bg-info ms-2">@L["Pending"]</span>
                                         }
                                         @if (!item.IsDeleted && !string.Equals(item.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
                                         {
                                             @if (item.IsPaid)
                                             {
                                                 <span class="badge text-bg-success ms-2">
-                                                    <i class="bi bi-check-circle me-1"></i>Paid@(item.PaidOn.HasValue ? $" {item.PaidOn.Value:dd.MM.yyyy}" : string.Empty)
+                                                    <i class="bi bi-check-circle me-1"></i>@L["Paid"]@(item.PaidOn.HasValue ? $" {item.PaidOn.Value:dd.MM.yyyy}" : string.Empty)
                                                 </span>
                                             }
                                             else
                                             {
-                                                <span class="badge text-bg-secondary ms-2">Unpaid</span>
+                                                <span class="badge text-bg-secondary ms-2">@L["Unpaid"]</span>
                                             }
                                         }
                                     </div>
@@ -156,25 +156,25 @@
                                 </div>
                                 <div class="text-end">
                                     <div class="mb-1">
-                                        <small class="text-muted">Price:</small>
+                                        <small class="text-muted">@L["Price:"]</small>
                                         <span class="ms-1">@item.Price.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
                                     </div>
                                     @if (item.PortionApplied)
                                     {
                                         <div class="text-success mb-1">
-                                            <small class="text-muted">Portion:</small>
+                                            <small class="text-muted">@L["Portion:"]</small>
                                             <span class="ms-1">-@item.PortionAmount.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
                                         </div>
                                     }
                                     else if (item.ExpectedPortionAmount > 0m)
                                     {
-                                        <div class="text-success mb-1" title="Applied when the order is paid">
-                                            <small class="text-muted">Portion (at payment):</small>
+                                        <div class="text-success mb-1" title="@L["Applied when the order is paid"]">
+                                            <small class="text-muted">@L["Portion (at payment):"]</small>
                                             <span class="ms-1">-@item.ExpectedPortionAmount.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
                                         </div>
                                     }
                                     <div class="fw-bold border-top pt-1">
-                                        <small class="text-muted">Net:</small>
+                                        <small class="text-muted">@L["Net:"]</small>
                                         <span class="ms-1">@GetNetAmount(item).ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
                                     </div>
                                 </div>
@@ -186,32 +186,31 @@
                     <div class="row g-2">
                         <div class="col-md-6">
                             <div class="d-flex justify-content-between">
-                                <span class="fw-semibold">Total portion:</span>
+                                <span class="fw-semibold">@L["Total portion:"]</span>
                                 <span id="total-portion" class="fw-semibold text-success">-@totalPortion.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="d-flex justify-content-between">
-                                <span class="fw-semibold">Total after portion:</span>
+                                <span class="fw-semibold">@L["Total after portion:"]</span>
                                 <span id="total-net" class="fw-semibold">@totalNet.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="d-flex justify-content-between">
-                                <span class="fw-semibold"><i class="bi bi-check-circle me-1 text-success"></i>Paid (@PaidCount):</span>
+                                <span class="fw-semibold"><i class="bi bi-check-circle me-1 text-success"></i>@L["Paid ({0}):", PaidCount]</span>
                                 <span id="total-paid" class="fw-semibold text-success">@TotalPaid.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="d-flex justify-content-between">
-                                <span class="fw-bold">Remaining to pay (@RemainingCount):</span>
+                                <span class="fw-bold">@L["Remaining to pay ({0}):", RemainingCount]</span>
                                 <span id="total-remaining" class="fw-bold text-primary fs-5">@TotalRemaining.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</span>
                             </div>
                         </div>
                     </div>
                     <small class="text-muted d-block mt-2">
-                        <i class="bi bi-info-circle me-1"></i>The company portion is given once per day (menu date), regardless of how many meals
-                        or from which suppliers were ordered. It goes to the most expensive meal of the day. Cancelled orders are not counted.
+                        <i class="bi bi-info-circle me-1"></i>@L["The company portion is given once per day (menu date), regardless of how many meals or from which suppliers were ordered. It goes to the most expensive meal of the day. Cancelled orders are not counted."]
                     </small>
                 </div>
             </div>

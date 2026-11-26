@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using Moq;
 using Shared.DTOs.Notifications;
 using WebApp.Pages.Accounts;
@@ -132,6 +134,11 @@ public class NotificationSettingsBaseTests
 
     private sealed class NotificationSettingsBaseTestHarness : NotificationSettingsBase
     {
+        public NotificationSettingsBaseTestHarness()
+        {
+            L = new PassThroughStringLocalizer<SharedResource>();
+        }
+
         public NotificationSettingsModel ModelPublic => Model;
         public string? ErrorMessagePublic => ErrorMessage;
         public string? SuccessMessagePublic => SuccessMessage;

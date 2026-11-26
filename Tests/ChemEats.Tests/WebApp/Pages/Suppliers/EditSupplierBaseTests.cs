@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using Moq;
 using Microsoft.AspNetCore.Components.Authorization;
 using Shared.Common.Enums;
@@ -112,6 +114,11 @@ public class EditSupplierBaseTests
 
     private sealed class EditSupplierBaseTestHarness : EditSupplierBase
     {
+        public EditSupplierBaseTestHarness()
+        {
+            L = new PassThroughStringLocalizer<SharedResource>();
+        }
+
         public List<EmployeeDto> AvailableUsersPublic => AvailableUsers;
         public string? ErrorMessagePublic => ErrorMessage;
         public bool IsSubmittingPublic => IsSubmitting;

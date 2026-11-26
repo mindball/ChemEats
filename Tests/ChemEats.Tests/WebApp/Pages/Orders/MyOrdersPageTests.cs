@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using System.Globalization;
 using Bunit;
 using Bunit.TestDoubles;
@@ -11,7 +13,7 @@ using WebApp.Services.Orders;
 
 namespace ChemEats.Tests.WebApp.Pages.Orders;
 
-public class MyOrdersPageTests : TestContext
+public class MyOrdersPageTests : LocalizedTestContext
 {
     [Fact]
     public void LoadOrders_WhenSomeOrdersArePaid_ShouldSplitPaidAndRemainingAndExcludeCancelled()

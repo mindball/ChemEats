@@ -1,3 +1,4 @@
+using WebApp.Resources;
 using ChemEats.Tests.TestInfrastructure;
 using Microsoft.AspNetCore.Components;
 using Moq;
@@ -89,6 +90,11 @@ public class RegisterSupplierBaseTests
 
     private sealed class RegisterSupplierBaseTestHarness : RegisterSupplierBase
     {
+        public RegisterSupplierBaseTestHarness()
+        {
+            L = new PassThroughStringLocalizer<SharedResource>();
+        }
+
         public List<EmployeeDto> AvailableUsersPublic => AvailableUsers;
         public string? ErrorMessagePublic => ErrorMessage;
         public bool IsSubmittingPublic => IsSubmitting;

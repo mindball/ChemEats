@@ -6,6 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
 		<BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>
+		<SatelliteResourceLanguages>bg</SatelliteResourceLanguages>
 		<UserSecretsId>2abf1358-a0af-414a-ae3d-bb490103c59c</UserSecretsId>
 	</PropertyGroup>
 
@@ -15,6 +16,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="11.0.0" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="11.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="11.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Localization" Version="11.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

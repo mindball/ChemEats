@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
@@ -5,7 +7,7 @@ using WebApp.Layout;
 
 namespace ChemEats.Tests.WebApp.Layout;
 
-public class RedirectToLoginTests : TestContext
+public class RedirectToLoginTests : LocalizedTestContext
 {
     [Fact]
     public void RedirectToLogin_OnInitialized_ShouldNavigateToLoginPath()

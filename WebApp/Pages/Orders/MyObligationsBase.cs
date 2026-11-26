@@ -2,10 +2,11 @@ using Microsoft.AspNetCore.Components;
 using Shared.Common.Enums;
 using Shared.DTOs.Obligations;
 using WebApp.Services.Obligations;
+using WebApp.Infrastructure.Localization;
 
 namespace WebApp.Pages.Orders;
 
-public class MyObligationsBase : ComponentBase
+public class MyObligationsBase : LocalizedComponentBase
 {
     [Inject] protected IObligationDataService ObligationDataService { get; init; } = null!;
 
@@ -36,7 +37,7 @@ public class MyObligationsBase : ComponentBase
     {
         if (StartDate.HasValue && EndDate.HasValue && EndDate.Value.Date < StartDate.Value.Date)
         {
-            ErrorMessage = "End date cannot be before start date.";
+            ErrorMessage = L["End date cannot be before start date."];
             return;
         }
 
@@ -49,11 +50,11 @@ public class MyObligationsBase : ComponentBase
             Obligations = await ObligationDataService.GetMyObligationsAsync(StartDate, EndDate);
 
             if (Obligations is null)
-                ErrorMessage = "Failed to load your obligations. Please try again.";
+                ErrorMessage = L["Failed to load your obligations. Please try again."];
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to load your obligations: {ex.Message}";
+            ErrorMessage = L["Failed to load your obligations: {0}", ex.Message];
         }
         finally
         {

@@ -5,19 +5,19 @@
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="mb-0" style="color: #003d61;"><i class="bi bi-cash-coin me-2"></i>Payments</h3>
+        <h3 class="mb-0" style="color: #003d61;"><i class="bi bi-cash-coin me-2"></i>@L["Payments"]</h3>
         <ul class="nav nav-pills">
             <li class="nav-item">
-                <a class="nav-link" href="admin/payments"><i class="bi bi-person me-1"></i>By Employee</a>
+                <a class="nav-link" href="admin/payments"><i class="bi bi-person me-1"></i>@L["By Employee"]</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="admin/payments/summary"><i class="bi bi-people me-1"></i>Outstanding Summary</a>
+                <a class="nav-link active" aria-current="page" href="admin/payments/summary"><i class="bi bi-people me-1"></i>@L["Outstanding Summary"]</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="admin/payments/obligations"><i class="bi bi-bag me-1"></i>Other Obligations</a>
+                <a class="nav-link" href="admin/payments/obligations"><i class="bi bi-bag me-1"></i>@L["Other Obligations"]</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="admin/payments/obligation-types"><i class="bi bi-tags me-1"></i>Expense Types</a>
+                <a class="nav-link" href="admin/payments/obligation-types"><i class="bi bi-tags me-1"></i>@L["Expense Types"]</a>
             </li>
         </ul>
     </div>
@@ -25,23 +25,23 @@
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title mb-3">
-                <i class="bi bi-funnel me-2"></i>Period (by menu date)
+                <i class="bi bi-funnel me-2"></i>@L["Period (by menu date)"]
             </h5>
             <div class="row g-3">
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">
-                        <i class="bi bi-calendar-range me-1"></i>Menu date from
+                        <i class="bi bi-calendar-range me-1"></i>@L["Menu date from"]
                     </label>
                     <input type="date" class="form-control" @bind="StartDate" disabled="@AllDates" />
                     <div class="form-check mt-2">
                         <input type="checkbox" class="form-check-input" id="summaryAllDates" @bind="AllDates" />
-                        <label class="form-check-label" for="summaryAllDates">All unpaid (ignore dates)</label>
+                        <label class="form-check-label" for="summaryAllDates">@L["All unpaid (ignore dates)"]</label>
                     </div>
                 </div>
 
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">
-                        <i class="bi bi-calendar-check me-1"></i>Menu date to
+                        <i class="bi bi-calendar-check me-1"></i>@L["Menu date to"]
                     </label>
                     <input type="date" class="form-control" @bind="EndDate" disabled="@AllDates" />
                 </div>
@@ -52,7 +52,7 @@
                         {
                             <span class="spinner-border spinner-border-sm me-2" role="status"></span>
                         }
-                        <i class="bi bi-search me-2"></i>Search
+                        <i class="bi bi-search me-2"></i>@L["Search"]
                     </button>
                 </div>
             </div>
@@ -79,7 +79,7 @@
     {
         <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
             <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
+                <span class="visually-hidden">@L["Loading..."]</span>
             </div>
         </div>
     }
@@ -92,14 +92,14 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <span class="fw-semibold">
-                                <i class="bi bi-people me-2"></i>Employees with unpaid amounts (@Summaries.Count)
+                                <i class="bi bi-people me-2"></i>@L["Employees with unpaid amounts ({0})", Summaries.Count]
                             </span>
                             <span class="ms-2 text-muted outstanding-period">
-                                <i class="bi bi-calendar-range me-1"></i>Period: @LoadedPeriodText
+                                <i class="bi bi-calendar-range me-1"></i>@L["Period: {0}", LoadedPeriodText]
                             </span>
                         </div>
                         <button class="btn btn-sm btn-outline-primary" @onclick="OpenPrintReport">
-                            <i class="bi bi-printer me-1"></i>Print
+                            <i class="bi bi-printer me-1"></i>@L["Print"]
                         </button>
                     </div>
                 </div>
@@ -108,14 +108,14 @@
                     <table class="table table-hover mb-0 align-middle">
                         <thead class="table-light">
                             <tr>
-                                <th><i class="bi bi-person me-1"></i>Employee</th>
-                                <th class="text-end"><i class="bi bi-list-check me-1"></i>Unpaid Orders</th>
-                                <th class="text-end"><i class="bi bi-tag me-1"></i>Gross</th>
-                                <th class="text-end"><i class="bi bi-percent me-1"></i>Company Portion</th>
-                                <th class="text-end"><i class="bi bi-cash me-1"></i>Balance Owed</th>
-                                <th class="text-end"><i class="bi bi-hourglass-split me-1"></i>Earlier</th>
-                                <th class="text-end"><i class="bi bi-bag me-1"></i>Other</th>
-                                <th class="text-end"><i class="bi bi-wallet2 me-1"></i>Total Due</th>
+                                <th><i class="bi bi-person me-1"></i>@L["Employee"]</th>
+                                <th class="text-end"><i class="bi bi-list-check me-1"></i>@L["Unpaid Orders"]</th>
+                                <th class="text-end"><i class="bi bi-tag me-1"></i>@L["Gross"]</th>
+                                <th class="text-end"><i class="bi bi-percent me-1"></i>@L["Company Portion"]</th>
+                                <th class="text-end"><i class="bi bi-cash me-1"></i>@L["Balance Owed"]</th>
+                                <th class="text-end"><i class="bi bi-hourglass-split me-1"></i>@L["Earlier"]</th>
+                                <th class="text-end"><i class="bi bi-bag me-1"></i>@L["Other"]</th>
+                                <th class="text-end"><i class="bi bi-wallet2 me-1"></i>@L["Total Due"]</th>
                                 <th class="text-center"></th>
                             </tr>
                         </thead>
@@ -154,7 +154,7 @@
                                         @if (summary.OtherUnpaidCount > 0)
                                         {
                                             <a class="other-obligations-link fw-semibold" href="@OtherObligationsUrl(summary)"
-                                               title="@summary.OtherUnpaidCount unpaid other obligations - paid separately">
+                                               title="@L["{0} unpaid other obligations - paid separately", summary.OtherUnpaidCount]">
                                                 @FormatEuro(summary.OtherAmount) (@summary.OtherUnpaidCount)
                                             </a>
                                         }
@@ -176,7 +176,7 @@
                                                 }
                                                 else
                                                 {
-                                                    <i class="bi bi-cash-stack me-1"></i><span>Pay</span>
+                                                    <i class="bi bi-cash-stack me-1"></i><span>@L["Pay"]</span>
                                                 }
                                             </button>
                                         }
@@ -186,7 +186,7 @@
                         </tbody>
                         <tfoot class="table-light">
                             <tr class="fw-bold">
-                                <td>Grand Total</td>
+                                <td>@L["Grand Total"]</td>
                                 <td class="text-end">@TotalUnpaidCount</td>
                                 <td class="text-end">@FormatEuro(TotalGrossAmount)</td>
                                 <td class="text-end text-success">-@FormatEuro(TotalPortionAmount)</td>
@@ -201,16 +201,16 @@
                 </div>
 
                 <div class="card-footer bg-light small text-muted">
-                    <i class="bi bi-info-circle me-1"></i>Only completed orders (finalized menus) are counted; paid, pending, cancelled and deleted orders are excluded. The company portion is applied once per employee per day at payment; unpaid days show the expected portion.
-                    "Earlier" is unpaid orders before the start date; "Pay" settles the meals up to the end date.
-                    "Other" is unpaid non-food obligations up to the end date; they are paid separately on the Other Obligations page.
+                    <i class="bi bi-info-circle me-1"></i>@L["Only completed orders (finalized menus) are counted; paid, pending, cancelled and deleted orders are excluded. The company portion is applied once per employee per day at payment; unpaid days show the expected portion."]
+                    @L["Earlier is unpaid orders before the start date; Pay settles the meals up to the end date."]
+                    @L["Other is unpaid non-food obligations up to the end date; they are paid separately on the Other Obligations page."]
                 </div>
             </div>
         }
         else
         {
             <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i>No unpaid orders up to the end of this period (@LoadedPeriodText).
+                <i class="bi bi-info-circle me-2"></i>@L["No unpaid orders up to the end of this period ({0}).", LoadedPeriodText]
             </div>
         }
     }

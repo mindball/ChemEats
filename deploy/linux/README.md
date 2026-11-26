@@ -39,3 +39,23 @@ sudo systemctl start chemeats
 - Users are created by an admin (Admin panel → User Management). On an empty DB set `BootstrapAdmin__Abbreviation` once to get the first admin.
 - JWT is issued by the app itself (`Jwt__Issuer` / `Jwt__Secret`); the external Employee service is no longer used.
 - Firebird: the .NET provider is fully managed, no `fbclient` needed. Database path in the connection string must be the Linux path on the Firebird server.
+
+## 4. Deploy script (one-time install, interactive — run by the admin)
+
+Routine deploys use `/usr/local/sbin/chemeats-deploy` (from `chemeats-deploy.sh`), which the `chemist` user may run via sudo **without a password** (`chemeats-deploy.sudoers`); no other sudo command is password-free.
+
+```powershell
+scp deploy/linux/chemeats-deploy.sh deploy/linux/chemeats-deploy.sudoers chemist@10.58.168.1:/tmp/
+ssh -t chemist@10.58.168.1
+```
+```bash
+sudo install -o root -g root -m 0755 /tmp/chemeats-deploy.sh /usr/local/sbin/chemeats-deploy
+sudo install -o root -g root -m 0440 /tmp/chemeats-deploy.sudoers /etc/sudoers.d/chemeats-deploy
+sudo visudo -cf /etc/sudoers.d/chemeats-deploy      # must print "parsed OK"
+rm /tmp/chemeats-deploy.sh /tmp/chemeats-deploy.sudoers
+sudo -k; sudo -n /usr/local/sbin/chemeats-deploy --check   # no password prompt; "/tmp/chemeats.tgz not found" is fine here
+```
+
+Repeat the first `install` line whenever `chemeats-deploy.sh` changes.
+
+Usage: `sudo chemeats-deploy` (deploys `/tmp/chemeats.tgz`), `--check`, `--rollback`. Never overwrites `App_Data/` or `appsettings.Production.json`; keeps the previous version in `/var/www/chemeats.old`.

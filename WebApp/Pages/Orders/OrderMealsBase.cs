@@ -6,10 +6,11 @@ using Shared.DTOs.Menus;
 using Shared.DTOs.Orders;
 using WebApp.Services.Menus;
 using WebApp.Services.Orders;
+using WebApp.Infrastructure.Localization;
 
 namespace WebApp.Pages.Orders;
 
-public class OrderMealsBase : ComponentBase
+public class OrderMealsBase : LocalizedComponentBase
 {
     [Inject] protected IMenuDataService MenuDataService { get; init; } = null!;
     [Inject] protected IOrderDataService OrderDataService { get; init; } = null!;
@@ -69,7 +70,7 @@ public class OrderMealsBase : ComponentBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to load menus: {ex.Message}";
+            ErrorMessage = L["Failed to load menus: {0}", ex.Message];
         }
         finally
         {
@@ -86,7 +87,7 @@ public class OrderMealsBase : ComponentBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to load your orders: {ex.Message}";
+            ErrorMessage = L["Failed to load your orders: {0}", ex.Message];
         }
         finally
         {
@@ -148,18 +149,18 @@ public class OrderMealsBase : ComponentBase
 
             if (response is not null && response.Created > 0)
             {
-                SuccessMessage = $"Order placed successfully ({response.Created} items).";
+                SuccessMessage = L["Order placed successfully ({0} items).", response.Created];
                 Selected.Clear();
                 await LoadMyOrdersAsync();
             }
             else
             {
-                ErrorMessage = "Failed to place order.";
+                ErrorMessage = L["Failed to place order."];
             }
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Error while placing order: {ex.Message}";
+            ErrorMessage = L["Error while placing order: {0}", ex.Message];
         }
         finally
         {
@@ -179,7 +180,7 @@ public class OrderMealsBase : ComponentBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to delete order: {ex.Message}";
+            ErrorMessage = L["Failed to delete order: {0}", ex.Message];
             return false;
         }
     }
@@ -195,7 +196,7 @@ public class OrderMealsBase : ComponentBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to delete orders: {ex.Message}";
+            ErrorMessage = L["Failed to delete orders: {0}", ex.Message];
             return false;
         }
     }
@@ -219,7 +220,7 @@ public class OrderMealsBase : ComponentBase
                 var entry = flatMeals.FirstOrDefault(x => x.Meal.Id == kvp.Key.MealId && x.MenuDate == kvp.Key.Date);
                 return new SummaryItem(
                     Name: entry?.Meal.Name ?? "Unknown",
-                    SupplierName: entry?.SupplierName ?? "Unknown supplier",
+                    SupplierName: entry?.SupplierName ?? L["Unknown supplier"],
                     MenuDate: kvp.Key.Date,
                     Quantity: kvp.Value,
                     Price: entry?.Meal.Price ?? 0m

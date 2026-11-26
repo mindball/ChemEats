@@ -1,0 +1,1383 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="({0} obligations)" xml:space="preserve">
+    <value>({0} задължения)</value>
+  </data>
+  <data name="({0} orders)" xml:space="preserve">
+    <value>({0} поръчки)</value>
+  </data>
+  <data name="+359 XXX XXX XXX" xml:space="preserve">
+    <value>+359 XXX XXX XXX</value>
+  </data>
+  <data name="- {0} portion" xml:space="preserve">
+    <value>- {0} дотация</value>
+  </data>
+  <data name="-- All suppliers --" xml:space="preserve">
+    <value>-- Всички доставчици --</value>
+  </data>
+  <data name="-- No Supervisor --" xml:space="preserve">
+    <value>-- Без отговорник --</value>
+  </data>
+  <data name="-- Select employee --" xml:space="preserve">
+    <value>-- Изберете служител --</value>
+  </data>
+  <data name="-- Select expense type --" xml:space="preserve">
+    <value>-- Изберете вид разход --</value>
+  </data>
+  <data name="&lt;strong&gt;{0}&lt;/strong&gt; unpaid orders before {1:dd.MM.yyyy}, total &lt;strong&gt;{2}&lt;/strong&gt;. They are included in &quot;Pay all&quot;." xml:space="preserve">
+    <value>&lt;strong&gt;{0}&lt;/strong&gt; неплатени поръчки преди {1:dd.MM.yyyy}, общо &lt;strong&gt;{2}&lt;/strong&gt;. Те са включени в „Плати всички“.</value>
+  </data>
+  <data name="Abbreviation" xml:space="preserve">
+    <value>Съкращение</value>
+  </data>
+  <data name="Abbreviation and full name are required." xml:space="preserve">
+    <value>Съкращението и пълното име са задължителни.</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Действия</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Активно</value>
+  </data>
+  <data name="Active Until" xml:space="preserve">
+    <value>Активно до</value>
+  </data>
+  <data name="Active Until Time" xml:space="preserve">
+    <value>Активно до (час)</value>
+  </data>
+  <data name="Active Until time must be between {0:HH:mm} and {1:HH:mm}." xml:space="preserve">
+    <value>Крайният час трябва да е между {0:HH:mm} и {1:HH:mm}.</value>
+  </data>
+  <data name="Active Until time must be in the future." xml:space="preserve">
+    <value>Крайният час трябва да е в бъдещето.</value>
+  </data>
+  <data name="Active until:" xml:space="preserve">
+    <value>Активно до:</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Добави</value>
+  </data>
+  <data name="Add Employee" xml:space="preserve">
+    <value>Добави служител</value>
+  </data>
+  <data name="Add role..." xml:space="preserve">
+    <value>Добави роля...</value>
+  </data>
+  <data name="Add Supplier" xml:space="preserve">
+    <value>Добави доставчик</value>
+  </data>
+  <data name="Added by" xml:space="preserve">
+    <value>Добавено от</value>
+  </data>
+  <data name="Address Information" xml:space="preserve">
+    <value>Адрес</value>
+  </data>
+  <data name="Administration" xml:space="preserve">
+    <value>Администрация</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>Всички</value>
+  </data>
+  <data name="All ({0})" xml:space="preserve">
+    <value>Всички ({0})</value>
+  </data>
+  <data name="All dates" xml:space="preserve">
+    <value>Всички дати</value>
+  </data>
+  <data name="All meals must have a name." xml:space="preserve">
+    <value>Всички ястия трябва да имат име.</value>
+  </data>
+  <data name="All meals must have a price greater than 0." xml:space="preserve">
+    <value>Всички ястия трябва да имат цена по-голяма от 0.</value>
+  </data>
+  <data name="All suppliers" xml:space="preserve">
+    <value>Всички доставчици</value>
+  </data>
+  <data name="All Suppliers ({0})" xml:space="preserve">
+    <value>Всички доставчици ({0})</value>
+  </data>
+  <data name="All unpaid (ignore dates)" xml:space="preserve">
+    <value>Всички неплатени (без дати)</value>
+  </data>
+  <data name="Amount" xml:space="preserve">
+    <value>Сума</value>
+  </data>
+  <data name="Amount (€)" xml:space="preserve">
+    <value>Сума (€)</value>
+  </data>
+  <data name="Amount cannot have more than two decimal places." xml:space="preserve">
+    <value>Сумата не може да има повече от два знака след десетичната запетая.</value>
+  </data>
+  <data name="Amount must be greater than zero." xml:space="preserve">
+    <value>Сумата трябва да е по-голяма от нула.</value>
+  </data>
+  <data name="Applied once per menu per user (only the first meal quantity gets the deduction)." xml:space="preserve">
+    <value>Прилага се веднъж на меню за потребител (само първото ястие получава отстъпката).</value>
+  </data>
+  <data name="Applied when the order is paid" xml:space="preserve">
+    <value>Прилага се при плащане на поръчката</value>
+  </data>
+  <data name="Apply Filters" xml:space="preserve">
+    <value>Приложи филтрите</value>
+  </data>
+  <data name="Are you sure you want to delete supplier '{0}'?" xml:space="preserve">
+    <value>Сигурни ли сте, че искате да изтриете доставчика „{0}“?</value>
+  </data>
+  <data name="At least 8 characters, including a digit and a lowercase letter. It cannot be your abbreviation." xml:space="preserve">
+    <value>Поне 8 символа, включително цифра и малка буква. Не може да съвпада с вашия съкратен код.</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>Назад</value>
+  </data>
+  <data name="Bad Email or Password" xml:space="preserve">
+    <value>Грешно потребителско име или парола</value>
+  </data>
+  <data name="Balance Owed" xml:space="preserve">
+    <value>Дължим остатък</value>
+  </data>
+  <data name="Basic Information" xml:space="preserve">
+    <value>Основна информация</value>
+  </data>
+  <data name="Browse active menus and order your meal" xml:space="preserve">
+    <value>Разгледайте активните менюта и поръчайте храна</value>
+  </data>
+  <data name="Browse Menus" xml:space="preserve">
+    <value>Преглед на менюта</value>
+  </data>
+  <data name="By Employee" xml:space="preserve">
+    <value>По служител</value>
+  </data>
+  <data name="by {0}" xml:space="preserve">
+    <value>от {0}</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Отказ</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Отказана</value>
+  </data>
+  <data name="Cannot delete expired menu" xml:space="preserve">
+    <value>Изтекло меню не може да се изтрие</value>
+  </data>
+  <data name="Cannot edit expired menu" xml:space="preserve">
+    <value>Изтекло меню не може да се редактира</value>
+  </data>
+  <data name="Change Password" xml:space="preserve">
+    <value>Смяна на парола</value>
+  </data>
+  <data name="ChemEats" xml:space="preserve">
+    <value>ChemEats</value>
+  </data>
+  <data name="City" xml:space="preserve">
+    <value>Град</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Затвори</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Код</value>
+  </data>
+  <data name="Company Portion" xml:space="preserve">
+    <value>Фирмена дотация</value>
+  </data>
+  <data name="Company Portion Settings" xml:space="preserve">
+    <value>Настройки на фирмената дотация</value>
+  </data>
+  <data name="Company portion will be applied at payment." xml:space="preserve">
+    <value>Фирмената дотация ще бъде приложена при плащане.</value>
+  </data>
+  <data name="Company portion: {0}/day (applied once per day at payment)" xml:space="preserve">
+    <value>Фирмена дотация: {0}/ден (прилага се веднъж на ден при плащане)</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Изпълнена</value>
+  </data>
+  <data name="Confirm new password" xml:space="preserve">
+    <value>Потвърдете новата парола</value>
+  </data>
+  <data name="Contact Information" xml:space="preserve">
+    <value>Данни за контакт</value>
+  </data>
+  <data name="Control Panel" xml:space="preserve">
+    <value>Контролен панел</value>
+  </data>
+  <data name="Could not load your notification settings." xml:space="preserve">
+    <value>Настройките на известията не могат да бъдат заредени.</value>
+  </data>
+  <data name="Could not load your notification settings: {0}" xml:space="preserve">
+    <value>Настройките на известията не могат да бъдат заредени: {0}</value>
+  </data>
+  <data name="Count" xml:space="preserve">
+    <value>Брой</value>
+  </data>
+  <data name="Country" xml:space="preserve">
+    <value>Държава</value>
+  </data>
+  <data name="CPAChem | ChemEats" xml:space="preserve">
+    <value>CPAChem | ChemEats</value>
+  </data>
+  <data name="Create Menu" xml:space="preserve">
+    <value>Създай меню</value>
+  </data>
+  <data name="Current password" xml:space="preserve">
+    <value>Текуща парола</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Начало</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Дата</value>
+  </data>
+  <data name="Date from" xml:space="preserve">
+    <value>Дата от</value>
+  </data>
+  <data name="Date is required." xml:space="preserve">
+    <value>Датата е задължителна.</value>
+  </data>
+  <data name="Date to" xml:space="preserve">
+    <value>Дата до</value>
+  </data>
+  <data name="Date:" xml:space="preserve">
+    <value>Дата:</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Изтрий</value>
+  </data>
+  <data name="Delete order '{0}' (Menu: {1:dd.MM.yyyy}, Order: {2:dd.MM.yyyy})?" xml:space="preserve">
+    <value>Изтриване на поръчка „{0}“ (Меню: {1:dd.MM.yyyy}, Поръчка: {2:dd.MM.yyyy})?</value>
+  </data>
+  <data name="Delete supplier" xml:space="preserve">
+    <value>Изтрий доставчика</value>
+  </data>
+  <data name="Delete the expense type &quot;{0}&quot;? Existing obligations keep their text." xml:space="preserve">
+    <value>Изтриване на вида разход „{0}“? Съществуващите задължения запазват текста си.</value>
+  </data>
+  <data name="Delete the obligation &quot;{0}&quot; ({1})?" xml:space="preserve">
+    <value>Изтриване на задължението „{0}“ ({1})?</value>
+  </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>Изтрита</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Описание</value>
+  </data>
+  <data name="Deselect All" xml:space="preserve">
+    <value>Размаркирай всички</value>
+  </data>
+  <data name="Download my orders report for this menu" xml:space="preserve">
+    <value>Изтегли справка за моите поръчки по това меню</value>
+  </data>
+  <data name="e.g. MM" xml:space="preserve">
+    <value>напр. MM</value>
+  </data>
+  <data name="e.g. Printer toner" xml:space="preserve">
+    <value>напр. Тонер за принтер</value>
+  </data>
+  <data name="e.g., 1000" xml:space="preserve">
+    <value>напр. 1000</value>
+  </data>
+  <data name="e.g., BG123456789" xml:space="preserve">
+    <value>напр. BG123456789</value>
+  </data>
+  <data name="e.g., Bulgaria" xml:space="preserve">
+    <value>напр. България</value>
+  </data>
+  <data name="e.g., Sofia" xml:space="preserve">
+    <value>напр. София</value>
+  </data>
+  <data name="Earlier" xml:space="preserve">
+    <value>По-рано</value>
+  </data>
+  <data name="Earlier is unpaid orders before the start date. Other is unpaid non-food obligations up to the end date." xml:space="preserve">
+    <value>„По-рано“ са неплатените поръчки преди началната дата. „Други“ са неплатените задължения, различни от храна, до крайната дата.</value>
+  </data>
+  <data name="Earlier is unpaid orders before the start date; Pay settles the meals up to the end date." xml:space="preserve">
+    <value>„По-рано“ са неплатените поръчки преди началната дата; „Плати“ урежда храната до крайната дата.</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Редактирай</value>
+  </data>
+  <data name="Edit ActiveUntil time (reactivate menu)" xml:space="preserve">
+    <value>Промени крайния час (реактивирай менюто)</value>
+  </data>
+  <data name="Edit date" xml:space="preserve">
+    <value>Промени датата</value>
+  </data>
+  <data name="Edit obligation of {0}" xml:space="preserve">
+    <value>Редакция на задължение на {0}</value>
+  </data>
+  <data name="Edit Supplier" xml:space="preserve">
+    <value>Редакция на доставчик</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Имейл</value>
+  </data>
+  <data name="Email (optional)" xml:space="preserve">
+    <value>Имейл (по избор)</value>
+  </data>
+  <data name="Employee" xml:space="preserve">
+    <value>Служител</value>
+  </data>
+  <data name="Employee '{0}' created. Temporary password: {1} (shown only once; the employee must change it at first login)." xml:space="preserve">
+    <value>Служителят „{0}“ е създаден. Временна парола: {1} (показва се само веднъж; служителят трябва да я смени при първия вход).</value>
+  </data>
+  <data name="Employee Meal Ordering System" xml:space="preserve">
+    <value>Система за поръчка на храна за служители</value>
+  </data>
+  <data name="Employees with unpaid amounts ({0})" xml:space="preserve">
+    <value>Служители с неплатени суми ({0})</value>
+  </data>
+  <data name="Employees with unpaid orders:" xml:space="preserve">
+    <value>Служители с неплатени поръчки:</value>
+  </data>
+  <data name="Employees:" xml:space="preserve">
+    <value>Служители:</value>
+  </data>
+  <data name="End Date" xml:space="preserve">
+    <value>Крайна дата</value>
+  </data>
+  <data name="End date cannot be before start date." xml:space="preserve">
+    <value>Крайната дата не може да е преди началната.</value>
+  </data>
+  <data name="Enter an email address to receive order reminders." xml:space="preserve">
+    <value>Въведете имейл адрес, за да получавате напомняния за поръчки.</value>
+  </data>
+  <data name="Enter supplier name" xml:space="preserve">
+    <value>Въведете име на доставчика</value>
+  </data>
+  <data name="Error assigning role: {0}" xml:space="preserve">
+    <value>Грешка при задаване на роля: {0}</value>
+  </data>
+  <data name="Error creating employee: {0}" xml:space="preserve">
+    <value>Грешка при създаване на служител: {0}</value>
+  </data>
+  <data name="Error loading supplier: {0}" xml:space="preserve">
+    <value>Грешка при зареждане на доставчика: {0}</value>
+  </data>
+  <data name="Error loading users: {0}" xml:space="preserve">
+    <value>Грешка при зареждане на потребителите: {0}</value>
+  </data>
+  <data name="Error removing role: {0}" xml:space="preserve">
+    <value>Грешка при премахване на роля: {0}</value>
+  </data>
+  <data name="Error resetting password: {0}" xml:space="preserve">
+    <value>Грешка при нулиране на паролата: {0}</value>
+  </data>
+  <data name="Error while placing order: {0}" xml:space="preserve">
+    <value>Грешка при поръчване: {0}</value>
+  </data>
+  <data name="Error: {0}" xml:space="preserve">
+    <value>Грешка: {0}</value>
+  </data>
+  <data name="Expense type" xml:space="preserve">
+    <value>Вид разход</value>
+  </data>
+  <data name="Expense type &quot;{0}&quot; added." xml:space="preserve">
+    <value>Видът разход „{0}“ е добавен.</value>
+  </data>
+  <data name="Expense type &quot;{0}&quot; deleted." xml:space="preserve">
+    <value>Видът разход „{0}“ е изтрит.</value>
+  </data>
+  <data name="Expense type ({0})" xml:space="preserve">
+    <value>Вид разход ({0})</value>
+  </data>
+  <data name="Expense type renamed to &quot;{0}&quot;." xml:space="preserve">
+    <value>Видът разход е преименуван на „{0}“.</value>
+  </data>
+  <data name="Expense Types" xml:space="preserve">
+    <value>Видове разходи</value>
+  </data>
+  <data name="Expired" xml:space="preserve">
+    <value>Изтекло</value>
+  </data>
+  <data name="Explore available and past menus" xml:space="preserve">
+    <value>Разгледайте текущите и минали менюта</value>
+  </data>
+  <data name="Extend" xml:space="preserve">
+    <value>Удължи</value>
+  </data>
+  <data name="Failed to add the expense type. The name may already exist." xml:space="preserve">
+    <value>Неуспешно добавяне на вида разход. Възможно е името вече да съществува.</value>
+  </data>
+  <data name="Failed to add the expense type: {0}" xml:space="preserve">
+    <value>Неуспешно добавяне на вида разход: {0}</value>
+  </data>
+  <data name="Failed to assign role." xml:space="preserve">
+    <value>Неуспешно задаване на роля.</value>
+  </data>
+  <data name="Failed to create employee." xml:space="preserve">
+    <value>Неуспешно създаване на служител.</value>
+  </data>
+  <data name="Failed to delete order." xml:space="preserve">
+    <value>Неуспешно изтриване на поръчката.</value>
+  </data>
+  <data name="Failed to delete order: {0}" xml:space="preserve">
+    <value>Неуспешно изтриване на поръчката: {0}</value>
+  </data>
+  <data name="Failed to delete orders: {0}" xml:space="preserve">
+    <value>Неуспешно изтриване на поръчките: {0}</value>
+  </data>
+  <data name="Failed to delete the expense type. Please try again." xml:space="preserve">
+    <value>Неуспешно изтриване на вида разход. Моля, опитайте отново.</value>
+  </data>
+  <data name="Failed to delete the expense type: {0}" xml:space="preserve">
+    <value>Неуспешно изтриване на вида разход: {0}</value>
+  </data>
+  <data name="Failed to delete the obligation. Paid obligations cannot be deleted." xml:space="preserve">
+    <value>Неуспешно изтриване на задължението. Платените задължения не могат да се изтриват.</value>
+  </data>
+  <data name="Failed to delete the obligation: {0}" xml:space="preserve">
+    <value>Неуспешно изтриване на задължението: {0}</value>
+  </data>
+  <data name="Failed to load employees: {0}" xml:space="preserve">
+    <value>Неуспешно зареждане на служителите: {0}</value>
+  </data>
+  <data name="Failed to load menus: {0}" xml:space="preserve">
+    <value>Неуспешно зареждане на менютата: {0}</value>
+  </data>
+  <data name="Failed to load orders: {0}" xml:space="preserve">
+    <value>Неуспешно зареждане на поръчките: {0}</value>
+  </data>
+  <data name="Failed to load outstanding payments." xml:space="preserve">
+    <value>Неуспешно зареждане на неплатените суми.</value>
+  </data>
+  <data name="Failed to load outstanding payments: {0}" xml:space="preserve">
+    <value>Неуспешно зареждане на неплатените суми: {0}</value>
+  </data>
+  <data name="Failed to load portion: {0}" xml:space="preserve">
+    <value>Неуспешно зареждане на дотацията: {0}</value>
+  </data>
+  <data name="Failed to load suppliers: {0}" xml:space="preserve">
+    <value>Неуспешно зареждане на доставчиците: {0}</value>
+  </data>
+  <data name="Failed to load the expense types." xml:space="preserve">
+    <value>Неуспешно зареждане на видовете разходи.</value>
+  </data>
+  <data name="Failed to load the expense types. Please try again." xml:space="preserve">
+    <value>Неуспешно зареждане на видовете разходи. Моля, опитайте отново.</value>
+  </data>
+  <data name="Failed to load the expense types: {0}" xml:space="preserve">
+    <value>Неуспешно зареждане на видовете разходи: {0}</value>
+  </data>
+  <data name="Failed to load the obligations. Please try again." xml:space="preserve">
+    <value>Неуспешно зареждане на задълженията. Моля, опитайте отново.</value>
+  </data>
+  <data name="Failed to load the obligations: {0}" xml:space="preserve">
+    <value>Неуспешно зареждане на задълженията: {0}</value>
+  </data>
+  <data name="Failed to load the outstanding summary. Please try again." xml:space="preserve">
+    <value>Неуспешно зареждане на обобщението. Моля, опитайте отново.</value>
+  </data>
+  <data name="Failed to load the outstanding summary: {0}" xml:space="preserve">
+    <value>Неуспешно зареждане на обобщението: {0}</value>
+  </data>
+  <data name="Failed to load users: {0}" xml:space="preserve">
+    <value>Неуспешно зареждане на потребителите: {0}</value>
+  </data>
+  <data name="Failed to load your obligations. Please try again." xml:space="preserve">
+    <value>Неуспешно зареждане на задълженията ви. Моля, опитайте отново.</value>
+  </data>
+  <data name="Failed to load your obligations: {0}" xml:space="preserve">
+    <value>Неуспешно зареждане на задълженията ви: {0}</value>
+  </data>
+  <data name="Failed to load your orders: {0}" xml:space="preserve">
+    <value>Неуспешно зареждане на поръчките ви: {0}</value>
+  </data>
+  <data name="Failed to parse file: {0}" xml:space="preserve">
+    <value>Неуспешна обработка на файла: {0}</value>
+  </data>
+  <data name="Failed to place order." xml:space="preserve">
+    <value>Неуспешна поръчка.</value>
+  </data>
+  <data name="Failed to process payment. Please try again." xml:space="preserve">
+    <value>Неуспешна обработка на плащането. Моля, опитайте отново.</value>
+  </data>
+  <data name="Failed to process the payment for {0}. Please try again." xml:space="preserve">
+    <value>Неуспешна обработка на плащането за {0}. Моля, опитайте отново.</value>
+  </data>
+  <data name="Failed to process the payment. Please try again." xml:space="preserve">
+    <value>Неуспешна обработка на плащането. Моля, опитайте отново.</value>
+  </data>
+  <data name="Failed to register supplier." xml:space="preserve">
+    <value>Неуспешна регистрация на доставчика.</value>
+  </data>
+  <data name="Failed to remove role." xml:space="preserve">
+    <value>Неуспешно премахване на роля.</value>
+  </data>
+  <data name="Failed to rename the expense type. The name may already exist." xml:space="preserve">
+    <value>Неуспешно преименуване на вида разход. Възможно е името вече да съществува.</value>
+  </data>
+  <data name="Failed to rename the expense type: {0}" xml:space="preserve">
+    <value>Неуспешно преименуване на вида разход: {0}</value>
+  </data>
+  <data name="Failed to reset password." xml:space="preserve">
+    <value>Неуспешно нулиране на паролата.</value>
+  </data>
+  <data name="Failed to save portion on server." xml:space="preserve">
+    <value>Неуспешен запис на дотацията на сървъра.</value>
+  </data>
+  <data name="Failed to save portion: {0}" xml:space="preserve">
+    <value>Неуспешен запис на дотацията: {0}</value>
+  </data>
+  <data name="Failed to save the obligation. Paid obligations cannot be changed." xml:space="preserve">
+    <value>Неуспешен запис на задължението. Платените задължения не могат да се променят.</value>
+  </data>
+  <data name="Failed to save the obligation: {0}" xml:space="preserve">
+    <value>Неуспешен запис на задължението: {0}</value>
+  </data>
+  <data name="Failed to update ActiveUntil." xml:space="preserve">
+    <value>Неуспешна промяна на крайния час.</value>
+  </data>
+  <data name="Failed to update menu date." xml:space="preserve">
+    <value>Неуспешна промяна на датата на менюто.</value>
+  </data>
+  <data name="Failed to update supplier." xml:space="preserve">
+    <value>Неуспешно обновяване на доставчика.</value>
+  </data>
+  <data name="Filter by Date" xml:space="preserve">
+    <value>Филтър по дата</value>
+  </data>
+  <data name="Filter by Payment Status" xml:space="preserve">
+    <value>Филтър по статус на плащане</value>
+  </data>
+  <data name="Filter by Supplier" xml:space="preserve">
+    <value>Филтър по доставчик</value>
+  </data>
+  <data name="Filters" xml:space="preserve">
+    <value>Филтри</value>
+  </data>
+  <data name="Finalize ({0})" xml:space="preserve">
+    <value>Финализирай ({0})</value>
+  </data>
+  <data name="Finalize and complete all pending orders" xml:space="preserve">
+    <value>Финализирай и изпълни всички чакащи поръчки</value>
+  </data>
+  <data name="Finalize this menu? All pending orders will be marked as completed and ordering will be stopped." xml:space="preserve">
+    <value>Да се финализира ли менюто? Всички чакащи поръчки ще бъдат маркирани като изпълнени и поръчването ще бъде спряно.</value>
+  </data>
+  <data name="Found Menus ({0})" xml:space="preserve">
+    <value>Намерени менюта ({0})</value>
+  </data>
+  <data name="Full name" xml:space="preserve">
+    <value>Пълно име</value>
+  </data>
+  <data name="Generated on" xml:space="preserve">
+    <value>Генерирано на</value>
+  </data>
+  <data name="Grand Total" xml:space="preserve">
+    <value>Общо</value>
+  </data>
+  <data name="Gross" xml:space="preserve">
+    <value>Бруто</value>
+  </data>
+  <data name="Include deleted" xml:space="preserve">
+    <value>Включи изтритите</value>
+  </data>
+  <data name="Include deleted orders" xml:space="preserve">
+    <value>Включи изтритите поръчки</value>
+  </data>
+  <data name="Lab Menu" xml:space="preserve">
+    <value>Меню на лабораторията</value>
+  </data>
+  <data name="Lab Menus" xml:space="preserve">
+    <value>Менюта на лабораторията</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Език</value>
+  </data>
+  <data name="Links" xml:space="preserve">
+    <value>Връзки</value>
+  </data>
+  <data name="Loading menus..." xml:space="preserve">
+    <value>Зареждане на менюта...</value>
+  </data>
+  <data name="Loading suppliers..." xml:space="preserve">
+    <value>Зареждане на доставчици...</value>
+  </data>
+  <data name="Loading today's menus..." xml:space="preserve">
+    <value>Зареждане на днешните менюта...</value>
+  </data>
+  <data name="Loading users..." xml:space="preserve">
+    <value>Зареждане на потребители...</value>
+  </data>
+  <data name="Loading..." xml:space="preserve">
+    <value>Зареждане...</value>
+  </data>
+  <data name="Log in" xml:space="preserve">
+    <value>Вход</value>
+  </data>
+  <data name="Login failed." xml:space="preserve">
+    <value>Неуспешен вход.</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Изход</value>
+  </data>
+  <data name="Manage Roles" xml:space="preserve">
+    <value>Управление на роли</value>
+  </data>
+  <data name="Management" xml:space="preserve">
+    <value>Управление</value>
+  </data>
+  <data name="Mark all unpaid obligations of {0} {1} as paid?" xml:space="preserve">
+    <value>Да се маркират ли всички неплатени задължения на {0} {1} като платени?</value>
+  </data>
+  <data name="Mark all {0} unpaid orders of {1} {2} as paid?&#xA;Total: {3}" xml:space="preserve">
+    <value>Да се маркират ли всички {0} неплатени поръчки на {1} {2} като платени?&#xA;Общо: {3}</value>
+  </data>
+  <data name="Mark as Paid" xml:space="preserve">
+    <value>Маркирай като платено</value>
+  </data>
+  <data name="Meal" xml:space="preserve">
+    <value>Ястие</value>
+  </data>
+  <data name="meal(s) parsed from file" xml:space="preserve">
+    <value>ястия разпознати от файла</value>
+  </data>
+  <data name="Meals" xml:space="preserve">
+    <value>Ястия</value>
+  </data>
+  <data name="Meals Summary" xml:space="preserve">
+    <value>Обобщение по ястия</value>
+  </data>
+  <data name="Menu Date" xml:space="preserve">
+    <value>Дата на менюто</value>
+  </data>
+  <data name="Menu date from" xml:space="preserve">
+    <value>Дата на менюто от</value>
+  </data>
+  <data name="Menu date must be in the future." xml:space="preserve">
+    <value>Датата на менюто трябва да е в бъдещето.</value>
+  </data>
+  <data name="Menu date to" xml:space="preserve">
+    <value>Дата на менюто до</value>
+  </data>
+  <data name="Menu File Upload" xml:space="preserve">
+    <value>Качване на файл с меню</value>
+  </data>
+  <data name="Menu finalized successfully!&#xA;{0} orders completed.&#xA;Total amount: {1:C}" xml:space="preserve">
+    <value>Менюто е финализирано успешно!&#xA;Изпълнени поръчки: {0}.&#xA;Обща сума: {1:C}</value>
+  </data>
+  <data name="Menu Report" xml:space="preserve">
+    <value>Справка за меню</value>
+  </data>
+  <data name="Menu uploaded successfully! {0} meal(s) added. Active until {1:dd.MM.yyyy HH:mm}" xml:space="preserve">
+    <value>Менюто е качено успешно! Добавени ястия: {0}. Активно до {1:dd.MM.yyyy HH:mm}</value>
+  </data>
+  <data name="Menu will be active until" xml:space="preserve">
+    <value>Менюто ще бъде активно до</value>
+  </data>
+  <data name="Menu: {0}" xml:space="preserve">
+    <value>Меню: {0}</value>
+  </data>
+  <data name="MenuListComponent" xml:space="preserve">
+    <value>Списък с менюта</value>
+  </data>
+  <data name="Menus" xml:space="preserve">
+    <value>Менюта</value>
+  </data>
+  <data name="My Obligations" xml:space="preserve">
+    <value>Моите задължения</value>
+  </data>
+  <data name="My Orders" xml:space="preserve">
+    <value>Моите поръчки</value>
+  </data>
+  <data name="My Other Obligations" xml:space="preserve">
+    <value>Моите други задължения</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Име</value>
+  </data>
+  <data name="Name cannot be longer than {0} characters." xml:space="preserve">
+    <value>Името не може да е по-дълго от {0} символа.</value>
+  </data>
+  <data name="Name is required." xml:space="preserve">
+    <value>Името е задължително.</value>
+  </data>
+  <data name="Navigation menu" xml:space="preserve">
+    <value>Навигационно меню</value>
+  </data>
+  <data name="Net" xml:space="preserve">
+    <value>Нето</value>
+  </data>
+  <data name="Net total:" xml:space="preserve">
+    <value>Нето общо:</value>
+  </data>
+  <data name="Net:" xml:space="preserve">
+    <value>Нето:</value>
+  </data>
+  <data name="New ActiveUntil (yyyy-MM-dd HH:mm)" xml:space="preserve">
+    <value>Нов краен час (гггг-ММ-дд ЧЧ:мм)</value>
+  </data>
+  <data name="New date (yyyy-MM-dd)" xml:space="preserve">
+    <value>Нова дата (гггг-ММ-дд)</value>
+  </data>
+  <data name="New expense type" xml:space="preserve">
+    <value>Нов вид разход</value>
+  </data>
+  <data name="New obligation for {0}" xml:space="preserve">
+    <value>Ново задължение за {0}</value>
+  </data>
+  <data name="New password" xml:space="preserve">
+    <value>Нова парола</value>
+  </data>
+  <data name="No expense types yet. Add the first one above." xml:space="preserve">
+    <value>Все още няма видове разходи. Добавете първия отгоре.</value>
+  </data>
+  <data name="No expense types yet. Add them on the" xml:space="preserve">
+    <value>Все още няма видове разходи. Добавете ги в раздел</value>
+  </data>
+  <data name="No items selected" xml:space="preserve">
+    <value>Няма избрани ястия</value>
+  </data>
+  <data name="No meals" xml:space="preserve">
+    <value>Няма ястия</value>
+  </data>
+  <data name="No meals available" xml:space="preserve">
+    <value>Няма налични ястия</value>
+  </data>
+  <data name="No meals available." xml:space="preserve">
+    <value>Няма налични ястия.</value>
+  </data>
+  <data name="No meals found in the uploaded file." xml:space="preserve">
+    <value>Не са открити ястия в качения файл.</value>
+  </data>
+  <data name="No menus available" xml:space="preserve">
+    <value>Няма налични менюта</value>
+  </data>
+  <data name="No menus available." xml:space="preserve">
+    <value>Няма налични менюта.</value>
+  </data>
+  <data name="No menus found for the selected filters." xml:space="preserve">
+    <value>Няма менюта, отговарящи на избраните филтри.</value>
+  </data>
+  <data name="No menus found." xml:space="preserve">
+    <value>Няма намерени менюта.</value>
+  </data>
+  <data name="No obligations match the selected filters." xml:space="preserve">
+    <value>Няма задължения, отговарящи на избраните филтри.</value>
+  </data>
+  <data name="No orders for this menu." xml:space="preserve">
+    <value>Няма поръчки за това меню.</value>
+  </data>
+  <data name="No orders found for the selected criteria." xml:space="preserve">
+    <value>Няма поръчки по избраните критерии.</value>
+  </data>
+  <data name="No orders found for this period." xml:space="preserve">
+    <value>Няма поръчки за този период.</value>
+  </data>
+  <data name="No orders match the selected filters." xml:space="preserve">
+    <value>Няма поръчки, отговарящи на избраните филтри.</value>
+  </data>
+  <data name="No other obligations for this period." xml:space="preserve">
+    <value>Няма други задължения за този период.</value>
+  </data>
+  <data name="No pending orders to finalize" xml:space="preserve">
+    <value>Няма чакащи поръчки за финализиране</value>
+  </data>
+  <data name="No token received" xml:space="preserve">
+    <value>Не е получен токен</value>
+  </data>
+  <data name="No unpaid orders for this period." xml:space="preserve">
+    <value>Няма неплатени поръчки за този период.</value>
+  </data>
+  <data name="No unpaid orders up to the end of this period ({0})." xml:space="preserve">
+    <value>Няма неплатени поръчки до края на този период ({0}).</value>
+  </data>
+  <data name="No unpaid orders." xml:space="preserve">
+    <value>Няма неплатени поръчки.</value>
+  </data>
+  <data name="No, do not remind me" xml:space="preserve">
+    <value>Не, не ми напомняй</value>
+  </data>
+  <data name="Not found" xml:space="preserve">
+    <value>Не е намерено</value>
+  </data>
+  <data name="Notification email" xml:space="preserve">
+    <value>Имейл за известия</value>
+  </data>
+  <data name="Notification Settings" xml:space="preserve">
+    <value>Настройки на известията</value>
+  </data>
+  <data name="Notification settings saved." xml:space="preserve">
+    <value>Настройките на известията са запазени.</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>Известия</value>
+  </data>
+  <data name="Obligation &quot;{0}&quot; ({1}) added for {2}." xml:space="preserve">
+    <value>Задължението „{0}“ ({1}) е добавено за {2}.</value>
+  </data>
+  <data name="Obligation &quot;{0}&quot; deleted." xml:space="preserve">
+    <value>Задължението „{0}“ е изтрито.</value>
+  </data>
+  <data name="Obligation &quot;{0}&quot; updated." xml:space="preserve">
+    <value>Задължението „{0}“ е обновено.</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Only completed orders (finalized menus) are counted; paid, pending, cancelled and deleted orders are excluded. The company portion is applied once per employee per day at payment; unpaid days show the expected portion." xml:space="preserve">
+    <value>Отчитат се само изпълнени поръчки (финализирани менюта); платените, чакащите, отказаните и изтритите поръчки не се включват. Фирмената дотация се прилага веднъж на служител на ден при плащане; за неплатените дни е показана очакваната дотация.</value>
+  </data>
+  <data name="Open Payments" xml:space="preserve">
+    <value>Отвори плащания</value>
+  </data>
+  <data name="Open printable orders report" xml:space="preserve">
+    <value>Отвори справка за печат</value>
+  </data>
+  <data name="Order Items ({0})" xml:space="preserve">
+    <value>Поръчани ястия ({0})</value>
+  </data>
+  <data name="Order placed successfully ({0} items)." xml:space="preserve">
+    <value>Поръчката е направена успешно ({0} бр.).</value>
+  </data>
+  <data name="Order summary" xml:space="preserve">
+    <value>Обобщение на поръчката</value>
+  </data>
+  <data name="Ordered At" xml:space="preserve">
+    <value>Поръчано на</value>
+  </data>
+  <data name="Orders" xml:space="preserve">
+    <value>Поръчки</value>
+  </data>
+  <data name="Orders ({0})" xml:space="preserve">
+    <value>Поръчки ({0})</value>
+  </data>
+  <data name="Orders are no longer accepted." xml:space="preserve">
+    <value>Поръчки вече не се приемат.</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Други</value>
+  </data>
+  <data name="Other is unpaid non-food obligations up to the end date; they are paid separately on the Other Obligations page." xml:space="preserve">
+    <value>„Други“ са неплатените задължения, различни от храна, до крайната дата; те се плащат отделно от страницата „Други задължения“.</value>
+  </data>
+  <data name="Other Obligations" xml:space="preserve">
+    <value>Други задължения</value>
+  </data>
+  <data name="Outstanding Payments" xml:space="preserve">
+    <value>Неплатени суми</value>
+  </data>
+  <data name="Outstanding Payments (all employees, all dates)" xml:space="preserve">
+    <value>Неплатени суми (всички служители, всички дати)</value>
+  </data>
+  <data name="Outstanding Summary" xml:space="preserve">
+    <value>Обобщение на дълговете</value>
+  </data>
+  <data name="Page {0} of {1}" xml:space="preserve">
+    <value>Страница {0} от {1}</value>
+  </data>
+  <data name="Paid" xml:space="preserve">
+    <value>Платено</value>
+  </data>
+  <data name="Paid ({0})" xml:space="preserve">
+    <value>Платени ({0})</value>
+  </data>
+  <data name="Paid ({0}):" xml:space="preserve">
+    <value>Платени ({0}):</value>
+  </data>
+  <data name="Paid: {0:C}" xml:space="preserve">
+    <value>Платено: {0:C}</value>
+  </data>
+  <data name="Parsed Meals Preview" xml:space="preserve">
+    <value>Преглед на разпознатите ястия</value>
+  </data>
+  <data name="Parsing file with AI..." xml:space="preserve">
+    <value>Обработка на файла с AI...</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>Парола</value>
+  </data>
+  <data name="Password change failed. Please verify your current password." xml:space="preserve">
+    <value>Смяната на паролата е неуспешна. Моля, проверете текущата си парола.</value>
+  </data>
+  <data name="Password change failed: {0}" xml:space="preserve">
+    <value>Смяната на паролата е неуспешна: {0}</value>
+  </data>
+  <data name="Password changed successfully." xml:space="preserve">
+    <value>Паролата е сменена успешно.</value>
+  </data>
+  <data name="Password for '{0}' reset. Temporary password: {1} (shown only once; the employee must change it at next login)." xml:space="preserve">
+    <value>Паролата на „{0}“ е нулирана. Временна парола: {1} (показва се само веднъж; служителят трябва да я смени при следващия вход).</value>
+  </data>
+  <data name="Passwords do not match" xml:space="preserve">
+    <value>Паролите не съвпадат</value>
+  </data>
+  <data name="Pay" xml:space="preserve">
+    <value>Плати</value>
+  </data>
+  <data name="Pay all unpaid {0}" xml:space="preserve">
+    <value>Плати всички неплатени {0}</value>
+  </data>
+  <data name="Payment processing failed: {0}" xml:space="preserve">
+    <value>Обработката на плащането е неуспешна: {0}</value>
+  </data>
+  <data name="Payment Terms" xml:space="preserve">
+    <value>Условия на плащане</value>
+  </data>
+  <data name="Payments" xml:space="preserve">
+    <value>Плащания</value>
+  </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Чакаща</value>
+  </data>
+  <data name="Period (by menu date)" xml:space="preserve">
+    <value>Период (по дата на менюто)</value>
+  </data>
+  <data name="Period (menu date):" xml:space="preserve">
+    <value>Период (дата на менюто):</value>
+  </data>
+  <data name="Period: {0}" xml:space="preserve">
+    <value>Период: {0}</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Телефон</value>
+  </data>
+  <data name="Place Order" xml:space="preserve">
+    <value>Направи поръчка</value>
+  </data>
+  <data name="Please" xml:space="preserve">
+    <value>Моля,</value>
+  </data>
+  <data name="Please enter a valid email address." xml:space="preserve">
+    <value>Моля, въведете валиден имейл адрес.</value>
+  </data>
+  <data name="Please select a start and end date." xml:space="preserve">
+    <value>Моля, изберете начална и крайна дата.</value>
+  </data>
+  <data name="Please select a supplier." xml:space="preserve">
+    <value>Моля, изберете доставчик.</value>
+  </data>
+  <data name="Please select an employee." xml:space="preserve">
+    <value>Моля, изберете служител.</value>
+  </data>
+  <data name="Please select an expense type." xml:space="preserve">
+    <value>Моля, изберете вид разход.</value>
+  </data>
+  <data name="Please upload a file with meals." xml:space="preserve">
+    <value>Моля, качете файл с ястия.</value>
+  </data>
+  <data name="Portion" xml:space="preserve">
+    <value>Дотация</value>
+  </data>
+  <data name="Portion (at payment):" xml:space="preserve">
+    <value>Дотация (при плащане):</value>
+  </data>
+  <data name="Portion amount (EUR)" xml:space="preserve">
+    <value>Размер на дотацията (EUR)</value>
+  </data>
+  <data name="Portion amount must be &gt;= 0." xml:space="preserve">
+    <value>Размерът на дотацията трябва да е &gt;= 0.</value>
+  </data>
+  <data name="Portion applied once per day" xml:space="preserve">
+    <value>Дотацията се прилага веднъж на ден</value>
+  </data>
+  <data name="Portion:" xml:space="preserve">
+    <value>Дотация:</value>
+  </data>
+  <data name="Postal Code" xml:space="preserve">
+    <value>Пощенски код</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Цена</value>
+  </data>
+  <data name="Price:" xml:space="preserve">
+    <value>Цена:</value>
+  </data>
+  <data name="Print" xml:space="preserve">
+    <value>Печат</value>
+  </data>
+  <data name="Print / Save as PDF" xml:space="preserve">
+    <value>Печат / Запис като PDF</value>
+  </data>
+  <data name="Processing..." xml:space="preserve">
+    <value>Обработка...</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Количество</value>
+  </data>
+  <data name="Redirecting in {0} s..." xml:space="preserve">
+    <value>Пренасочване след {0} сек...</value>
+  </data>
+  <data name="Redirecting..." xml:space="preserve">
+    <value>Пренасочване...</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Опресни</value>
+  </data>
+  <data name="regardless of date" xml:space="preserve">
+    <value>независимо от датата</value>
+  </data>
+  <data name="Register Supplier" xml:space="preserve">
+    <value>Регистрирай доставчик</value>
+  </data>
+  <data name="Registering..." xml:space="preserve">
+    <value>Регистриране...</value>
+  </data>
+  <data name="Remaining to pay ({0}):" xml:space="preserve">
+    <value>Остава за плащане ({0}):</value>
+  </data>
+  <data name="Remember me" xml:space="preserve">
+    <value>Запомни ме</value>
+  </data>
+  <data name="Remind me when I have not ordered for an upcoming menu" xml:space="preserve">
+    <value>Напомняй ми, когато не съм поръчал от предстоящо меню</value>
+  </data>
+  <data name="Reminders are sent to this address. It can differ from the email you registered with." xml:space="preserve">
+    <value>Напомнянията се изпращат на този адрес. Той може да е различен от имейла, с който сте регистрирани.</value>
+  </data>
+  <data name="Remove {0}" xml:space="preserve">
+    <value>Премахни {0}</value>
+  </data>
+  <data name="Rename" xml:space="preserve">
+    <value>Преименувай</value>
+  </data>
+  <data name="Renaming or deleting a type does not change obligations that were already added; they keep the name they were saved with." xml:space="preserve">
+    <value>Преименуването или изтриването на вид не променя вече добавените задължения; те запазват името, с което са записани.</value>
+  </data>
+  <data name="Report" xml:space="preserve">
+    <value>Справка</value>
+  </data>
+  <data name="Reset" xml:space="preserve">
+    <value>Изчисти</value>
+  </data>
+  <data name="Reset to a temporary password" xml:space="preserve">
+    <value>Задай временна парола</value>
+  </data>
+  <data name="Reset to {0:F2}" xml:space="preserve">
+    <value>Върни на {0:F2}</value>
+  </data>
+  <data name="Role '{0}' assigned successfully." xml:space="preserve">
+    <value>Ролята „{0}“ е зададена успешно.</value>
+  </data>
+  <data name="Role '{0}' removed successfully." xml:space="preserve">
+    <value>Ролята „{0}“ е премахната успешно.</value>
+  </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Роли</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Запази</value>
+  </data>
+  <data name="Saved portion amount: {0:F2} €" xml:space="preserve">
+    <value>Записан размер на дотацията: {0:F2} €</value>
+  </data>
+  <data name="Saving failed. Please check the email address and try again." xml:space="preserve">
+    <value>Записът е неуспешен. Проверете имейл адреса и опитайте отново.</value>
+  </data>
+  <data name="Saving failed: {0}" xml:space="preserve">
+    <value>Записът е неуспешен: {0}</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Търси</value>
+  </data>
+  <data name="Search by name, abbreviation or email..." xml:space="preserve">
+    <value>Търсене по име, съкращение или имейл...</value>
+  </data>
+  <data name="Search employee..." xml:space="preserve">
+    <value>Търсене на служител...</value>
+  </data>
+  <data name="Search Filters" xml:space="preserve">
+    <value>Филтри за търсене</value>
+  </data>
+  <data name="Select a future date (menu fulfillment date)" xml:space="preserve">
+    <value>Изберете бъдеща дата (дата, за която е менюто)</value>
+  </data>
+  <data name="Select All Unpaid" xml:space="preserve">
+    <value>Избери всички неплатени</value>
+  </data>
+  <data name="Select Menu File" xml:space="preserve">
+    <value>Изберете файл с меню</value>
+  </data>
+  <data name="Select supplier..." xml:space="preserve">
+    <value>Изберете доставчик...</value>
+  </data>
+  <data name="Selected items" xml:space="preserve">
+    <value>Избрани ястия</value>
+  </data>
+  <data name="Selected:" xml:space="preserve">
+    <value>Избрани:</value>
+  </data>
+  <data name="Showing {0} - {1}" xml:space="preserve">
+    <value>Показани {0} - {1}</value>
+  </data>
+  <data name="Showing {0} of {1} users" xml:space="preserve">
+    <value>Показани {0} от {1} потребители</value>
+  </data>
+  <data name="sign in" xml:space="preserve">
+    <value>влезте</value>
+  </data>
+  <data name="Soft delete" xml:space="preserve">
+    <value>Изтрий</value>
+  </data>
+  <data name="Soft delete this menu and cancel its orders?" xml:space="preserve">
+    <value>Да се изтрие ли това меню и да се откажат поръчките към него?</value>
+  </data>
+  <data name="Sorry, there's nothing at this address." xml:space="preserve">
+    <value>За съжаление на този адрес няма нищо.</value>
+  </data>
+  <data name="Start Date" xml:space="preserve">
+    <value>Начална дата</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="Street Address" xml:space="preserve">
+    <value>Адрес</value>
+  </data>
+  <data name="Street name and number" xml:space="preserve">
+    <value>Улица и номер</value>
+  </data>
+  <data name="Subtotal:" xml:space="preserve">
+    <value>Междинна сума:</value>
+  </data>
+  <data name="Successfully marked {0} orders as paid. Total: {1}" xml:space="preserve">
+    <value>{0} поръчки са маркирани като платени. Общо: {1}</value>
+  </data>
+  <data name="Successfully parsed {0} meal(s) from file." xml:space="preserve">
+    <value>Успешно разпознати {0} ястия от файла.</value>
+  </data>
+  <data name="Supervisor" xml:space="preserve">
+    <value>Отговорник</value>
+  </data>
+  <data name="Supplier" xml:space="preserve">
+    <value>Доставчик</value>
+  </data>
+  <data name="Supplier '{0}' registered successfully!" xml:space="preserve">
+    <value>Доставчикът „{0}“ е регистриран успешно!</value>
+  </data>
+  <data name="Supplier '{0}' updated successfully." xml:space="preserve">
+    <value>Доставчикът „{0}“ е обновен успешно.</value>
+  </data>
+  <data name="Supplier Name" xml:space="preserve">
+    <value>Име на доставчика</value>
+  </data>
+  <data name="Supplier:" xml:space="preserve">
+    <value>Доставчик:</value>
+  </data>
+  <data name="Suppliers" xml:space="preserve">
+    <value>Доставчици</value>
+  </data>
+  <data name="Supported formats: CSV, Excel (.xlsx), Word (.docx) — file must contain meal names and prices" xml:space="preserve">
+    <value>Поддържани формати: CSV, Excel (.xlsx), Word (.docx) — файлът трябва да съдържа имена и цени на ястията</value>
+  </data>
+  <data name="tab." xml:space="preserve">
+    <value>.</value>
+  </data>
+  <data name="The company portion is given once per day (menu date), regardless of how many meals or from which suppliers were ordered. It goes to the most expensive meal of the day. Cancelled orders are not counted." xml:space="preserve">
+    <value>Фирмената дотация се дава веднъж на ден (по дата на менюто), независимо колко ястия и от кои доставчици са поръчани. Тя се прилага към най-скъпото ястие за деня. Отказаните поръчки не се броят.</value>
+  </data>
+  <data name="The menu is not finalized yet; the order cannot be paid." xml:space="preserve">
+    <value>Менюто все още не е финализирано; поръчката не може да бъде платена.</value>
+  </data>
+  <data name="The report could not be loaded. Please try again." xml:space="preserve">
+    <value>Справката не може да бъде заредена. Моля, опитайте отново.</value>
+  </data>
+  <data name="The report could not be loaded. The menu may not exist or you may not have access to it." xml:space="preserve">
+    <value>Справката не може да бъде заредена. Менюто може да не съществува или да нямате достъп до него.</value>
+  </data>
+  <data name="The report period is missing. Open the report from the Payments summary page." xml:space="preserve">
+    <value>Липсва период на справката. Отворете справката от страницата с обобщение на плащанията.</value>
+  </data>
+  <data name="The {0} field is required." xml:space="preserve">
+    <value>Полето „{0}“ е задължително.</value>
+  </data>
+  <data name="This menu has expired." xml:space="preserve">
+    <value>Това меню е изтекло.</value>
+  </data>
+  <data name="to access the ordering system." xml:space="preserve">
+    <value>за достъп до системата за поръчки.</value>
+  </data>
+  <data name="Today + Future" xml:space="preserve">
+    <value>Днес и предстоящи</value>
+  </data>
+  <data name="Today's Active Menus" xml:space="preserve">
+    <value>Активни менюта за днес</value>
+  </data>
+  <data name="Too many failed attempts. The account is locked for 15 minutes." xml:space="preserve">
+    <value>Твърде много неуспешни опити. Акаунтът е заключен за 15 минути.</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Общо</value>
+  </data>
+  <data name="Total after portion:" xml:space="preserve">
+    <value>Общо след дотация:</value>
+  </data>
+  <data name="Total Amount:" xml:space="preserve">
+    <value>Обща сума:</value>
+  </data>
+  <data name="Total Due" xml:space="preserve">
+    <value>Общо дължимо</value>
+  </data>
+  <data name="Total due {0}:" xml:space="preserve">
+    <value>Общо дължимо {0}:</value>
+  </data>
+  <data name="Total Due:" xml:space="preserve">
+    <value>Общо дължимо:</value>
+  </data>
+  <data name="Total Orders" xml:space="preserve">
+    <value>Общо поръчки</value>
+  </data>
+  <data name="Total Orders:" xml:space="preserve">
+    <value>Общо поръчки:</value>
+  </data>
+  <data name="Total outstanding:" xml:space="preserve">
+    <value>Общо дължимо:</value>
+  </data>
+  <data name="Total Paid Amount" xml:space="preserve">
+    <value>Общо платена сума</value>
+  </data>
+  <data name="Total portion:" xml:space="preserve">
+    <value>Обща дотация:</value>
+  </data>
+  <data name="Total Unpaid Amount" xml:space="preserve">
+    <value>Общо неплатена сума</value>
+  </data>
+  <data name="Total:" xml:space="preserve">
+    <value>Общо:</value>
+  </data>
+  <data name="Total: {0:C}" xml:space="preserve">
+    <value>Общо: {0:C}</value>
+  </data>
+  <data name="Unexpected error while deleting menu." xml:space="preserve">
+    <value>Неочаквана грешка при изтриване на менюто.</value>
+  </data>
+  <data name="Unexpected error while finalizing menu." xml:space="preserve">
+    <value>Неочаквана грешка при финализиране на менюто.</value>
+  </data>
+  <data name="Unexpected error while loading the report." xml:space="preserve">
+    <value>Неочаквана грешка при зареждане на справката.</value>
+  </data>
+  <data name="Unexpected error while updating ActiveUntil." xml:space="preserve">
+    <value>Неочаквана грешка при промяна на крайния час.</value>
+  </data>
+  <data name="Unknown supplier" xml:space="preserve">
+    <value>Неизвестен доставчик</value>
+  </data>
+  <data name="Unpaid" xml:space="preserve">
+    <value>Неплатено</value>
+  </data>
+  <data name="Unpaid ({0})" xml:space="preserve">
+    <value>Неплатени ({0})</value>
+  </data>
+  <data name="Unpaid in this list:" xml:space="preserve">
+    <value>Неплатени в този списък:</value>
+  </data>
+  <data name="Unpaid Orders" xml:space="preserve">
+    <value>Неплатени поръчки</value>
+  </data>
+  <data name="Unpaid orders:" xml:space="preserve">
+    <value>Неплатени поръчки:</value>
+  </data>
+  <data name="up to {0:dd.MM.yyyy}" xml:space="preserve">
+    <value>до {0:dd.MM.yyyy}</value>
+  </data>
+  <data name="Update Supplier" xml:space="preserve">
+    <value>Обнови доставчика</value>
+  </data>
+  <data name="Updating..." xml:space="preserve">
+    <value>Обновяване...</value>
+  </data>
+  <data name="Upload Menu" xml:space="preserve">
+    <value>Качи меню</value>
+  </data>
+  <data name="Upload Menu (CSV)" xml:space="preserve">
+    <value>Качи меню (CSV)</value>
+  </data>
+  <data name="Upload Successful!" xml:space="preserve">
+    <value>Качването е успешно!</value>
+  </data>
+  <data name="Uploading..." xml:space="preserve">
+    <value>Качване...</value>
+  </data>
+  <data name="Use your username to log in." xml:space="preserve">
+    <value>Използвайте потребителското си име, за да влезете.</value>
+  </data>
+  <data name="User Management" xml:space="preserve">
+    <value>Управление на потребители</value>
+  </data>
+  <data name="Username" xml:space="preserve">
+    <value>Потребителско име</value>
+  </data>
+  <data name="VAT Number" xml:space="preserve">
+    <value>ДДС номер</value>
+  </data>
+  <data name="View and track your order history" xml:space="preserve">
+    <value>Преглед и проследяване на поръчките ви</value>
+  </data>
+  <data name="View details" xml:space="preserve">
+    <value>Детайли</value>
+  </data>
+  <data name="Yes, send me reminders" xml:space="preserve">
+    <value>Да, изпращай ми напомняния</value>
+  </data>
+  <data name="You must be signed in to view your orders." xml:space="preserve">
+    <value>Трябва да сте влезли, за да видите поръчките си.</value>
+  </data>
+  <data name="Your current password is temporary. Please set a new password to continue." xml:space="preserve">
+    <value>Текущата ви парола е временна. Моля, задайте нова парола, за да продължите.</value>
+  </data>
+  <data name="Your Orders" xml:space="preserve">
+    <value>Вашите поръчки</value>
+  </data>
+  <data name="{0} items" xml:space="preserve">
+    <value>{0} бр.</value>
+  </data>
+  <data name="{0} meal(s)" xml:space="preserve">
+    <value>{0} ястия</value>
+  </data>
+  <data name="{0} meals" xml:space="preserve">
+    <value>{0} ястия</value>
+  </data>
+  <data name="{0} obligations marked as paid. Total: {1}" xml:space="preserve">
+    <value>{0} задължения са маркирани като платени. Общо: {1}</value>
+  </data>
+  <data name="{0} unpaid other obligations - paid separately" xml:space="preserve">
+    <value>{0} неплатени други задължения - плащат се отделно</value>
+  </data>
+  <data name="{0}: {1} orders marked as paid. Total: {2}" xml:space="preserve">
+    <value>{0}: {1} поръчки са маркирани като платени. Общо: {2}</value>
+  </data>
+  <data name="{0}h {1}m left" xml:space="preserve">
+    <value>остават {0} ч {1} мин</value>
+  </data>
+  <data name="{0}m left" xml:space="preserve">
+    <value>остават {0} мин</value>
+  </data>
+  <data name="{0}s left" xml:space="preserve">
+    <value>остават {0} сек</value>
+  </data>
+</root>

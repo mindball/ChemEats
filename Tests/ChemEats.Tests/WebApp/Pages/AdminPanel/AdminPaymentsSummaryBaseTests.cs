@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using Moq;
 using Shared.DTOs.Orders;
 using WebApp.Pages.AdminPanel;
@@ -83,7 +85,12 @@ public class AdminPaymentsSummaryBaseTests
 
     private sealed class AdminPaymentsSummaryBaseTestHarness : AdminPaymentsSummaryBase
     {
-        public AdminPaymentsSummaryBaseTestHarness(IOrderDataService orderDataService)
+        public AdminPaymentsSummaryBaseTestHarness()
+        {
+            L = new PassThroughStringLocalizer<SharedResource>();
+        }
+
+        public AdminPaymentsSummaryBaseTestHarness(IOrderDataService orderDataService) : this()
         {
             OrderDataService = orderDataService;
         }

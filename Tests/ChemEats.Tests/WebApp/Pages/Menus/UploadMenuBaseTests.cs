@@ -1,3 +1,4 @@
+using WebApp.Resources;
 using ChemEats.Tests.TestInfrastructure;
 using Moq;
 using Shared.Common.Enums;
@@ -106,6 +107,11 @@ public class UploadMenuBaseTests
 
     private sealed class UploadMenuBaseTestHarness : UploadMenuBase
     {
+        public UploadMenuBaseTestHarness()
+        {
+            L = new PassThroughStringLocalizer<SharedResource>();
+        }
+
         public string? ErrorMessagePublic => ErrorMessage;
         public bool IsLoadingPublic => IsLoading;
         public List<SupplierDto> SuppliersPublic => Suppliers;

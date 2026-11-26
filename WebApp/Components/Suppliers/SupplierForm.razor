@@ -5,47 +5,47 @@
     <ValidationSummary />
 
     <div class="mb-3">
-        <label class="form-label">Name</label>
+        <label class="form-label">@L["Name"]</label>
         <InputText class="form-control" @bind-Value="Supplier.Name" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label">VAT Number</label>
+        <label class="form-label">@L["VAT Number"]</label>
         <InputText class="form-control" @bind-Value="Supplier.VatNumber" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Email</label>
+        <label class="form-label">@L["Email"]</label>
         <InputText class="form-control" @bind-Value="Supplier.Email" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Phone</label>
+        <label class="form-label">@L["Phone"]</label>
         <InputText class="form-control" @bind-Value="Supplier.Phone" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Street Address</label>
+        <label class="form-label">@L["Street Address"]</label>
         <InputText class="form-control" @bind-Value="Supplier.StreetAddress" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label">City</label>
+        <label class="form-label">@L["City"]</label>
         <InputText class="form-control" @bind-Value="Supplier.City" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Postal Code</label>
+        <label class="form-label">@L["Postal Code"]</label>
         <InputText class="form-control" @bind-Value="Supplier.PostalCode" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Country</label>
+        <label class="form-label">@L["Country"]</label>
         <InputText class="form-control" @bind-Value="Supplier.Country" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Payment Terms</label>
+        <label class="form-label">@L["Payment Terms"]</label>
         <InputSelect class="form-select" @bind-Value="Supplier.PaymentTerms">
             @foreach (PaymentTermsUI term in Enum.GetValues<PaymentTermsUI>())
             {
@@ -57,9 +57,9 @@
     @if (CanEditSupervisorAssignment)
     {
         <div class="mb-3">
-            <label class="form-label"><i class="bi bi-person-badge me-1"></i>Supervisor</label>
+            <label class="form-label"><i class="bi bi-person-badge me-1"></i>@L["Supervisor"]</label>
             <InputSelect class="form-select" @bind-Value="Supplier.SupervisorId">
-                <option value="">-- No Supervisor --</option>
+                <option value="">@L["-- No Supervisor --"]</option>
                 @foreach (EmployeeDto employee in AvailableUsers)
                 {
                     <option value="@employee.UserId">@employee.FullName (@employee.Email)</option>
@@ -71,11 +71,11 @@
     <button type="submit" class="btn btn-primary" disabled="@IsSubmitting">
         @if (IsSubmitting)
         {
-            <span>@SubmitButtonText</span>
+            <span>@(SubmitButtonText ?? L["Save"])</span>
         }
         else
         {
-            <span>@DefaultButtonText</span>
+            <span>@(DefaultButtonText ?? L["Save"])</span>
         }
     </button>
 </EditForm>
@@ -94,8 +94,8 @@
     [Parameter] public bool IsSubmitting { get; set; }
     [Parameter] public string? SuccessMessage { get; set; }
     [Parameter] public string? ErrorMessage { get; set; }
-    [Parameter] public string SubmitButtonText { get; set; } = "Save";
-    [Parameter] public string DefaultButtonText { get; set; } = "Save";
+    [Parameter] public string? SubmitButtonText { get; set; }
+    [Parameter] public string? DefaultButtonText { get; set; }
     [Parameter] public UpdateSupplierDto Supplier { get; set; } = new UpdateSupplierDto();
     [Parameter] public List<EmployeeDto> AvailableUsers { get; set; } = [];
     [Parameter] public bool CanEditSupervisorAssignment { get; set; } = true;

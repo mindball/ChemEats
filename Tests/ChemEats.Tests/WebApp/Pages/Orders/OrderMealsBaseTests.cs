@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Components.Authorization;
 using Moq;
@@ -39,10 +41,15 @@ public class OrderMealsBaseTests
 
     private sealed class OrderMealsBaseTestHarness : OrderMealsBase
     {
+        public OrderMealsBaseTestHarness()
+        {
+            L = new PassThroughStringLocalizer<SharedResource>();
+        }
+
         public OrderMealsBaseTestHarness(
             IMenuDataService menuDataService,
             IOrderDataService orderDataService,
-            Task<AuthenticationState> authenticationStateTask)
+            Task<AuthenticationState> authenticationStateTask) : this()
         {
             MenuDataService = menuDataService;
             OrderDataService = orderDataService;

@@ -3,36 +3,36 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using WebApp.Infrastructure.States
 
-<PageTitle>Log in</PageTitle>
+<PageTitle>@L["Log in"]</PageTitle>
 
-<h1>Log in</h1>
+<h1>@L["Log in"]</h1>
 <div class="row">
     <div class="col-lg-6">
         <section>
             <StatusMessage Message="@errorMessage" />
             <EditForm Model="Input" method="post" OnValidSubmit="LoginAsync" FormName="login">
                 <DataAnnotationsValidator />
-                <h2>Use your username to log in.</h2>
+                <h2>@L["Use your username to log in."]</h2>
                 <hr />
                 <ValidationSummary class="text-danger" role="alert" />
                 <div class="form-floating mb-3">
-                    <InputText @bind-Value="Input.UserName" id="Input.UserName" class="form-control" autocomplete="username" aria-required="true" placeholder="username" />
-                    <label for="Input.UserName" class="form-label">Username</label>
+                    <InputText @bind-Value="Input.UserName" id="Input.UserName" class="form-control" autocomplete="username" aria-required="true" placeholder="@L["Username"]" />
+                    <label for="Input.UserName" class="form-label">@L["Username"]</label>
                     <ValidationMessage For="() => Input.UserName" class="text-danger" />
                 </div>
                 <div class="form-floating mb-3">
-                    <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
-                    <label for="Input.Password" class="form-label">Password</label>
+                    <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="@L["Password"]" />
+                    <label for="Input.Password" class="form-label">@L["Password"]</label>
                     <ValidationMessage For="() => Input.Password" class="text-danger" />
                 </div>
                 <div class="checkbox mb-3">
                     <label class="form-label">
                         <InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input" />
-                        Remember me
+                        @L["Remember me"]
                     </label>
                 </div>
                 <div>
-                    <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
+                    <button type="submit" class="w-100 btn btn-lg btn-primary">@L["Log in"]</button>
                 </div>
             </EditForm>
         </section>
@@ -67,20 +67,22 @@
         }
         else
         {
-            errorMessage = formResult.Errors.FirstOrDefault() ?? "Login failed.";
+            errorMessage = formResult.Errors.FirstOrDefault() is { } error ? L[error] : L["Login failed."];
         }
     }
 
     private sealed class InputModel
     {
-        [Required]
+        [Required(ErrorMessageResourceType = typeof(ValidationText), ErrorMessageResourceName = nameof(ValidationText.Required))]
+        [Display(Name = nameof(ValidationText.Username), ResourceType = typeof(ValidationText))]
         public string UserName { get; set; } = "";
 
-        [Required]
+        [Required(ErrorMessageResourceType = typeof(ValidationText), ErrorMessageResourceName = nameof(ValidationText.Required))]
+        [Display(Name = nameof(ValidationText.Password), ResourceType = typeof(ValidationText))]
         [DataType(DataType.Password)]
         public string Password { get; set; } = "";
 
-        [Display(Name = "Remember me?")]
+        [Display(Name = nameof(ValidationText.RememberMe), ResourceType = typeof(ValidationText))]
         public bool RememberMe { get; set; }
     }
 }

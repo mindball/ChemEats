@@ -5,19 +5,19 @@
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="mb-0" style="color: #003d61;"><i class="bi bi-cash-coin me-2"></i>Payments</h3>
+        <h3 class="mb-0" style="color: #003d61;"><i class="bi bi-cash-coin me-2"></i>@L["Payments"]</h3>
         <ul class="nav nav-pills">
             <li class="nav-item">
-                <a class="nav-link" href="admin/payments"><i class="bi bi-person me-1"></i>By Employee</a>
+                <a class="nav-link" href="admin/payments"><i class="bi bi-person me-1"></i>@L["By Employee"]</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="admin/payments/summary"><i class="bi bi-people me-1"></i>Outstanding Summary</a>
+                <a class="nav-link" href="admin/payments/summary"><i class="bi bi-people me-1"></i>@L["Outstanding Summary"]</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="admin/payments/obligations"><i class="bi bi-bag me-1"></i>Other Obligations</a>
+                <a class="nav-link" href="admin/payments/obligations"><i class="bi bi-bag me-1"></i>@L["Other Obligations"]</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="admin/payments/obligation-types"><i class="bi bi-tags me-1"></i>Expense Types</a>
+                <a class="nav-link active" aria-current="page" href="admin/payments/obligation-types"><i class="bi bi-tags me-1"></i>@L["Expense Types"]</a>
             </li>
         </ul>
     </div>
@@ -40,15 +40,15 @@
 
     <div class="card mb-3 border-primary">
         <div class="card-body">
-            <h6 class="card-title mb-3"><i class="bi bi-plus-circle me-2"></i>New expense type</h6>
+            <h6 class="card-title mb-3"><i class="bi bi-plus-circle me-2"></i>@L["New expense type"]</h6>
             <div class="row g-2">
                 <div class="col-md-8">
                     <input id="newObligationTypeName" type="text" class="form-control" maxlength="@NameMaxLength"
-                           placeholder="e.g. Printer toner" @bind="NewName" />
+                           placeholder="@L["e.g. Printer toner"]" @bind="NewName" />
                 </div>
                 <div class="col-md-2">
                     <button class="btn btn-primary w-100 add-obligation-type-button" @onclick="AddAsync" disabled="@IsProcessing">
-                        <i class="bi bi-plus-lg me-1"></i>Add
+                        <i class="bi bi-plus-lg me-1"></i>@L["Add"]
                     </button>
                 </div>
             </div>
@@ -59,7 +59,7 @@
     {
         <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
             <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
+                <span class="visually-hidden">@L["Loading..."]</span>
             </div>
         </div>
     }
@@ -68,7 +68,7 @@
         @if (ObligationTypes.Count == 0)
         {
             <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i>No expense types yet. Add the first one above.
+                <i class="bi bi-info-circle me-2"></i>@L["No expense types yet. Add the first one above."]
             </div>
         }
         else
@@ -78,7 +78,7 @@
                     <table class="table table-hover mb-0 align-middle">
                         <thead class="table-light">
                             <tr>
-                                <th><i class="bi bi-tag me-1"></i>Expense type (@ObligationTypes.Count)</th>
+                                <th><i class="bi bi-tag me-1"></i>@L["Expense type ({0})", ObligationTypes.Count]</th>
                                 <th style="width: 220px;"></th>
                             </tr>
                         </thead>
@@ -101,17 +101,17 @@
                                         @if (isEditing)
                                         {
                                             <button class="btn btn-sm btn-primary me-1" @onclick="SaveRenameAsync" disabled="@IsProcessing">
-                                                <i class="bi bi-save me-1"></i>Save
+                                                <i class="bi bi-save me-1"></i>@L["Save"]
                                             </button>
-                                            <button class="btn btn-sm btn-outline-secondary" @onclick="CancelRename" disabled="@IsProcessing">Cancel</button>
+                                            <button class="btn btn-sm btn-outline-secondary" @onclick="CancelRename" disabled="@IsProcessing">@L["Cancel"]</button>
                                         }
                                         else
                                         {
-                                            <button class="btn btn-sm btn-outline-primary me-1" title="Rename"
+                                            <button class="btn btn-sm btn-outline-primary me-1" title="@L["Rename"]"
                                                     @onclick="() => StartRename(type)" disabled="@IsProcessing">
                                                 <i class="bi bi-pencil"></i>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-danger" title="Delete"
+                                            <button class="btn btn-sm btn-outline-danger" title="@L["Delete"]"
                                                     @onclick="() => DeleteAsync(type)" disabled="@IsProcessing">
                                                 <i class="bi bi-trash"></i>
                                             </button>
@@ -123,7 +123,7 @@
                     </table>
                 </div>
                 <div class="card-footer bg-light small text-muted">
-                    <i class="bi bi-info-circle me-1"></i>Renaming or deleting a type does not change obligations that were already added; they keep the name they were saved with.
+                    <i class="bi bi-info-circle me-1"></i>@L["Renaming or deleting a type does not change obligations that were already added; they keep the name they were saved with."]
                 </div>
             </div>
         }

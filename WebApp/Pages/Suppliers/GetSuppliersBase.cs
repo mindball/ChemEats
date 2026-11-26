@@ -2,10 +2,11 @@
 using Microsoft.JSInterop;
 using Shared.DTOs.Suppliers;
 using WebApp.Services.Suppliers;
+using WebApp.Infrastructure.Localization;
 
 namespace WebApp.Pages.Suppliers;
 
-public class GetSuppliersBase : ComponentBase
+public class GetSuppliersBase : LocalizedComponentBase
 {
     [Inject] protected ISupplierDataService SupplierService { get; set; } = null!;
 
@@ -72,7 +73,7 @@ public class GetSuppliersBase : ComponentBase
 
     protected async Task<bool> ConfirmDeleteAsync(SupplierDto supplier)
     {
-        return await ConfirmDelete($"Are you sure you want to delete supplier '{supplier.Name}'?");
+        return await ConfirmDelete(L["Are you sure you want to delete supplier '{0}'?", supplier.Name]);
     }
 
     private async Task<bool> ConfirmDelete(string message)

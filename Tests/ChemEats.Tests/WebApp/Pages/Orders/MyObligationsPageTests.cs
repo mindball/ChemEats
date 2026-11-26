@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using AngleSharp.Dom;
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,7 +11,7 @@ using WebApp.Services.Obligations;
 
 namespace ChemEats.Tests.WebApp.Pages.Orders;
 
-public class MyObligationsPageTests : TestContext
+public class MyObligationsPageTests : LocalizedTestContext
 {
     private readonly Mock<IObligationDataService> _obligationDataServiceMock = new();
 

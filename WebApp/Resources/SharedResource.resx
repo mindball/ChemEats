@@ -1,0 +1,1383 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="({0} obligations)" xml:space="preserve">
+    <value>({0} obligations)</value>
+  </data>
+  <data name="({0} orders)" xml:space="preserve">
+    <value>({0} orders)</value>
+  </data>
+  <data name="+359 XXX XXX XXX" xml:space="preserve">
+    <value>+359 XXX XXX XXX</value>
+  </data>
+  <data name="- {0} portion" xml:space="preserve">
+    <value>- {0} portion</value>
+  </data>
+  <data name="-- All suppliers --" xml:space="preserve">
+    <value>-- All suppliers --</value>
+  </data>
+  <data name="-- No Supervisor --" xml:space="preserve">
+    <value>-- No Supervisor --</value>
+  </data>
+  <data name="-- Select employee --" xml:space="preserve">
+    <value>-- Select employee --</value>
+  </data>
+  <data name="-- Select expense type --" xml:space="preserve">
+    <value>-- Select expense type --</value>
+  </data>
+  <data name="&lt;strong&gt;{0}&lt;/strong&gt; unpaid orders before {1:dd.MM.yyyy}, total &lt;strong&gt;{2}&lt;/strong&gt;. They are included in &quot;Pay all&quot;." xml:space="preserve">
+    <value>&lt;strong&gt;{0}&lt;/strong&gt; unpaid orders before {1:dd.MM.yyyy}, total &lt;strong&gt;{2}&lt;/strong&gt;. They are included in "Pay all".</value>
+  </data>
+  <data name="Abbreviation" xml:space="preserve">
+    <value>Abbreviation</value>
+  </data>
+  <data name="Abbreviation and full name are required." xml:space="preserve">
+    <value>Abbreviation and full name are required.</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Active Until" xml:space="preserve">
+    <value>Active Until</value>
+  </data>
+  <data name="Active Until Time" xml:space="preserve">
+    <value>Active Until Time</value>
+  </data>
+  <data name="Active Until time must be between {0:HH:mm} and {1:HH:mm}." xml:space="preserve">
+    <value>Active Until time must be between {0:HH:mm} and {1:HH:mm}.</value>
+  </data>
+  <data name="Active Until time must be in the future." xml:space="preserve">
+    <value>Active Until time must be in the future.</value>
+  </data>
+  <data name="Active until:" xml:space="preserve">
+    <value>Active until:</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Add Employee" xml:space="preserve">
+    <value>Add Employee</value>
+  </data>
+  <data name="Add role..." xml:space="preserve">
+    <value>Add role...</value>
+  </data>
+  <data name="Add Supplier" xml:space="preserve">
+    <value>Add Supplier</value>
+  </data>
+  <data name="Added by" xml:space="preserve">
+    <value>Added by</value>
+  </data>
+  <data name="Address Information" xml:space="preserve">
+    <value>Address Information</value>
+  </data>
+  <data name="Administration" xml:space="preserve">
+    <value>Administration</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="All ({0})" xml:space="preserve">
+    <value>All ({0})</value>
+  </data>
+  <data name="All dates" xml:space="preserve">
+    <value>All dates</value>
+  </data>
+  <data name="All meals must have a name." xml:space="preserve">
+    <value>All meals must have a name.</value>
+  </data>
+  <data name="All meals must have a price greater than 0." xml:space="preserve">
+    <value>All meals must have a price greater than 0.</value>
+  </data>
+  <data name="All suppliers" xml:space="preserve">
+    <value>All suppliers</value>
+  </data>
+  <data name="All Suppliers ({0})" xml:space="preserve">
+    <value>All Suppliers ({0})</value>
+  </data>
+  <data name="All unpaid (ignore dates)" xml:space="preserve">
+    <value>All unpaid (ignore dates)</value>
+  </data>
+  <data name="Amount" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="Amount (€)" xml:space="preserve">
+    <value>Amount (€)</value>
+  </data>
+  <data name="Amount cannot have more than two decimal places." xml:space="preserve">
+    <value>Amount cannot have more than two decimal places.</value>
+  </data>
+  <data name="Amount must be greater than zero." xml:space="preserve">
+    <value>Amount must be greater than zero.</value>
+  </data>
+  <data name="Applied once per menu per user (only the first meal quantity gets the deduction)." xml:space="preserve">
+    <value>Applied once per menu per user (only the first meal quantity gets the deduction).</value>
+  </data>
+  <data name="Applied when the order is paid" xml:space="preserve">
+    <value>Applied when the order is paid</value>
+  </data>
+  <data name="Apply Filters" xml:space="preserve">
+    <value>Apply Filters</value>
+  </data>
+  <data name="Are you sure you want to delete supplier '{0}'?" xml:space="preserve">
+    <value>Are you sure you want to delete supplier '{0}'?</value>
+  </data>
+  <data name="At least 8 characters, including a digit and a lowercase letter. It cannot be your abbreviation." xml:space="preserve">
+    <value>At least 8 characters, including a digit and a lowercase letter. It cannot be your abbreviation.</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="Bad Email or Password" xml:space="preserve">
+    <value>Bad Email or Password</value>
+  </data>
+  <data name="Balance Owed" xml:space="preserve">
+    <value>Balance Owed</value>
+  </data>
+  <data name="Basic Information" xml:space="preserve">
+    <value>Basic Information</value>
+  </data>
+  <data name="Browse active menus and order your meal" xml:space="preserve">
+    <value>Browse active menus and order your meal</value>
+  </data>
+  <data name="Browse Menus" xml:space="preserve">
+    <value>Browse Menus</value>
+  </data>
+  <data name="By Employee" xml:space="preserve">
+    <value>By Employee</value>
+  </data>
+  <data name="by {0}" xml:space="preserve">
+    <value>by {0}</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  <data name="Cannot delete expired menu" xml:space="preserve">
+    <value>Cannot delete expired menu</value>
+  </data>
+  <data name="Cannot edit expired menu" xml:space="preserve">
+    <value>Cannot edit expired menu</value>
+  </data>
+  <data name="Change Password" xml:space="preserve">
+    <value>Change Password</value>
+  </data>
+  <data name="ChemEats" xml:space="preserve">
+    <value>ChemEats</value>
+  </data>
+  <data name="City" xml:space="preserve">
+    <value>City</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Company Portion" xml:space="preserve">
+    <value>Company Portion</value>
+  </data>
+  <data name="Company Portion Settings" xml:space="preserve">
+    <value>Company Portion Settings</value>
+  </data>
+  <data name="Company portion will be applied at payment." xml:space="preserve">
+    <value>Company portion will be applied at payment.</value>
+  </data>
+  <data name="Company portion: {0}/day (applied once per day at payment)" xml:space="preserve">
+    <value>Company portion: {0}/day (applied once per day at payment)</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="Confirm new password" xml:space="preserve">
+    <value>Confirm new password</value>
+  </data>
+  <data name="Contact Information" xml:space="preserve">
+    <value>Contact Information</value>
+  </data>
+  <data name="Control Panel" xml:space="preserve">
+    <value>Control Panel</value>
+  </data>
+  <data name="Could not load your notification settings." xml:space="preserve">
+    <value>Could not load your notification settings.</value>
+  </data>
+  <data name="Could not load your notification settings: {0}" xml:space="preserve">
+    <value>Could not load your notification settings: {0}</value>
+  </data>
+  <data name="Count" xml:space="preserve">
+    <value>Count</value>
+  </data>
+  <data name="Country" xml:space="preserve">
+    <value>Country</value>
+  </data>
+  <data name="CPAChem | ChemEats" xml:space="preserve">
+    <value>CPAChem | ChemEats</value>
+  </data>
+  <data name="Create Menu" xml:space="preserve">
+    <value>Create Menu</value>
+  </data>
+  <data name="Current password" xml:space="preserve">
+    <value>Current password</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Date from" xml:space="preserve">
+    <value>Date from</value>
+  </data>
+  <data name="Date is required." xml:space="preserve">
+    <value>Date is required.</value>
+  </data>
+  <data name="Date to" xml:space="preserve">
+    <value>Date to</value>
+  </data>
+  <data name="Date:" xml:space="preserve">
+    <value>Date:</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Delete order '{0}' (Menu: {1:dd.MM.yyyy}, Order: {2:dd.MM.yyyy})?" xml:space="preserve">
+    <value>Delete order '{0}' (Menu: {1:dd.MM.yyyy}, Order: {2:dd.MM.yyyy})?</value>
+  </data>
+  <data name="Delete supplier" xml:space="preserve">
+    <value>Delete supplier</value>
+  </data>
+  <data name="Delete the expense type &quot;{0}&quot;? Existing obligations keep their text." xml:space="preserve">
+    <value>Delete the expense type "{0}"? Existing obligations keep their text.</value>
+  </data>
+  <data name="Delete the obligation &quot;{0}&quot; ({1})?" xml:space="preserve">
+    <value>Delete the obligation "{0}" ({1})?</value>
+  </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>Deleted</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Deselect All" xml:space="preserve">
+    <value>Deselect All</value>
+  </data>
+  <data name="Download my orders report for this menu" xml:space="preserve">
+    <value>Download my orders report for this menu</value>
+  </data>
+  <data name="e.g. MM" xml:space="preserve">
+    <value>e.g. MM</value>
+  </data>
+  <data name="e.g. Printer toner" xml:space="preserve">
+    <value>e.g. Printer toner</value>
+  </data>
+  <data name="e.g., 1000" xml:space="preserve">
+    <value>e.g., 1000</value>
+  </data>
+  <data name="e.g., BG123456789" xml:space="preserve">
+    <value>e.g., BG123456789</value>
+  </data>
+  <data name="e.g., Bulgaria" xml:space="preserve">
+    <value>e.g., Bulgaria</value>
+  </data>
+  <data name="e.g., Sofia" xml:space="preserve">
+    <value>e.g., Sofia</value>
+  </data>
+  <data name="Earlier" xml:space="preserve">
+    <value>Earlier</value>
+  </data>
+  <data name="Earlier is unpaid orders before the start date. Other is unpaid non-food obligations up to the end date." xml:space="preserve">
+    <value>Earlier is unpaid orders before the start date. Other is unpaid non-food obligations up to the end date.</value>
+  </data>
+  <data name="Earlier is unpaid orders before the start date; Pay settles the meals up to the end date." xml:space="preserve">
+    <value>Earlier is unpaid orders before the start date; Pay settles the meals up to the end date.</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Edit ActiveUntil time (reactivate menu)" xml:space="preserve">
+    <value>Edit ActiveUntil time (reactivate menu)</value>
+  </data>
+  <data name="Edit date" xml:space="preserve">
+    <value>Edit date</value>
+  </data>
+  <data name="Edit obligation of {0}" xml:space="preserve">
+    <value>Edit obligation of {0}</value>
+  </data>
+  <data name="Edit Supplier" xml:space="preserve">
+    <value>Edit Supplier</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Email (optional)" xml:space="preserve">
+    <value>Email (optional)</value>
+  </data>
+  <data name="Employee" xml:space="preserve">
+    <value>Employee</value>
+  </data>
+  <data name="Employee '{0}' created. Temporary password: {1} (shown only once; the employee must change it at first login)." xml:space="preserve">
+    <value>Employee '{0}' created. Temporary password: {1} (shown only once; the employee must change it at first login).</value>
+  </data>
+  <data name="Employee Meal Ordering System" xml:space="preserve">
+    <value>Employee Meal Ordering System</value>
+  </data>
+  <data name="Employees with unpaid amounts ({0})" xml:space="preserve">
+    <value>Employees with unpaid amounts ({0})</value>
+  </data>
+  <data name="Employees with unpaid orders:" xml:space="preserve">
+    <value>Employees with unpaid orders:</value>
+  </data>
+  <data name="Employees:" xml:space="preserve">
+    <value>Employees:</value>
+  </data>
+  <data name="End Date" xml:space="preserve">
+    <value>End Date</value>
+  </data>
+  <data name="End date cannot be before start date." xml:space="preserve">
+    <value>End date cannot be before start date.</value>
+  </data>
+  <data name="Enter an email address to receive order reminders." xml:space="preserve">
+    <value>Enter an email address to receive order reminders.</value>
+  </data>
+  <data name="Enter supplier name" xml:space="preserve">
+    <value>Enter supplier name</value>
+  </data>
+  <data name="Error assigning role: {0}" xml:space="preserve">
+    <value>Error assigning role: {0}</value>
+  </data>
+  <data name="Error creating employee: {0}" xml:space="preserve">
+    <value>Error creating employee: {0}</value>
+  </data>
+  <data name="Error loading supplier: {0}" xml:space="preserve">
+    <value>Error loading supplier: {0}</value>
+  </data>
+  <data name="Error loading users: {0}" xml:space="preserve">
+    <value>Error loading users: {0}</value>
+  </data>
+  <data name="Error removing role: {0}" xml:space="preserve">
+    <value>Error removing role: {0}</value>
+  </data>
+  <data name="Error resetting password: {0}" xml:space="preserve">
+    <value>Error resetting password: {0}</value>
+  </data>
+  <data name="Error while placing order: {0}" xml:space="preserve">
+    <value>Error while placing order: {0}</value>
+  </data>
+  <data name="Error: {0}" xml:space="preserve">
+    <value>Error: {0}</value>
+  </data>
+  <data name="Expense type" xml:space="preserve">
+    <value>Expense type</value>
+  </data>
+  <data name="Expense type &quot;{0}&quot; added." xml:space="preserve">
+    <value>Expense type "{0}" added.</value>
+  </data>
+  <data name="Expense type &quot;{0}&quot; deleted." xml:space="preserve">
+    <value>Expense type "{0}" deleted.</value>
+  </data>
+  <data name="Expense type ({0})" xml:space="preserve">
+    <value>Expense type ({0})</value>
+  </data>
+  <data name="Expense type renamed to &quot;{0}&quot;." xml:space="preserve">
+    <value>Expense type renamed to "{0}".</value>
+  </data>
+  <data name="Expense Types" xml:space="preserve">
+    <value>Expense Types</value>
+  </data>
+  <data name="Expired" xml:space="preserve">
+    <value>Expired</value>
+  </data>
+  <data name="Explore available and past menus" xml:space="preserve">
+    <value>Explore available and past menus</value>
+  </data>
+  <data name="Extend" xml:space="preserve">
+    <value>Extend</value>
+  </data>
+  <data name="Failed to add the expense type. The name may already exist." xml:space="preserve">
+    <value>Failed to add the expense type. The name may already exist.</value>
+  </data>
+  <data name="Failed to add the expense type: {0}" xml:space="preserve">
+    <value>Failed to add the expense type: {0}</value>
+  </data>
+  <data name="Failed to assign role." xml:space="preserve">
+    <value>Failed to assign role.</value>
+  </data>
+  <data name="Failed to create employee." xml:space="preserve">
+    <value>Failed to create employee.</value>
+  </data>
+  <data name="Failed to delete order." xml:space="preserve">
+    <value>Failed to delete order.</value>
+  </data>
+  <data name="Failed to delete order: {0}" xml:space="preserve">
+    <value>Failed to delete order: {0}</value>
+  </data>
+  <data name="Failed to delete orders: {0}" xml:space="preserve">
+    <value>Failed to delete orders: {0}</value>
+  </data>
+  <data name="Failed to delete the expense type. Please try again." xml:space="preserve">
+    <value>Failed to delete the expense type. Please try again.</value>
+  </data>
+  <data name="Failed to delete the expense type: {0}" xml:space="preserve">
+    <value>Failed to delete the expense type: {0}</value>
+  </data>
+  <data name="Failed to delete the obligation. Paid obligations cannot be deleted." xml:space="preserve">
+    <value>Failed to delete the obligation. Paid obligations cannot be deleted.</value>
+  </data>
+  <data name="Failed to delete the obligation: {0}" xml:space="preserve">
+    <value>Failed to delete the obligation: {0}</value>
+  </data>
+  <data name="Failed to load employees: {0}" xml:space="preserve">
+    <value>Failed to load employees: {0}</value>
+  </data>
+  <data name="Failed to load menus: {0}" xml:space="preserve">
+    <value>Failed to load menus: {0}</value>
+  </data>
+  <data name="Failed to load orders: {0}" xml:space="preserve">
+    <value>Failed to load orders: {0}</value>
+  </data>
+  <data name="Failed to load outstanding payments." xml:space="preserve">
+    <value>Failed to load outstanding payments.</value>
+  </data>
+  <data name="Failed to load outstanding payments: {0}" xml:space="preserve">
+    <value>Failed to load outstanding payments: {0}</value>
+  </data>
+  <data name="Failed to load portion: {0}" xml:space="preserve">
+    <value>Failed to load portion: {0}</value>
+  </data>
+  <data name="Failed to load suppliers: {0}" xml:space="preserve">
+    <value>Failed to load suppliers: {0}</value>
+  </data>
+  <data name="Failed to load the expense types." xml:space="preserve">
+    <value>Failed to load the expense types.</value>
+  </data>
+  <data name="Failed to load the expense types. Please try again." xml:space="preserve">
+    <value>Failed to load the expense types. Please try again.</value>
+  </data>
+  <data name="Failed to load the expense types: {0}" xml:space="preserve">
+    <value>Failed to load the expense types: {0}</value>
+  </data>
+  <data name="Failed to load the obligations. Please try again." xml:space="preserve">
+    <value>Failed to load the obligations. Please try again.</value>
+  </data>
+  <data name="Failed to load the obligations: {0}" xml:space="preserve">
+    <value>Failed to load the obligations: {0}</value>
+  </data>
+  <data name="Failed to load the outstanding summary. Please try again." xml:space="preserve">
+    <value>Failed to load the outstanding summary. Please try again.</value>
+  </data>
+  <data name="Failed to load the outstanding summary: {0}" xml:space="preserve">
+    <value>Failed to load the outstanding summary: {0}</value>
+  </data>
+  <data name="Failed to load users: {0}" xml:space="preserve">
+    <value>Failed to load users: {0}</value>
+  </data>
+  <data name="Failed to load your obligations. Please try again." xml:space="preserve">
+    <value>Failed to load your obligations. Please try again.</value>
+  </data>
+  <data name="Failed to load your obligations: {0}" xml:space="preserve">
+    <value>Failed to load your obligations: {0}</value>
+  </data>
+  <data name="Failed to load your orders: {0}" xml:space="preserve">
+    <value>Failed to load your orders: {0}</value>
+  </data>
+  <data name="Failed to parse file: {0}" xml:space="preserve">
+    <value>Failed to parse file: {0}</value>
+  </data>
+  <data name="Failed to place order." xml:space="preserve">
+    <value>Failed to place order.</value>
+  </data>
+  <data name="Failed to process payment. Please try again." xml:space="preserve">
+    <value>Failed to process payment. Please try again.</value>
+  </data>
+  <data name="Failed to process the payment for {0}. Please try again." xml:space="preserve">
+    <value>Failed to process the payment for {0}. Please try again.</value>
+  </data>
+  <data name="Failed to process the payment. Please try again." xml:space="preserve">
+    <value>Failed to process the payment. Please try again.</value>
+  </data>
+  <data name="Failed to register supplier." xml:space="preserve">
+    <value>Failed to register supplier.</value>
+  </data>
+  <data name="Failed to remove role." xml:space="preserve">
+    <value>Failed to remove role.</value>
+  </data>
+  <data name="Failed to rename the expense type. The name may already exist." xml:space="preserve">
+    <value>Failed to rename the expense type. The name may already exist.</value>
+  </data>
+  <data name="Failed to rename the expense type: {0}" xml:space="preserve">
+    <value>Failed to rename the expense type: {0}</value>
+  </data>
+  <data name="Failed to reset password." xml:space="preserve">
+    <value>Failed to reset password.</value>
+  </data>
+  <data name="Failed to save portion on server." xml:space="preserve">
+    <value>Failed to save portion on server.</value>
+  </data>
+  <data name="Failed to save portion: {0}" xml:space="preserve">
+    <value>Failed to save portion: {0}</value>
+  </data>
+  <data name="Failed to save the obligation. Paid obligations cannot be changed." xml:space="preserve">
+    <value>Failed to save the obligation. Paid obligations cannot be changed.</value>
+  </data>
+  <data name="Failed to save the obligation: {0}" xml:space="preserve">
+    <value>Failed to save the obligation: {0}</value>
+  </data>
+  <data name="Failed to update ActiveUntil." xml:space="preserve">
+    <value>Failed to update ActiveUntil.</value>
+  </data>
+  <data name="Failed to update menu date." xml:space="preserve">
+    <value>Failed to update menu date.</value>
+  </data>
+  <data name="Failed to update supplier." xml:space="preserve">
+    <value>Failed to update supplier.</value>
+  </data>
+  <data name="Filter by Date" xml:space="preserve">
+    <value>Filter by Date</value>
+  </data>
+  <data name="Filter by Payment Status" xml:space="preserve">
+    <value>Filter by Payment Status</value>
+  </data>
+  <data name="Filter by Supplier" xml:space="preserve">
+    <value>Filter by Supplier</value>
+  </data>
+  <data name="Filters" xml:space="preserve">
+    <value>Filters</value>
+  </data>
+  <data name="Finalize ({0})" xml:space="preserve">
+    <value>Finalize ({0})</value>
+  </data>
+  <data name="Finalize and complete all pending orders" xml:space="preserve">
+    <value>Finalize and complete all pending orders</value>
+  </data>
+  <data name="Finalize this menu? All pending orders will be marked as completed and ordering will be stopped." xml:space="preserve">
+    <value>Finalize this menu? All pending orders will be marked as completed and ordering will be stopped.</value>
+  </data>
+  <data name="Found Menus ({0})" xml:space="preserve">
+    <value>Found Menus ({0})</value>
+  </data>
+  <data name="Full name" xml:space="preserve">
+    <value>Full name</value>
+  </data>
+  <data name="Generated on" xml:space="preserve">
+    <value>Generated on</value>
+  </data>
+  <data name="Grand Total" xml:space="preserve">
+    <value>Grand Total</value>
+  </data>
+  <data name="Gross" xml:space="preserve">
+    <value>Gross</value>
+  </data>
+  <data name="Include deleted" xml:space="preserve">
+    <value>Include deleted</value>
+  </data>
+  <data name="Include deleted orders" xml:space="preserve">
+    <value>Include deleted orders</value>
+  </data>
+  <data name="Lab Menu" xml:space="preserve">
+    <value>Lab Menu</value>
+  </data>
+  <data name="Lab Menus" xml:space="preserve">
+    <value>Lab Menus</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Links" xml:space="preserve">
+    <value>Links</value>
+  </data>
+  <data name="Loading menus..." xml:space="preserve">
+    <value>Loading menus...</value>
+  </data>
+  <data name="Loading suppliers..." xml:space="preserve">
+    <value>Loading suppliers...</value>
+  </data>
+  <data name="Loading today's menus..." xml:space="preserve">
+    <value>Loading today's menus...</value>
+  </data>
+  <data name="Loading users..." xml:space="preserve">
+    <value>Loading users...</value>
+  </data>
+  <data name="Loading..." xml:space="preserve">
+    <value>Loading...</value>
+  </data>
+  <data name="Log in" xml:space="preserve">
+    <value>Log in</value>
+  </data>
+  <data name="Login failed." xml:space="preserve">
+    <value>Login failed.</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Logout</value>
+  </data>
+  <data name="Manage Roles" xml:space="preserve">
+    <value>Manage Roles</value>
+  </data>
+  <data name="Management" xml:space="preserve">
+    <value>Management</value>
+  </data>
+  <data name="Mark all unpaid obligations of {0} {1} as paid?" xml:space="preserve">
+    <value>Mark all unpaid obligations of {0} {1} as paid?</value>
+  </data>
+  <data name="Mark all {0} unpaid orders of {1} {2} as paid?&#xA;Total: {3}" xml:space="preserve">
+    <value>Mark all {0} unpaid orders of {1} {2} as paid?&#xA;Total: {3}</value>
+  </data>
+  <data name="Mark as Paid" xml:space="preserve">
+    <value>Mark as Paid</value>
+  </data>
+  <data name="Meal" xml:space="preserve">
+    <value>Meal</value>
+  </data>
+  <data name="meal(s) parsed from file" xml:space="preserve">
+    <value>meal(s) parsed from file</value>
+  </data>
+  <data name="Meals" xml:space="preserve">
+    <value>Meals</value>
+  </data>
+  <data name="Meals Summary" xml:space="preserve">
+    <value>Meals Summary</value>
+  </data>
+  <data name="Menu Date" xml:space="preserve">
+    <value>Menu Date</value>
+  </data>
+  <data name="Menu date from" xml:space="preserve">
+    <value>Menu date from</value>
+  </data>
+  <data name="Menu date must be in the future." xml:space="preserve">
+    <value>Menu date must be in the future.</value>
+  </data>
+  <data name="Menu date to" xml:space="preserve">
+    <value>Menu date to</value>
+  </data>
+  <data name="Menu File Upload" xml:space="preserve">
+    <value>Menu File Upload</value>
+  </data>
+  <data name="Menu finalized successfully!&#xA;{0} orders completed.&#xA;Total amount: {1:C}" xml:space="preserve">
+    <value>Menu finalized successfully!&#xA;{0} orders completed.&#xA;Total amount: {1:C}</value>
+  </data>
+  <data name="Menu Report" xml:space="preserve">
+    <value>Menu Report</value>
+  </data>
+  <data name="Menu uploaded successfully! {0} meal(s) added. Active until {1:dd.MM.yyyy HH:mm}" xml:space="preserve">
+    <value>Menu uploaded successfully! {0} meal(s) added. Active until {1:dd.MM.yyyy HH:mm}</value>
+  </data>
+  <data name="Menu will be active until" xml:space="preserve">
+    <value>Menu will be active until</value>
+  </data>
+  <data name="Menu: {0}" xml:space="preserve">
+    <value>Menu: {0}</value>
+  </data>
+  <data name="MenuListComponent" xml:space="preserve">
+    <value>MenuListComponent</value>
+  </data>
+  <data name="Menus" xml:space="preserve">
+    <value>Menus</value>
+  </data>
+  <data name="My Obligations" xml:space="preserve">
+    <value>My Obligations</value>
+  </data>
+  <data name="My Orders" xml:space="preserve">
+    <value>My Orders</value>
+  </data>
+  <data name="My Other Obligations" xml:space="preserve">
+    <value>My Other Obligations</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Name cannot be longer than {0} characters." xml:space="preserve">
+    <value>Name cannot be longer than {0} characters.</value>
+  </data>
+  <data name="Name is required." xml:space="preserve">
+    <value>Name is required.</value>
+  </data>
+  <data name="Navigation menu" xml:space="preserve">
+    <value>Navigation menu</value>
+  </data>
+  <data name="Net" xml:space="preserve">
+    <value>Net</value>
+  </data>
+  <data name="Net total:" xml:space="preserve">
+    <value>Net total:</value>
+  </data>
+  <data name="Net:" xml:space="preserve">
+    <value>Net:</value>
+  </data>
+  <data name="New ActiveUntil (yyyy-MM-dd HH:mm)" xml:space="preserve">
+    <value>New ActiveUntil (yyyy-MM-dd HH:mm)</value>
+  </data>
+  <data name="New date (yyyy-MM-dd)" xml:space="preserve">
+    <value>New date (yyyy-MM-dd)</value>
+  </data>
+  <data name="New expense type" xml:space="preserve">
+    <value>New expense type</value>
+  </data>
+  <data name="New obligation for {0}" xml:space="preserve">
+    <value>New obligation for {0}</value>
+  </data>
+  <data name="New password" xml:space="preserve">
+    <value>New password</value>
+  </data>
+  <data name="No expense types yet. Add the first one above." xml:space="preserve">
+    <value>No expense types yet. Add the first one above.</value>
+  </data>
+  <data name="No expense types yet. Add them on the" xml:space="preserve">
+    <value>No expense types yet. Add them on the</value>
+  </data>
+  <data name="No items selected" xml:space="preserve">
+    <value>No items selected</value>
+  </data>
+  <data name="No meals" xml:space="preserve">
+    <value>No meals</value>
+  </data>
+  <data name="No meals available" xml:space="preserve">
+    <value>No meals available</value>
+  </data>
+  <data name="No meals available." xml:space="preserve">
+    <value>No meals available.</value>
+  </data>
+  <data name="No meals found in the uploaded file." xml:space="preserve">
+    <value>No meals found in the uploaded file.</value>
+  </data>
+  <data name="No menus available" xml:space="preserve">
+    <value>No menus available</value>
+  </data>
+  <data name="No menus available." xml:space="preserve">
+    <value>No menus available.</value>
+  </data>
+  <data name="No menus found for the selected filters." xml:space="preserve">
+    <value>No menus found for the selected filters.</value>
+  </data>
+  <data name="No menus found." xml:space="preserve">
+    <value>No menus found.</value>
+  </data>
+  <data name="No obligations match the selected filters." xml:space="preserve">
+    <value>No obligations match the selected filters.</value>
+  </data>
+  <data name="No orders for this menu." xml:space="preserve">
+    <value>No orders for this menu.</value>
+  </data>
+  <data name="No orders found for the selected criteria." xml:space="preserve">
+    <value>No orders found for the selected criteria.</value>
+  </data>
+  <data name="No orders found for this period." xml:space="preserve">
+    <value>No orders found for this period.</value>
+  </data>
+  <data name="No orders match the selected filters." xml:space="preserve">
+    <value>No orders match the selected filters.</value>
+  </data>
+  <data name="No other obligations for this period." xml:space="preserve">
+    <value>No other obligations for this period.</value>
+  </data>
+  <data name="No pending orders to finalize" xml:space="preserve">
+    <value>No pending orders to finalize</value>
+  </data>
+  <data name="No token received" xml:space="preserve">
+    <value>No token received</value>
+  </data>
+  <data name="No unpaid orders for this period." xml:space="preserve">
+    <value>No unpaid orders for this period.</value>
+  </data>
+  <data name="No unpaid orders up to the end of this period ({0})." xml:space="preserve">
+    <value>No unpaid orders up to the end of this period ({0}).</value>
+  </data>
+  <data name="No unpaid orders." xml:space="preserve">
+    <value>No unpaid orders.</value>
+  </data>
+  <data name="No, do not remind me" xml:space="preserve">
+    <value>No, do not remind me</value>
+  </data>
+  <data name="Not found" xml:space="preserve">
+    <value>Not found</value>
+  </data>
+  <data name="Notification email" xml:space="preserve">
+    <value>Notification email</value>
+  </data>
+  <data name="Notification Settings" xml:space="preserve">
+    <value>Notification Settings</value>
+  </data>
+  <data name="Notification settings saved." xml:space="preserve">
+    <value>Notification settings saved.</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>Notifications</value>
+  </data>
+  <data name="Obligation &quot;{0}&quot; ({1}) added for {2}." xml:space="preserve">
+    <value>Obligation "{0}" ({1}) added for {2}.</value>
+  </data>
+  <data name="Obligation &quot;{0}&quot; deleted." xml:space="preserve">
+    <value>Obligation "{0}" deleted.</value>
+  </data>
+  <data name="Obligation &quot;{0}&quot; updated." xml:space="preserve">
+    <value>Obligation "{0}" updated.</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Only completed orders (finalized menus) are counted; paid, pending, cancelled and deleted orders are excluded. The company portion is applied once per employee per day at payment; unpaid days show the expected portion." xml:space="preserve">
+    <value>Only completed orders (finalized menus) are counted; paid, pending, cancelled and deleted orders are excluded. The company portion is applied once per employee per day at payment; unpaid days show the expected portion.</value>
+  </data>
+  <data name="Open Payments" xml:space="preserve">
+    <value>Open Payments</value>
+  </data>
+  <data name="Open printable orders report" xml:space="preserve">
+    <value>Open printable orders report</value>
+  </data>
+  <data name="Order Items ({0})" xml:space="preserve">
+    <value>Order Items ({0})</value>
+  </data>
+  <data name="Order placed successfully ({0} items)." xml:space="preserve">
+    <value>Order placed successfully ({0} items).</value>
+  </data>
+  <data name="Order summary" xml:space="preserve">
+    <value>Order summary</value>
+  </data>
+  <data name="Ordered At" xml:space="preserve">
+    <value>Ordered At</value>
+  </data>
+  <data name="Orders" xml:space="preserve">
+    <value>Orders</value>
+  </data>
+  <data name="Orders ({0})" xml:space="preserve">
+    <value>Orders ({0})</value>
+  </data>
+  <data name="Orders are no longer accepted." xml:space="preserve">
+    <value>Orders are no longer accepted.</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Other</value>
+  </data>
+  <data name="Other is unpaid non-food obligations up to the end date; they are paid separately on the Other Obligations page." xml:space="preserve">
+    <value>Other is unpaid non-food obligations up to the end date; they are paid separately on the Other Obligations page.</value>
+  </data>
+  <data name="Other Obligations" xml:space="preserve">
+    <value>Other Obligations</value>
+  </data>
+  <data name="Outstanding Payments" xml:space="preserve">
+    <value>Outstanding Payments</value>
+  </data>
+  <data name="Outstanding Payments (all employees, all dates)" xml:space="preserve">
+    <value>Outstanding Payments (all employees, all dates)</value>
+  </data>
+  <data name="Outstanding Summary" xml:space="preserve">
+    <value>Outstanding Summary</value>
+  </data>
+  <data name="Page {0} of {1}" xml:space="preserve">
+    <value>Page {0} of {1}</value>
+  </data>
+  <data name="Paid" xml:space="preserve">
+    <value>Paid</value>
+  </data>
+  <data name="Paid ({0})" xml:space="preserve">
+    <value>Paid ({0})</value>
+  </data>
+  <data name="Paid ({0}):" xml:space="preserve">
+    <value>Paid ({0}):</value>
+  </data>
+  <data name="Paid: {0:C}" xml:space="preserve">
+    <value>Paid: {0:C}</value>
+  </data>
+  <data name="Parsed Meals Preview" xml:space="preserve">
+    <value>Parsed Meals Preview</value>
+  </data>
+  <data name="Parsing file with AI..." xml:space="preserve">
+    <value>Parsing file with AI...</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="Password change failed. Please verify your current password." xml:space="preserve">
+    <value>Password change failed. Please verify your current password.</value>
+  </data>
+  <data name="Password change failed: {0}" xml:space="preserve">
+    <value>Password change failed: {0}</value>
+  </data>
+  <data name="Password changed successfully." xml:space="preserve">
+    <value>Password changed successfully.</value>
+  </data>
+  <data name="Password for '{0}' reset. Temporary password: {1} (shown only once; the employee must change it at next login)." xml:space="preserve">
+    <value>Password for '{0}' reset. Temporary password: {1} (shown only once; the employee must change it at next login).</value>
+  </data>
+  <data name="Passwords do not match" xml:space="preserve">
+    <value>Passwords do not match</value>
+  </data>
+  <data name="Pay" xml:space="preserve">
+    <value>Pay</value>
+  </data>
+  <data name="Pay all unpaid {0}" xml:space="preserve">
+    <value>Pay all unpaid {0}</value>
+  </data>
+  <data name="Payment processing failed: {0}" xml:space="preserve">
+    <value>Payment processing failed: {0}</value>
+  </data>
+  <data name="Payment Terms" xml:space="preserve">
+    <value>Payment Terms</value>
+  </data>
+  <data name="Payments" xml:space="preserve">
+    <value>Payments</value>
+  </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Pending</value>
+  </data>
+  <data name="Period (by menu date)" xml:space="preserve">
+    <value>Period (by menu date)</value>
+  </data>
+  <data name="Period (menu date):" xml:space="preserve">
+    <value>Period (menu date):</value>
+  </data>
+  <data name="Period: {0}" xml:space="preserve">
+    <value>Period: {0}</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="Place Order" xml:space="preserve">
+    <value>Place Order</value>
+  </data>
+  <data name="Please" xml:space="preserve">
+    <value>Please</value>
+  </data>
+  <data name="Please enter a valid email address." xml:space="preserve">
+    <value>Please enter a valid email address.</value>
+  </data>
+  <data name="Please select a start and end date." xml:space="preserve">
+    <value>Please select a start and end date.</value>
+  </data>
+  <data name="Please select a supplier." xml:space="preserve">
+    <value>Please select a supplier.</value>
+  </data>
+  <data name="Please select an employee." xml:space="preserve">
+    <value>Please select an employee.</value>
+  </data>
+  <data name="Please select an expense type." xml:space="preserve">
+    <value>Please select an expense type.</value>
+  </data>
+  <data name="Please upload a file with meals." xml:space="preserve">
+    <value>Please upload a file with meals.</value>
+  </data>
+  <data name="Portion" xml:space="preserve">
+    <value>Portion</value>
+  </data>
+  <data name="Portion (at payment):" xml:space="preserve">
+    <value>Portion (at payment):</value>
+  </data>
+  <data name="Portion amount (EUR)" xml:space="preserve">
+    <value>Portion amount (EUR)</value>
+  </data>
+  <data name="Portion amount must be &gt;= 0." xml:space="preserve">
+    <value>Portion amount must be &gt;= 0.</value>
+  </data>
+  <data name="Portion applied once per day" xml:space="preserve">
+    <value>Portion applied once per day</value>
+  </data>
+  <data name="Portion:" xml:space="preserve">
+    <value>Portion:</value>
+  </data>
+  <data name="Postal Code" xml:space="preserve">
+    <value>Postal Code</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Price</value>
+  </data>
+  <data name="Price:" xml:space="preserve">
+    <value>Price:</value>
+  </data>
+  <data name="Print" xml:space="preserve">
+    <value>Print</value>
+  </data>
+  <data name="Print / Save as PDF" xml:space="preserve">
+    <value>Print / Save as PDF</value>
+  </data>
+  <data name="Processing..." xml:space="preserve">
+    <value>Processing...</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Quantity</value>
+  </data>
+  <data name="Redirecting in {0} s..." xml:space="preserve">
+    <value>Redirecting in {0} s...</value>
+  </data>
+  <data name="Redirecting..." xml:space="preserve">
+    <value>Redirecting...</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="regardless of date" xml:space="preserve">
+    <value>regardless of date</value>
+  </data>
+  <data name="Register Supplier" xml:space="preserve">
+    <value>Register Supplier</value>
+  </data>
+  <data name="Registering..." xml:space="preserve">
+    <value>Registering...</value>
+  </data>
+  <data name="Remaining to pay ({0}):" xml:space="preserve">
+    <value>Remaining to pay ({0}):</value>
+  </data>
+  <data name="Remember me" xml:space="preserve">
+    <value>Remember me</value>
+  </data>
+  <data name="Remind me when I have not ordered for an upcoming menu" xml:space="preserve">
+    <value>Remind me when I have not ordered for an upcoming menu</value>
+  </data>
+  <data name="Reminders are sent to this address. It can differ from the email you registered with." xml:space="preserve">
+    <value>Reminders are sent to this address. It can differ from the email you registered with.</value>
+  </data>
+  <data name="Remove {0}" xml:space="preserve">
+    <value>Remove {0}</value>
+  </data>
+  <data name="Rename" xml:space="preserve">
+    <value>Rename</value>
+  </data>
+  <data name="Renaming or deleting a type does not change obligations that were already added; they keep the name they were saved with." xml:space="preserve">
+    <value>Renaming or deleting a type does not change obligations that were already added; they keep the name they were saved with.</value>
+  </data>
+  <data name="Report" xml:space="preserve">
+    <value>Report</value>
+  </data>
+  <data name="Reset" xml:space="preserve">
+    <value>Reset</value>
+  </data>
+  <data name="Reset to a temporary password" xml:space="preserve">
+    <value>Reset to a temporary password</value>
+  </data>
+  <data name="Reset to {0:F2}" xml:space="preserve">
+    <value>Reset to {0:F2}</value>
+  </data>
+  <data name="Role '{0}' assigned successfully." xml:space="preserve">
+    <value>Role '{0}' assigned successfully.</value>
+  </data>
+  <data name="Role '{0}' removed successfully." xml:space="preserve">
+    <value>Role '{0}' removed successfully.</value>
+  </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Roles</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Saved portion amount: {0:F2} €" xml:space="preserve">
+    <value>Saved portion amount: {0:F2} €</value>
+  </data>
+  <data name="Saving failed. Please check the email address and try again." xml:space="preserve">
+    <value>Saving failed. Please check the email address and try again.</value>
+  </data>
+  <data name="Saving failed: {0}" xml:space="preserve">
+    <value>Saving failed: {0}</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Search by name, abbreviation or email..." xml:space="preserve">
+    <value>Search by name, abbreviation or email...</value>
+  </data>
+  <data name="Search employee..." xml:space="preserve">
+    <value>Search employee...</value>
+  </data>
+  <data name="Search Filters" xml:space="preserve">
+    <value>Search Filters</value>
+  </data>
+  <data name="Select a future date (menu fulfillment date)" xml:space="preserve">
+    <value>Select a future date (menu fulfillment date)</value>
+  </data>
+  <data name="Select All Unpaid" xml:space="preserve">
+    <value>Select All Unpaid</value>
+  </data>
+  <data name="Select Menu File" xml:space="preserve">
+    <value>Select Menu File</value>
+  </data>
+  <data name="Select supplier..." xml:space="preserve">
+    <value>Select supplier...</value>
+  </data>
+  <data name="Selected items" xml:space="preserve">
+    <value>Selected items</value>
+  </data>
+  <data name="Selected:" xml:space="preserve">
+    <value>Selected:</value>
+  </data>
+  <data name="Showing {0} - {1}" xml:space="preserve">
+    <value>Showing {0} - {1}</value>
+  </data>
+  <data name="Showing {0} of {1} users" xml:space="preserve">
+    <value>Showing {0} of {1} users</value>
+  </data>
+  <data name="sign in" xml:space="preserve">
+    <value>sign in</value>
+  </data>
+  <data name="Soft delete" xml:space="preserve">
+    <value>Soft delete</value>
+  </data>
+  <data name="Soft delete this menu and cancel its orders?" xml:space="preserve">
+    <value>Soft delete this menu and cancel its orders?</value>
+  </data>
+  <data name="Sorry, there's nothing at this address." xml:space="preserve">
+    <value>Sorry, there's nothing at this address.</value>
+  </data>
+  <data name="Start Date" xml:space="preserve">
+    <value>Start Date</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Street Address" xml:space="preserve">
+    <value>Street Address</value>
+  </data>
+  <data name="Street name and number" xml:space="preserve">
+    <value>Street name and number</value>
+  </data>
+  <data name="Subtotal:" xml:space="preserve">
+    <value>Subtotal:</value>
+  </data>
+  <data name="Successfully marked {0} orders as paid. Total: {1}" xml:space="preserve">
+    <value>Successfully marked {0} orders as paid. Total: {1}</value>
+  </data>
+  <data name="Successfully parsed {0} meal(s) from file." xml:space="preserve">
+    <value>Successfully parsed {0} meal(s) from file.</value>
+  </data>
+  <data name="Supervisor" xml:space="preserve">
+    <value>Supervisor</value>
+  </data>
+  <data name="Supplier" xml:space="preserve">
+    <value>Supplier</value>
+  </data>
+  <data name="Supplier '{0}' registered successfully!" xml:space="preserve">
+    <value>Supplier '{0}' registered successfully!</value>
+  </data>
+  <data name="Supplier '{0}' updated successfully." xml:space="preserve">
+    <value>Supplier '{0}' updated successfully.</value>
+  </data>
+  <data name="Supplier Name" xml:space="preserve">
+    <value>Supplier Name</value>
+  </data>
+  <data name="Supplier:" xml:space="preserve">
+    <value>Supplier:</value>
+  </data>
+  <data name="Suppliers" xml:space="preserve">
+    <value>Suppliers</value>
+  </data>
+  <data name="Supported formats: CSV, Excel (.xlsx), Word (.docx) — file must contain meal names and prices" xml:space="preserve">
+    <value>Supported formats: CSV, Excel (.xlsx), Word (.docx) — file must contain meal names and prices</value>
+  </data>
+  <data name="tab." xml:space="preserve">
+    <value>tab.</value>
+  </data>
+  <data name="The company portion is given once per day (menu date), regardless of how many meals or from which suppliers were ordered. It goes to the most expensive meal of the day. Cancelled orders are not counted." xml:space="preserve">
+    <value>The company portion is given once per day (menu date), regardless of how many meals or from which suppliers were ordered. It goes to the most expensive meal of the day. Cancelled orders are not counted.</value>
+  </data>
+  <data name="The menu is not finalized yet; the order cannot be paid." xml:space="preserve">
+    <value>The menu is not finalized yet; the order cannot be paid.</value>
+  </data>
+  <data name="The report could not be loaded. Please try again." xml:space="preserve">
+    <value>The report could not be loaded. Please try again.</value>
+  </data>
+  <data name="The report could not be loaded. The menu may not exist or you may not have access to it." xml:space="preserve">
+    <value>The report could not be loaded. The menu may not exist or you may not have access to it.</value>
+  </data>
+  <data name="The report period is missing. Open the report from the Payments summary page." xml:space="preserve">
+    <value>The report period is missing. Open the report from the Payments summary page.</value>
+  </data>
+  <data name="The {0} field is required." xml:space="preserve">
+    <value>The {0} field is required.</value>
+  </data>
+  <data name="This menu has expired." xml:space="preserve">
+    <value>This menu has expired.</value>
+  </data>
+  <data name="to access the ordering system." xml:space="preserve">
+    <value>to access the ordering system.</value>
+  </data>
+  <data name="Today + Future" xml:space="preserve">
+    <value>Today + Future</value>
+  </data>
+  <data name="Today's Active Menus" xml:space="preserve">
+    <value>Today's Active Menus</value>
+  </data>
+  <data name="Too many failed attempts. The account is locked for 15 minutes." xml:space="preserve">
+    <value>Too many failed attempts. The account is locked for 15 minutes.</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Total after portion:" xml:space="preserve">
+    <value>Total after portion:</value>
+  </data>
+  <data name="Total Amount:" xml:space="preserve">
+    <value>Total Amount:</value>
+  </data>
+  <data name="Total Due" xml:space="preserve">
+    <value>Total Due</value>
+  </data>
+  <data name="Total due {0}:" xml:space="preserve">
+    <value>Total due {0}:</value>
+  </data>
+  <data name="Total Due:" xml:space="preserve">
+    <value>Total Due:</value>
+  </data>
+  <data name="Total Orders" xml:space="preserve">
+    <value>Total Orders</value>
+  </data>
+  <data name="Total Orders:" xml:space="preserve">
+    <value>Total Orders:</value>
+  </data>
+  <data name="Total outstanding:" xml:space="preserve">
+    <value>Total outstanding:</value>
+  </data>
+  <data name="Total Paid Amount" xml:space="preserve">
+    <value>Total Paid Amount</value>
+  </data>
+  <data name="Total portion:" xml:space="preserve">
+    <value>Total portion:</value>
+  </data>
+  <data name="Total Unpaid Amount" xml:space="preserve">
+    <value>Total Unpaid Amount</value>
+  </data>
+  <data name="Total:" xml:space="preserve">
+    <value>Total:</value>
+  </data>
+  <data name="Total: {0:C}" xml:space="preserve">
+    <value>Total: {0:C}</value>
+  </data>
+  <data name="Unexpected error while deleting menu." xml:space="preserve">
+    <value>Unexpected error while deleting menu.</value>
+  </data>
+  <data name="Unexpected error while finalizing menu." xml:space="preserve">
+    <value>Unexpected error while finalizing menu.</value>
+  </data>
+  <data name="Unexpected error while loading the report." xml:space="preserve">
+    <value>Unexpected error while loading the report.</value>
+  </data>
+  <data name="Unexpected error while updating ActiveUntil." xml:space="preserve">
+    <value>Unexpected error while updating ActiveUntil.</value>
+  </data>
+  <data name="Unknown supplier" xml:space="preserve">
+    <value>Unknown supplier</value>
+  </data>
+  <data name="Unpaid" xml:space="preserve">
+    <value>Unpaid</value>
+  </data>
+  <data name="Unpaid ({0})" xml:space="preserve">
+    <value>Unpaid ({0})</value>
+  </data>
+  <data name="Unpaid in this list:" xml:space="preserve">
+    <value>Unpaid in this list:</value>
+  </data>
+  <data name="Unpaid Orders" xml:space="preserve">
+    <value>Unpaid Orders</value>
+  </data>
+  <data name="Unpaid orders:" xml:space="preserve">
+    <value>Unpaid orders:</value>
+  </data>
+  <data name="up to {0:dd.MM.yyyy}" xml:space="preserve">
+    <value>up to {0:dd.MM.yyyy}</value>
+  </data>
+  <data name="Update Supplier" xml:space="preserve">
+    <value>Update Supplier</value>
+  </data>
+  <data name="Updating..." xml:space="preserve">
+    <value>Updating...</value>
+  </data>
+  <data name="Upload Menu" xml:space="preserve">
+    <value>Upload Menu</value>
+  </data>
+  <data name="Upload Menu (CSV)" xml:space="preserve">
+    <value>Upload Menu (CSV)</value>
+  </data>
+  <data name="Upload Successful!" xml:space="preserve">
+    <value>Upload Successful!</value>
+  </data>
+  <data name="Uploading..." xml:space="preserve">
+    <value>Uploading...</value>
+  </data>
+  <data name="Use your username to log in." xml:space="preserve">
+    <value>Use your username to log in.</value>
+  </data>
+  <data name="User Management" xml:space="preserve">
+    <value>User Management</value>
+  </data>
+  <data name="Username" xml:space="preserve">
+    <value>Username</value>
+  </data>
+  <data name="VAT Number" xml:space="preserve">
+    <value>VAT Number</value>
+  </data>
+  <data name="View and track your order history" xml:space="preserve">
+    <value>View and track your order history</value>
+  </data>
+  <data name="View details" xml:space="preserve">
+    <value>View details</value>
+  </data>
+  <data name="Yes, send me reminders" xml:space="preserve">
+    <value>Yes, send me reminders</value>
+  </data>
+  <data name="You must be signed in to view your orders." xml:space="preserve">
+    <value>You must be signed in to view your orders.</value>
+  </data>
+  <data name="Your current password is temporary. Please set a new password to continue." xml:space="preserve">
+    <value>Your current password is temporary. Please set a new password to continue.</value>
+  </data>
+  <data name="Your Orders" xml:space="preserve">
+    <value>Your Orders</value>
+  </data>
+  <data name="{0} items" xml:space="preserve">
+    <value>{0} items</value>
+  </data>
+  <data name="{0} meal(s)" xml:space="preserve">
+    <value>{0} meal(s)</value>
+  </data>
+  <data name="{0} meals" xml:space="preserve">
+    <value>{0} meals</value>
+  </data>
+  <data name="{0} obligations marked as paid. Total: {1}" xml:space="preserve">
+    <value>{0} obligations marked as paid. Total: {1}</value>
+  </data>
+  <data name="{0} unpaid other obligations - paid separately" xml:space="preserve">
+    <value>{0} unpaid other obligations - paid separately</value>
+  </data>
+  <data name="{0}: {1} orders marked as paid. Total: {2}" xml:space="preserve">
+    <value>{0}: {1} orders marked as paid. Total: {2}</value>
+  </data>
+  <data name="{0}h {1}m left" xml:space="preserve">
+    <value>{0}h {1}m left</value>
+  </data>
+  <data name="{0}m left" xml:space="preserve">
+    <value>{0}m left</value>
+  </data>
+  <data name="{0}s left" xml:space="preserve">
+    <value>{0}s left</value>
+  </data>
+</root>

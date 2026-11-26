@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using Bunit;
 using Bunit.TestDoubles;
 using Microsoft.AspNetCore.Components;
@@ -11,7 +13,7 @@ using WebApp.Services.Suppliers;
 
 namespace ChemEats.Tests.WebApp.Pages.Suppliers;
 
-public class GetSuppliersPageTests : TestContext
+public class GetSuppliersPageTests : LocalizedTestContext
 {
     [Fact]
     public void GetSuppliers_WhenAuthorizedAdminAndDataExists_ShouldRenderSuppliersTable()

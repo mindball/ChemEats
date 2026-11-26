@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
@@ -9,7 +11,7 @@ using WebApp.Services.Orders;
 
 namespace ChemEats.Tests.WebApp.Pages.AdminPanel;
 
-public class AdminPaymentsSummaryPageTests : TestContext
+public class AdminPaymentsSummaryPageTests : LocalizedTestContext
 {
     [Fact]
     public void AdminPaymentsSummary_WhenSummariesLoaded_ShouldRenderEmployeeRowsAndGrandTotal()

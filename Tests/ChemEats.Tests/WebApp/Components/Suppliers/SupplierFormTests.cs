@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using Bunit;
 using AngleSharp.Dom;
 using Microsoft.AspNetCore.Components;
@@ -8,7 +10,7 @@ using WebApp.Components.Suppliers;
 
 namespace ChemEats.Tests.WebApp.Components.Suppliers;
 
-public class SupplierFormTests : TestContext
+public class SupplierFormTests : LocalizedTestContext
 {
     [Fact]
     public void SupplierForm_ShouldRenderSupplierFieldsAndSupervisorOptions()

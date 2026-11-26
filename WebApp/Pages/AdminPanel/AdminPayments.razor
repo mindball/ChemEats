@@ -6,19 +6,19 @@
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="mb-0" style="color: #003d61;"><i class="bi bi-cash-coin me-2"></i>Payments</h3>
+        <h3 class="mb-0" style="color: #003d61;"><i class="bi bi-cash-coin me-2"></i>@L["Payments"]</h3>
         <ul class="nav nav-pills">
             <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="admin/payments"><i class="bi bi-person me-1"></i>By Employee</a>
+                <a class="nav-link active" aria-current="page" href="admin/payments"><i class="bi bi-person me-1"></i>@L["By Employee"]</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="admin/payments/summary"><i class="bi bi-people me-1"></i>Outstanding Summary</a>
+                <a class="nav-link" href="admin/payments/summary"><i class="bi bi-people me-1"></i>@L["Outstanding Summary"]</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="admin/payments/obligations"><i class="bi bi-bag me-1"></i>Other Obligations</a>
+                <a class="nav-link" href="admin/payments/obligations"><i class="bi bi-bag me-1"></i>@L["Other Obligations"]</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="admin/payments/obligation-types"><i class="bi bi-tags me-1"></i>Expense Types</a>
+                <a class="nav-link" href="admin/payments/obligation-types"><i class="bi bi-tags me-1"></i>@L["Expense Types"]</a>
             </li>
         </ul>
     </div>
@@ -27,7 +27,7 @@
     {
         <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
             <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
+                <span class="visually-hidden">@L["Loading..."]</span>
             </div>
         </div>
     }
@@ -36,20 +36,20 @@
         <div class="card mb-4">
             <div class="card-body">
                 <h5 class="card-title mb-3">
-                    <i class="bi bi-funnel me-2"></i>Search Filters
+                    <i class="bi bi-funnel me-2"></i>@L["Search Filters"]
                 </h5>
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">
-                            <i class="bi bi-person me-1"></i>Employee
+                            <i class="bi bi-person me-1"></i>@L["Employee"]
                         </label>
                         <input type="text" 
                                class="form-control mb-2" 
-                               placeholder="Search employee..."
+                               placeholder="@L["Search employee..."]"
                                @bind="SearchTerm"
                                @bind:event="oninput" />
                         <select class="form-select" @bind="SelectedUserId" size="5">
-                            <option value="">-- Select employee --</option>
+                            <option value="">@L["-- Select employee --"]</option>
                             @foreach (EmployeeDto emp in FilteredEmployees)
                             {
                                 <option value="@emp.UserId">
@@ -61,18 +61,18 @@
 
                     <div class="col-md-3">
                         <label class="form-label fw-semibold">
-                            <i class="bi bi-calendar-range me-1"></i>Menu date from
+                            <i class="bi bi-calendar-range me-1"></i>@L["Menu date from"]
                         </label>
                         <input type="date" class="form-control" @bind="StartDate" disabled="@AllDates" />
                         <div class="form-check mt-2">
                             <input type="checkbox" class="form-check-input" id="allDates" @bind="AllDates" />
-                            <label class="form-check-label" for="allDates">All unpaid (ignore dates)</label>
+                            <label class="form-check-label" for="allDates">@L["All unpaid (ignore dates)"]</label>
                         </div>
                     </div>
 
                     <div class="col-md-3">
                         <label class="form-label fw-semibold">
-                            <i class="bi bi-calendar-check me-1"></i>Menu date to
+                            <i class="bi bi-calendar-check me-1"></i>@L["Menu date to"]
                         </label>
                         <input type="date" class="form-control" @bind="EndDate" disabled="@AllDates" />
                     </div>
@@ -83,7 +83,7 @@
                             {
                                 <span class="spinner-border spinner-border-sm me-2" role="status"></span>
                             }
-                            <i class="bi bi-search me-2"></i>Search
+                            <i class="bi bi-search me-2"></i>@L["Search"]
                         </button>
                     </div>
                 </div>
@@ -113,8 +113,7 @@
                 <div class="alert alert-warning d-flex align-items-center" role="alert">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
                     <span>
-                        <strong>@EarlierUnpaidCount</strong> unpaid orders before @LoadedStartDate.Value.ToString("dd.MM.yyyy"),
-                        total <strong>@FormatEuro(EarlierNetAmount)</strong>. They are included in "Pay all".
+                        @((MarkupString)L["<strong>{0}</strong> unpaid orders before {1:dd.MM.yyyy}, total <strong>{2}</strong>. They are included in \"Pay all\".", EarlierUnpaidCount, LoadedStartDate.Value, FormatEuro(EarlierNetAmount)].Value)
                     </span>
                 </div>
             }
@@ -124,14 +123,14 @@
                 <div class="card mb-3 border-success">
                     <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-2">
                         <div>
-                            <span class="fw-semibold">Total due @PayAllScopeText:</span>
+                            <span class="fw-semibold">@L["Total due {0}:", PayAllScopeText]</span>
                             <span class="fw-bold text-danger fs-5 ms-1">@FormatEuro(TotalDueUpToEnd)</span>
-                            <span class="text-muted ms-1">(@UnpaidUpToEndCount orders)</span>
+                            <span class="text-muted ms-1">@L["({0} orders)", UnpaidUpToEndCount]</span>
                         </div>
                         <button class="btn btn-success pay-all-button"
                                 @onclick="PayAllUnpaidAsync"
                                 disabled="@IsProcessing">
-                            <i class="bi bi-cash-stack me-2"></i>Pay all unpaid @PayAllScopeText
+                            <i class="bi bi-cash-stack me-2"></i>@L["Pay all unpaid {0}", PayAllScopeText]
                         </button>
                     </div>
                 </div>
@@ -144,7 +143,7 @@
                             <div class="card bg-light">
                                 <div class="card-body text-center p-2">
                                     <div class="fw-bold text-primary fs-5">@TotalOrders</div>
-                                    <small class="text-muted">Total Orders</small>
+                                    <small class="text-muted">@L["Total Orders"]</small>
                                 </div>
                             </div>
                         </div>
@@ -152,7 +151,7 @@
                             <div class="card bg-success bg-opacity-10">
                                 <div class="card-body text-center p-2">
                                     <div class="fw-bold text-success fs-5">@PaidOrders</div>
-                                    <small class="text-muted">Paid</small>
+                                    <small class="text-muted">@L["Paid"]</small>
                                 </div>
                             </div>
                         </div>
@@ -160,7 +159,7 @@
                             <div class="card bg-danger bg-opacity-10">
                                 <div class="card-body text-center p-2">
                                     <div class="fw-bold text-danger fs-5">@UnpaidOrders</div>
-                                    <small class="text-muted">Unpaid</small>
+                                    <small class="text-muted">@L["Unpaid"]</small>
                                 </div>
                             </div>
                         </div>
@@ -169,7 +168,7 @@
                                 <div class="card-body text-center p-2">
                                     <div class="fw-bold text-success fs-5">@FormatEuro(TotalPaid)
                                     </div>
-                                    <small class="text-muted">Total Paid Amount</small>
+                                    <small class="text-muted">@L["Total Paid Amount"]</small>
                                 </div>
                             </div>
                         </div>
@@ -178,7 +177,7 @@
                                 <div class="card-body text-center p-2">
                                     <div class="fw-bold text-danger fs-5">@FormatEuro(TotalUnpaid)
                                     </div>
-                                    <small class="text-muted">Total Unpaid Amount</small>
+                                    <small class="text-muted">@L["Total Unpaid Amount"]</small>
                                 </div>
                             </div>
                         </div>
@@ -186,23 +185,23 @@
 
                     <div class="mt-3">
                         <label class="form-label fw-semibold">
-                            <i class="bi bi-funnel me-1"></i>Filter by Payment Status
+                            <i class="bi bi-funnel me-1"></i>@L["Filter by Payment Status"]
                         </label>
                         <div class="btn-group w-100" role="group">
                                 <input type="radio" class="btn-check" name="paymentStatus" id="statusAll" value="All"
                                    checked="@(PaymentStatusFilter == "All")"
                                    @onchange="@(() => PaymentStatusFilter = "All")" />
-                            <label class="btn btn-outline-primary" for="statusAll">All (@TotalOrders)</label>
+                            <label class="btn btn-outline-primary" for="statusAll">@L["All ({0})", TotalOrders]</label>
 
                             <input type="radio" class="btn-check" name="paymentStatus" id="statusUnpaid" value="Unpaid"
                                    checked="@(PaymentStatusFilter == "Unpaid")"
                                    @onchange="@(() => PaymentStatusFilter = "Unpaid")" />
-                            <label class="btn btn-outline-danger" for="statusUnpaid">Unpaid (@UnpaidOrders)</label>
+                            <label class="btn btn-outline-danger" for="statusUnpaid">@L["Unpaid ({0})", UnpaidOrders]</label>
 
                             <input type="radio" class="btn-check" name="paymentStatus" id="statusPaid" value="Paid"
                                    checked="@(PaymentStatusFilter == "Paid")"
                                    @onchange="@(() => PaymentStatusFilter = "Paid")" />
-                            <label class="btn btn-outline-success" for="statusPaid">Paid (@PaidOrders)</label>
+                            <label class="btn btn-outline-success" for="statusPaid">@L["Paid ({0})", PaidOrders]</label>
                         </div>
                     </div>
                 </div>
@@ -214,14 +213,14 @@
                     <div class="card-header bg-white">
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="fw-semibold">
-                                <i class="bi bi-list-check me-2"></i>Orders (@FilteredOrders.Count)
+                                <i class="bi bi-list-check me-2"></i>@L["Orders ({0})", FilteredOrders.Count]
                             </span>
                             <div class="d-flex gap-2 align-items-center">
                                 <button class="btn btn-sm btn-outline-primary" @onclick="SelectAll">
-                                    <i class="bi bi-check-all me-1"></i>Select All Unpaid
+                                    <i class="bi bi-check-all me-1"></i>@L["Select All Unpaid"]
                                 </button>
                                 <button class="btn btn-sm btn-outline-secondary" @onclick="DeselectAll">
-                                    <i class="bi bi-x-lg me-1"></i>Deselect All
+                                    <i class="bi bi-x-lg me-1"></i>@L["Deselect All"]
                                 </button>
                             </div>
                         </div>
@@ -236,14 +235,14 @@
                                                checked="@IsAllUnpaidSelected"
                                                @onchange="@(e => ToggleSelectAll(e.Value is true))" />
                                     </th>
-                                    <th><i class="bi bi-egg-fried me-1"></i>Meal</th>
-                                    <th><i class="bi bi-shop me-1"></i>Supplier</th>
-                                    <th><i class="bi bi-calendar-event me-1"></i>Menu Date</th>
-                                    <th><i class="bi bi-clock me-1"></i>Ordered At</th>
-                                    <th class="text-end"><i class="bi bi-tag me-1"></i>Price</th>
-                                    <th class="text-end"><i class="bi bi-percent me-1"></i>Portion</th>
-                                    <th class="text-end"><i class="bi bi-cash me-1"></i>Net</th>
-                                    <th class="text-center"><i class="bi bi-credit-card me-1"></i>Status</th>
+                                    <th><i class="bi bi-egg-fried me-1"></i>@L["Meal"]</th>
+                                    <th><i class="bi bi-shop me-1"></i>@L["Supplier"]</th>
+                                    <th><i class="bi bi-calendar-event me-1"></i>@L["Menu Date"]</th>
+                                    <th><i class="bi bi-clock me-1"></i>@L["Ordered At"]</th>
+                                    <th class="text-end"><i class="bi bi-tag me-1"></i>@L["Price"]</th>
+                                    <th class="text-end"><i class="bi bi-percent me-1"></i>@L["Portion"]</th>
+                                    <th class="text-end"><i class="bi bi-cash me-1"></i>@L["Net"]</th>
+                                    <th class="text-center"><i class="bi bi-credit-card me-1"></i>@L["Status"]</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -291,26 +290,26 @@
                                                     }
                                                     @if (!string.IsNullOrEmpty(item.PaidByName))
                                                     {
-                                                        <small class="d-block paid-by">by @item.PaidByName</small>
+                                                        <small class="d-block paid-by">@L["by {0}", item.PaidByName]</small>
                                                     }
                                                 </span>
                                             }
                                             else if (item.IsCancelled)
                                             {
                                                 <span class="badge bg-secondary">
-                                                    <i class="bi bi-x-circle me-1"></i>Cancelled
+                                                    <i class="bi bi-x-circle me-1"></i>@L["Cancelled"]
                                                 </span>
                                             }
                                             else if (!item.IsCompleted)
                                             {
-                                                <span class="badge bg-warning text-dark" title="The menu is not finalized yet; the order cannot be paid.">
-                                                    <i class="bi bi-hourglass-split me-1"></i>Pending
+                                                <span class="badge bg-warning text-dark" title="@L["The menu is not finalized yet; the order cannot be paid."]">
+                                                    <i class="bi bi-hourglass-split me-1"></i>@L["Pending"]
                                                 </span>
                                             }
                                             else
                                             {
                                                 <span class="badge bg-danger">
-                                                    <i class="bi bi-exclamation-circle me-1"></i>Unpaid
+                                                    <i class="bi bi-exclamation-circle me-1"></i>@L["Unpaid"]
                                                 </span>
                                             }
                                         </td>
@@ -323,17 +322,17 @@
                     <div class="card-footer bg-light">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <span class="fw-semibold">Selected:</span>
+                                <span class="fw-semibold">@L["Selected:"]</span>
                                 <span class="badge bg-primary rounded-pill ms-1">@SelectedOrderIds.Count</span>
                                 <span class="mx-2">|</span>
-                                <span class="fw-bold">Subtotal:</span>
+                                <span class="fw-bold">@L["Subtotal:"]</span>
                                 <span class="fw-bold ms-1">@FormatEuro(SelectedTotal)</span>
                                 @if (EstimatedPortionDeduction > 0)
                                 {
-                                    <span class="mx-1 text-success">- @FormatEuro(EstimatedPortionDeduction) portion</span>
+                                    <span class="mx-1 text-success">@L["- {0} portion", FormatEuro(EstimatedPortionDeduction)]</span>
                                 }
                                 <span class="mx-2">|</span>
-                                <span class="fw-bold">Net total:</span>
+                                <span class="fw-bold">@L["Net total:"]</span>
                                 <span class="fw-bold text-primary fs-5 ms-1">@FormatEuro(EstimatedNetTotal)</span>
                             </div>
                             <button class="btn btn-success px-4" 
@@ -342,19 +341,19 @@
                                 @if (IsProcessing)
                                 {
                                     <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                                    <span>Processing...</span>
+                                    <span>@L["Processing..."]</span>
                                 }
                                 else
                                 {
                                     <i class="bi bi-check-circle me-2"></i>
-                                    <span>Mark as Paid</span>
+                                    <span>@L["Mark as Paid"]</span>
                                 }
                             </button>
                         </div>
                         @if (PortionAmount > 0)
                         {
                             <div class="mt-2 small text-muted">
-                                <i class="bi bi-info-circle me-1"></i>Company portion: @FormatEuro(PortionAmount)/day (applied once per day at payment)
+                                <i class="bi bi-info-circle me-1"></i>@L["Company portion: {0}/day (applied once per day at payment)", FormatEuro(PortionAmount)]
                             </div>
                         }
                     </div>
@@ -363,7 +362,7 @@
             else
             {
                 <div class="alert alert-info">
-                    <i class="bi bi-info-circle me-2"></i>No orders match the selected filters.
+                    <i class="bi bi-info-circle me-2"></i>@L["No orders match the selected filters."]
                 </div>
             }
         }

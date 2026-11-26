@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using System.Globalization;
 using WebApp;
+using WebApp.Infrastructure.Localization;
 using WebApp.Infrastructure.States;
 using WebApp.Services.Employees;
 using WebApp.Services.Menus;
@@ -37,6 +38,8 @@ builder.Services.AddScoped(sp => new HttpClient
 });
 
 // Това е нужно за AuthorizeView
+builder.Services.AddLocalization();
+
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddAuthorizationCore();
 
@@ -45,13 +48,8 @@ builder.Services.AddScoped<CustomAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(provider =>
     provider.GetRequiredService<CustomAuthStateProvider>());
 
-// Настройка на култура
-var bgCulture = new CultureInfo("bg-BG");
-var bgEuro = (CultureInfo)bgCulture.Clone();
-bgEuro.NumberFormat = (NumberFormatInfo)bgCulture.NumberFormat.Clone();
-bgEuro.NumberFormat.CurrencySymbol = "€";
+// Formatting is always bg-BG with EUR; the UI language (resx) comes from the user choice
+WebAssemblyHost host = builder.Build();
+await AppCulture.ApplyAsync(host.Services.GetRequiredService<Microsoft.JSInterop.IJSRuntime>());
 
-CultureInfo.DefaultThreadCurrentCulture = bgEuro;
-CultureInfo.DefaultThreadCurrentUICulture = bgEuro;
-
-await builder.Build().RunAsync();
+await host.RunAsync();

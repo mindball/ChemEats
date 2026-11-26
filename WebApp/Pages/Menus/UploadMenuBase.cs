@@ -6,10 +6,11 @@ using Shared.DTOs.Menus;
 using Shared.DTOs.Suppliers;
 using WebApp.Services.Menus;
 using WebApp.Services.Suppliers;
+using WebApp.Infrastructure.Localization;
 
 namespace WebApp.Pages.Menus;
 
-public class UploadMenuBase : ComponentBase
+public class UploadMenuBase : LocalizedComponentBase
 {
     [Inject] protected IMenuDataService MenuService { get; set; } = null!;
     [Inject] protected ISupplierDataService SupplierService { get; set; } = null!;
@@ -27,7 +28,7 @@ public class UploadMenuBase : ComponentBase
         {
             if (value.Date <= DateTime.Today)
             {
-                ErrorMessage = "Menu date must be in the future.";
+                ErrorMessage = L["Menu date must be in the future."];
                 _selectedDate = DateTime.Today.AddDays(1);
             }
             else
@@ -104,7 +105,7 @@ public class UploadMenuBase : ComponentBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to load suppliers: {ex.Message}";
+            ErrorMessage = L["Failed to load suppliers: {0}", ex.Message];
         }
         finally
         {
@@ -135,16 +136,16 @@ public class UploadMenuBase : ComponentBase
 
             if (meals.Count == 0)
             {
-                ErrorMessage = "No meals found in the uploaded file.";
+                ErrorMessage = L["No meals found in the uploaded file."];
                 return;
             }
 
             ParsedMeals = meals;
-            SuccessMessage = $"Successfully parsed {ParsedMeals.Count} meal(s) from file.";
+            SuccessMessage = L["Successfully parsed {0} meal(s) from file.", ParsedMeals.Count];
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to parse file: {ex.Message}";
+            ErrorMessage = L["Failed to parse file: {0}", ex.Message];
             ParsedMeals.Clear();
         }
         finally
@@ -176,25 +177,25 @@ public class UploadMenuBase : ComponentBase
 
             if (SelectedSupplierId == Guid.Empty)
             {
-                ErrorMessage = "Please select a supplier.";
+                ErrorMessage = L["Please select a supplier."];
                 return;
             }
 
             if (!ParsedMeals.Any())
             {
-                ErrorMessage = "Please upload a file with meals.";
+                ErrorMessage = L["Please upload a file with meals."];
                 return;
             }
 
             if (ParsedMeals.Any(m => string.IsNullOrWhiteSpace(m.Name)))
             {
-                ErrorMessage = "All meals must have a name.";
+                ErrorMessage = L["All meals must have a name."];
                 return;
             }
 
             if (ParsedMeals.Any(m => m.Price <= 0))
             {
-                ErrorMessage = "All meals must have a price greater than 0.";
+                ErrorMessage = L["All meals must have a price greater than 0."];
                 return;
             }
 
@@ -203,13 +204,13 @@ public class UploadMenuBase : ComponentBase
 
             if (ActiveUntilTime < minTime || ActiveUntilTime > maxTime)
             {
-                ErrorMessage = $"Active Until time must be between {minTime:HH:mm} and {maxTime:HH:mm}.";
+                ErrorMessage = L["Active Until time must be between {0:HH:mm} and {1:HH:mm}.", minTime, maxTime];
                 return;
             }
 
             if (ActiveUntil <= DateTime.Now)
             {
-                ErrorMessage = "Active Until time must be in the future.";
+                ErrorMessage = L["Active Until time must be in the future."];
                 return;
             }
 
@@ -224,7 +225,7 @@ public class UploadMenuBase : ComponentBase
 
             if (result is not null)
             {
-                SuccessMessage = $"Menu uploaded successfully! {ParsedMeals.Count} meal(s) added. Active until {result.ActiveUntil:dd.MM.yyyy HH:mm}";
+                SuccessMessage = L["Menu uploaded successfully! {0} meal(s) added. Active until {1:dd.MM.yyyy HH:mm}", ParsedMeals.Count, result.ActiveUntil];
                 ResetForm();
 
                 IsRedirecting = true;

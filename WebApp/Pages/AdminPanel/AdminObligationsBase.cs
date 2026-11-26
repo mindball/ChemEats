@@ -6,10 +6,11 @@ using Shared.DTOs.Employees;
 using Shared.DTOs.Obligations;
 using WebApp.Services.Employees;
 using WebApp.Services.Obligations;
+using WebApp.Infrastructure.Localization;
 
 namespace WebApp.Pages.AdminPanel;
 
-public class AdminObligationsBase : ComponentBase
+public class AdminObligationsBase : LocalizedComponentBase
 {
     public const string BasePageUrl = "/admin/payments/obligations";
 
@@ -82,7 +83,7 @@ public class AdminObligationsBase : ComponentBase
     protected decimal SelectedTotal => Obligations?.Where(o => SelectedIds.Contains(o.Id)).Sum(o => o.Amount) ?? 0m;
 
     protected string PayAllScopeText =>
-        LoadedAllDates || !LoadedEndDate.HasValue ? "regardless of date" : $"up to {LoadedEndDate:dd.MM.yyyy}";
+        LoadedAllDates || !LoadedEndDate.HasValue ? L["regardless of date"] : L["up to {0:dd.MM.yyyy}", LoadedEndDate.GetValueOrDefault()];
 
     protected override async Task OnInitializedAsync()
     {
@@ -95,7 +96,7 @@ public class AdminObligationsBase : ComponentBase
 
             List<ObligationTypeDto>? types = await ObligationTypeDataService.GetObligationTypesAsync();
             if (types is null)
-                ErrorMessage = "Failed to load the expense types.";
+                ErrorMessage = L["Failed to load the expense types."];
             ObligationTypes = types ?? [];
 
             // Default: current month
@@ -105,7 +106,7 @@ public class AdminObligationsBase : ComponentBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to load employees: {ex.Message}";
+            ErrorMessage = L["Failed to load employees: {0}", ex.Message];
         }
         finally
         {
@@ -168,13 +169,13 @@ public class AdminObligationsBase : ComponentBase
     {
         if (string.IsNullOrWhiteSpace(SelectedUserId))
         {
-            ErrorMessage = "Please select an employee.";
+            ErrorMessage = L["Please select an employee."];
             return;
         }
 
         if (!AllDates && StartDate.HasValue && EndDate.HasValue && EndDate.Value.Date < StartDate.Value.Date)
         {
-            ErrorMessage = "End date cannot be before start date.";
+            ErrorMessage = L["End date cannot be before start date."];
             return;
         }
 
@@ -191,7 +192,7 @@ public class AdminObligationsBase : ComponentBase
 
             if (obligations is null)
             {
-                ErrorMessage = "Failed to load the obligations. Please try again.";
+                ErrorMessage = L["Failed to load the obligations. Please try again."];
                 return;
             }
 
@@ -202,7 +203,7 @@ public class AdminObligationsBase : ComponentBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to load the obligations: {ex.Message}";
+            ErrorMessage = L["Failed to load the obligations: {0}", ex.Message];
         }
         finally
         {
@@ -233,16 +234,16 @@ public class AdminObligationsBase : ComponentBase
     protected string? ValidateForm()
     {
         if (!FormTypeId.HasValue || ObligationTypes.All(t => t.Id != FormTypeId.Value))
-            return "Please select an expense type.";
+            return L["Please select an expense type."];
 
         if (!FormAmount.HasValue || FormAmount.Value <= 0m)
-            return "Amount must be greater than zero.";
+            return L["Amount must be greater than zero."];
 
         if (decimal.Round(FormAmount.Value, 2) != FormAmount.Value)
-            return "Amount cannot have more than two decimal places.";
+            return L["Amount cannot have more than two decimal places."];
 
         if (!FormDate.HasValue)
-            return "Date is required.";
+            return L["Date is required."];
 
         return null;
     }
@@ -275,20 +276,20 @@ public class AdminObligationsBase : ComponentBase
 
             if (saved is null)
             {
-                ErrorMessage = "Failed to save the obligation. Paid obligations cannot be changed.";
+                ErrorMessage = L["Failed to save the obligation. Paid obligations cannot be changed."];
                 return;
             }
 
             SuccessMessage = EditingId.HasValue
-                ? $"Obligation \"{saved.Description}\" updated."
-                : $"Obligation \"{saved.Description}\" ({FormatEuro(saved.Amount)}) added for {LoadedEmployeeName}.";
+                ? L["Obligation \"{0}\" updated.", saved.Description]
+                : L["Obligation \"{0}\" ({1}) added for {2}.", saved.Description, FormatEuro(saved.Amount), LoadedEmployeeName];
 
             ResetForm();
             await LoadObligationsAsync();
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to save the obligation: {ex.Message}";
+            ErrorMessage = L["Failed to save the obligation: {0}", ex.Message];
         }
         finally
         {
@@ -303,7 +304,7 @@ public class AdminObligationsBase : ComponentBase
 
         bool confirmed = await JsRuntime.InvokeAsync<bool>(
             "confirm",
-            $"Delete the obligation \"{obligation.Description}\" ({FormatEuro(obligation.Amount)})?");
+            L["Delete the obligation \"{0}\" ({1})?", obligation.Description, FormatEuro(obligation.Amount)].Value);
 
         if (!confirmed)
             return;
@@ -317,11 +318,11 @@ public class AdminObligationsBase : ComponentBase
             bool deleted = await ObligationDataService.DeleteObligationAsync(obligation.Id);
             if (!deleted)
             {
-                ErrorMessage = "Failed to delete the obligation. Paid obligations cannot be deleted.";
+                ErrorMessage = L["Failed to delete the obligation. Paid obligations cannot be deleted."];
                 return;
             }
 
-            SuccessMessage = $"Obligation \"{obligation.Description}\" deleted.";
+            SuccessMessage = L["Obligation \"{0}\" deleted.", obligation.Description];
             if (EditingId == obligation.Id)
                 ResetForm();
 
@@ -329,7 +330,7 @@ public class AdminObligationsBase : ComponentBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to delete the obligation: {ex.Message}";
+            ErrorMessage = L["Failed to delete the obligation: {0}", ex.Message];
         }
         finally
         {
@@ -361,16 +362,16 @@ public class AdminObligationsBase : ComponentBase
 
             if (result is null)
             {
-                ErrorMessage = "Failed to process the payment. Please try again.";
+                ErrorMessage = L["Failed to process the payment. Please try again."];
                 return;
             }
 
-            SuccessMessage = $"{result.PaidCount} obligations marked as paid. Total: {FormatEuro(result.TotalPaid)}";
+            SuccessMessage = L["{0} obligations marked as paid. Total: {1}", result.PaidCount, FormatEuro(result.TotalPaid)];
             await LoadObligationsAsync();
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Payment processing failed: {ex.Message}";
+            ErrorMessage = L["Payment processing failed: {0}", ex.Message];
         }
         finally
         {
@@ -385,7 +386,7 @@ public class AdminObligationsBase : ComponentBase
 
         bool confirmed = await JsRuntime.InvokeAsync<bool>(
             "confirm",
-            $"Mark all unpaid obligations of {LoadedEmployeeName} {PayAllScopeText} as paid?");
+            L["Mark all unpaid obligations of {0} {1} as paid?", LoadedEmployeeName, PayAllScopeText].Value);
 
         if (!confirmed)
             return;
@@ -401,16 +402,16 @@ public class AdminObligationsBase : ComponentBase
 
             if (result is null)
             {
-                ErrorMessage = "Failed to process the payment. Please try again.";
+                ErrorMessage = L["Failed to process the payment. Please try again."];
                 return;
             }
 
-            SuccessMessage = $"{result.PaidCount} obligations marked as paid. Total: {FormatEuro(result.TotalPaid)}";
+            SuccessMessage = L["{0} obligations marked as paid. Total: {1}", result.PaidCount, FormatEuro(result.TotalPaid)];
             await LoadObligationsAsync();
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Payment processing failed: {ex.Message}";
+            ErrorMessage = L["Payment processing failed: {0}", ex.Message];
         }
         finally
         {

@@ -2,9 +2,9 @@
     <div class="container-fluid">
         <a class="navbar-brand d-flex align-items-center" href="">
             <img src="https://www.cpachem.com/_custom/_cpachem.com/images/logo-a.png" alt="CPAChem" style="height: 28px;" class="me-2" />
-            @* <span>ChemEats</span> *@
+            @* <span>@L["ChemEats"]</span> *@
         </a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+        <button title="@L["Navigation menu"]" class="navbar-toggler" @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
     </div>
@@ -15,7 +15,7 @@
         <!-- Always visible -->
         <div class="nav-item px-3">
             <NavLink class="nav-link d-flex align-items-center" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill me-2 d-inline-flex align-items-center"></span> Dashboard
+                <span class="bi bi-house-door-fill me-2 d-inline-flex align-items-center"></span> @L["Dashboard"]
             </NavLink>
         </div>
 
@@ -24,50 +24,50 @@
             <Authorized>
 
                 <div class="nav-item px-3 nav-section-label">
-                    <small class="text-uppercase">Lab Menu</small>
+                    <small class="text-uppercase">@L["Lab Menu"]</small>
                 </div>
 
                 <div class="nav-item px-3">
                     <NavLink class="nav-link d-flex align-items-center" href="menus/view">
-                        <span class="bi bi-journal-text me-2 d-inline-flex align-items-center"></span> Browse Menus
+                        <span class="bi bi-journal-text me-2 d-inline-flex align-items-center"></span> @L["Browse Menus"]
                     </NavLink>
                 </div>
 
                 <div class="nav-item px-3 nav-section-label">
-                    <small class="text-uppercase">Orders</small>
+                    <small class="text-uppercase">@L["Orders"]</small>
                 </div>
 
                 <div class="nav-item px-3">
                     <NavLink class="nav-link d-flex align-items-center" href="menus/order">
-                        <span class="bi bi-cart-fill me-2 d-inline-flex align-items-center"></span> Place Order
+                        <span class="bi bi-cart-fill me-2 d-inline-flex align-items-center"></span> @L["Place Order"]
                     </NavLink>
                 </div>
 
                 <div class="nav-item px-3">
                     <NavLink class="nav-link d-flex align-items-center" href="orders/my">
-                        <span class="bi bi-receipt me-2 d-inline-flex align-items-center"></span> My Orders
+                        <span class="bi bi-receipt me-2 d-inline-flex align-items-center"></span> @L["My Orders"]
                     </NavLink>
                 </div>
 
                 <div class="nav-item px-3">
                     <NavLink class="nav-link d-flex align-items-center" href="orders/obligations">
-                        <span class="bi bi-bag me-2 d-inline-flex align-items-center"></span> My Obligations
+                        <span class="bi bi-bag me-2 d-inline-flex align-items-center"></span> @L["My Obligations"]
                     </NavLink>
                 </div>
 
                 <div class="nav-item px-3 nav-section-label">
-                    <small class="text-uppercase">Control Panel</small>
+                    <small class="text-uppercase">@L["Control Panel"]</small>
                 </div>
 
                 <div class="nav-item px-3">
                     <NavLink class="nav-link d-flex align-items-center" href="account/change-password">
-                        <span class="bi bi-key-fill me-2 d-inline-flex align-items-center"></span> Change Password
+                        <span class="bi bi-key-fill me-2 d-inline-flex align-items-center"></span> @L["Change Password"]
                     </NavLink>
                 </div>
 
                 <div class="nav-item px-3">
                     <NavLink class="nav-link d-flex align-items-center" href="account/notifications">
-                        <span class="bi bi-bell-fill me-2 d-inline-flex align-items-center"></span> Notifications
+                        <span class="bi bi-bell-fill me-2 d-inline-flex align-items-center"></span> @L["Notifications"]
                     </NavLink>
                 </div>
 
@@ -79,18 +79,18 @@
             <Authorized>
 
                 <div class="nav-item px-3 nav-section-label">
-                    <small class="text-uppercase">Management</small>
+                    <small class="text-uppercase">@L["Management"]</small>
                 </div>
 
                 <div class="nav-item px-3">
                     <NavLink class="nav-link d-flex align-items-center" href="upload-menu">
-                        <span class="bi bi-clipboard-plus me-2 d-inline-flex align-items-center"></span> Create Menu
+                        <span class="bi bi-clipboard-plus me-2 d-inline-flex align-items-center"></span> @L["Create Menu"]
                     </NavLink>
                 </div>
 
                 <div class="nav-item px-3">
                     <NavLink class="nav-link d-flex align-items-center" href="get-suppliers">
-                        <span class="bi bi-building me-2 d-inline-flex align-items-center"></span> Suppliers
+                        <span class="bi bi-building me-2 d-inline-flex align-items-center"></span> @L["Suppliers"]
                     </NavLink>
                 </div>
 
@@ -102,24 +102,24 @@
             <Authorized>
 
                 <div class="nav-item px-3 nav-section-label">
-                    <small class="text-uppercase">Administration</small>
+                    <small class="text-uppercase">@L["Administration"]</small>
                 </div>
 
                 <div class="nav-item px-3">
                     <NavLink class="nav-link d-flex align-items-center" href="register-supplier">
-                        <span class="bi bi-plus-circle-fill me-2 d-inline-flex align-items-center"></span> Add Supplier
+                        <span class="bi bi-plus-circle-fill me-2 d-inline-flex align-items-center"></span> @L["Add Supplier"]
                     </NavLink>
                 </div>
 
                 <div class="nav-item px-3">
                     <NavLink class="nav-link d-flex align-items-center" href="admin">
-                        <span class="bi bi-shield-lock-fill me-2 d-inline-flex align-items-center"></span> Control Panel
+                        <span class="bi bi-shield-lock-fill me-2 d-inline-flex align-items-center"></span> @L["Control Panel"]
                     </NavLink>
                 </div>
 
                 <div class="nav-item px-3">
                     <NavLink class="nav-link d-flex align-items-center" href="admin/payments">
-                        <span class="bi bi-cash-coin me-2 d-inline-flex align-items-center"></span> Payments
+                        <span class="bi bi-cash-coin me-2 d-inline-flex align-items-center"></span> @L["Payments"]
                     </NavLink>
                 </div>
 

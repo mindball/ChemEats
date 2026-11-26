@@ -4,10 +4,11 @@ using Shared.DTOs.Employees;
 using Shared.DTOs.Suppliers;
 using WebApp.Services.Employees;
 using WebApp.Services.Suppliers;
+using WebApp.Infrastructure.Localization;
 
 namespace WebApp.Pages.Suppliers;
 
-public class EditSupplierBase : ComponentBase
+public class EditSupplierBase : LocalizedComponentBase
 {
     protected string? ErrorMessage;
     [Parameter] public bool IsSubmitting { get; set; }
@@ -52,7 +53,7 @@ public class EditSupplierBase : ComponentBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Error loading supplier: {ex.Message}";
+            ErrorMessage = L["Error loading supplier: {0}", ex.Message];
         }
     }
 
@@ -69,16 +70,16 @@ public class EditSupplierBase : ComponentBase
             if (updated != null)
             {
                 Supplier = updated;
-                SuccessMessage = $"Supplier '{updated.Name}' updated successfully.";
+                SuccessMessage = L["Supplier '{0}' updated successfully.", updated.Name];
             }
             else
             {
-                ErrorMessage = "Failed to update supplier.";
+                ErrorMessage = L["Failed to update supplier."];
             }
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Error: {ex.Message}";
+            ErrorMessage = L["Error: {0}", ex.Message];
         }
         finally
         {

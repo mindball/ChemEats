@@ -3,10 +3,11 @@ using Microsoft.JSInterop;
 using Shared.DTOs.Orders;
 using WebApp.Pages.AdminPanel;
 using WebApp.Services.Orders;
+using WebApp.Infrastructure.Localization;
 
 namespace WebApp.Pages.Reports;
 
-public class OutstandingReportBase : ComponentBase
+public class OutstandingReportBase : LocalizedComponentBase
 {
     public const string AllDatesPageUrl = "/reports/outstanding?allDates=true";
 
@@ -41,7 +42,7 @@ public class OutstandingReportBase : ComponentBase
 
     protected string PeriodText =>
         IsAllDates
-            ? "All dates"
+            ? L["All dates"]
             : StartDate.HasValue && EndDate.HasValue
                 ? $"{StartDate.Value:dd.MM.yyyy} – {EndDate.Value:dd.MM.yyyy}"
                 : string.Empty;
@@ -52,7 +53,7 @@ public class OutstandingReportBase : ComponentBase
             ? $"outstanding-payments-all-{DateTime.Today:yyyyMMdd}"
             : StartDate.HasValue && EndDate.HasValue
                 ? $"outstanding-payments-{StartDate.Value:yyyyMMdd}-{EndDate.Value:yyyyMMdd}"
-                : "Outstanding Payments";
+                : L["Outstanding Payments"];
 
     protected override async Task OnParametersSetAsync()
     {
@@ -63,13 +64,13 @@ public class OutstandingReportBase : ComponentBase
         {
             if (!StartDate.HasValue || !EndDate.HasValue)
             {
-                ErrorMessage = "The report period is missing. Open the report from the Payments summary page.";
+                ErrorMessage = L["The report period is missing. Open the report from the Payments summary page."];
                 return;
             }
 
             if (EndDate.Value.Date < StartDate.Value.Date)
             {
-                ErrorMessage = "End date cannot be before start date.";
+                ErrorMessage = L["End date cannot be before start date."];
                 return;
             }
         }
@@ -84,11 +85,11 @@ public class OutstandingReportBase : ComponentBase
             GeneratedAt = DateTime.Now;
 
             if (Summaries is null)
-                ErrorMessage = "The report could not be loaded. Please try again.";
+                ErrorMessage = L["The report could not be loaded. Please try again."];
         }
         catch (Exception)
         {
-            ErrorMessage = "Unexpected error while loading the report.";
+            ErrorMessage = L["Unexpected error while loading the report."];
         }
         finally
         {

@@ -6,10 +6,11 @@ using Shared.DTOs.Menus;
 using Shared.DTOs.Orders;
 using WebApp.Services.Menus;
 using WebApp.Services.Orders;
+using WebApp.Infrastructure.Localization;
 
 namespace WebApp.Pages.Orders;
 
-public class MyOrdersBase : ComponentBase
+public class MyOrdersBase : LocalizedComponentBase
 {
     [Inject] protected IMenuDataService MenuDataService { get; init; } = null!;
     [Inject] protected IOrderDataService OrderDataService { get; init; } = null!;
@@ -47,7 +48,7 @@ public class MyOrdersBase : ComponentBase
             ClaimsPrincipal? user = auth.User;
             if (user?.Identity?.IsAuthenticated != true)
             {
-                ErrorMessage = "You must be signed in to view your orders.";
+                ErrorMessage = L["You must be signed in to view your orders."];
                 return;
             }
 
@@ -61,7 +62,7 @@ public class MyOrdersBase : ComponentBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to load orders: {ex.Message}";
+            ErrorMessage = L["Failed to load orders: {0}", ex.Message];
         }
         finally
         {
@@ -92,7 +93,7 @@ public class MyOrdersBase : ComponentBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to load orders: {ex.Message}";
+            ErrorMessage = L["Failed to load orders: {0}", ex.Message];
         }
         finally
         {

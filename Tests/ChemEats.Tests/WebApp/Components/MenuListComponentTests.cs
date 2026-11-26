@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using Bunit;
 using Shared.DTOs.Meals;
 using Shared.DTOs.Menus;
@@ -5,7 +7,7 @@ using WebApp.Components;
 
 namespace ChemEats.Tests.WebApp.Components;
 
-public class MenuListComponentTests : TestContext
+public class MenuListComponentTests : LocalizedTestContext
 {
     [Fact]
     public void MenuListComponent_WhenMenusAreNull_ShouldRenderEmptyState()

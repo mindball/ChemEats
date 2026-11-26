@@ -1,3 +1,4 @@
+using WebApp.Resources;
 using ChemEats.Tests.TestInfrastructure;
 using Microsoft.JSInterop;
 using Moq;
@@ -138,6 +139,11 @@ public class GetSuppliersBaseTests
 
     private sealed class GetSuppliersBaseTestHarness : GetSuppliersBase
     {
+        public GetSuppliersBaseTestHarness()
+        {
+            L = new PassThroughStringLocalizer<SharedResource>();
+        }
+
         public bool IsViewModalOpenPublic => IsViewModalOpen;
         public SupplierDto? SelectedSupplierPublic => SelectedSupplier;
         public List<SupplierDto> SuppliersPublic => Suppliers;

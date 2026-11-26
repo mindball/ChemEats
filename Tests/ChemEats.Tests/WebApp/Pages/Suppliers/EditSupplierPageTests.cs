@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using Bunit;
 using Bunit.TestDoubles;
 using Microsoft.AspNetCore.Components;
@@ -12,7 +14,7 @@ using WebApp.Services.Suppliers;
 
 namespace ChemEats.Tests.WebApp.Pages.Suppliers;
 
-public class EditSupplierPageTests : TestContext
+public class EditSupplierPageTests : LocalizedTestContext
 {
     [Fact]
     public void EditSupplier_WhenAuthorizedAdmin_ShouldRenderSupplierForm()

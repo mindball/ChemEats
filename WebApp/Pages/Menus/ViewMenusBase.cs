@@ -8,10 +8,11 @@ using WebApp.Infrastructure.States;
 using WebApp.Pages.Reports;
 using WebApp.Services.Menus;
 using WebApp.Services.Suppliers;
+using WebApp.Infrastructure.Localization;
 
 namespace WebApp.Pages.Menus;
 
-public partial class ViewMenusBase : ComponentBase
+public partial class ViewMenusBase : LocalizedComponentBase
 {
     [Inject] protected IMenuDataService MenuDataService { get; init; } = null!;
     [Inject] protected IJSRuntime JsRuntime { get; set; } = null!;
@@ -102,7 +103,7 @@ public partial class ViewMenusBase : ComponentBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to load menus: {ex.Message}";
+            ErrorMessage = L["Failed to load menus: {0}", ex.Message];
         }
         finally
         {
@@ -129,7 +130,7 @@ public partial class ViewMenusBase : ComponentBase
 
     protected async Task EditDateAsync(Guid id, DateTime current)
     {
-        string? newDateStr = await JsRuntime.InvokeAsync<string>("prompt", $"New date (yyyy-MM-dd)", current.ToString("yyyy-MM-dd"));
+        string? newDateStr = await JsRuntime.InvokeAsync<string>("prompt", L["New date (yyyy-MM-dd)"].Value, current.ToString("yyyy-MM-dd"));
         if (string.IsNullOrWhiteSpace(newDateStr)) return;
         if (!DateTime.TryParse(newDateStr, out DateTime newDate)) return;
 
@@ -137,12 +138,12 @@ public partial class ViewMenusBase : ComponentBase
         if (ok)
             await OnSearchClickedAsync();
         else
-            ErrorMessage = "Failed to update menu date.";
+            ErrorMessage = L["Failed to update menu date."];
     }
 
     protected async Task SoftDeleteAsync(Guid id)
     {
-        if (!await JsRuntime.InvokeAsync<bool>("confirm", "Soft delete this menu and cancel its orders?"))
+        if (!await JsRuntime.InvokeAsync<bool>("confirm", L["Soft delete this menu and cancel its orders?"].Value))
             return;
 
         try
@@ -156,7 +157,7 @@ public partial class ViewMenusBase : ComponentBase
         }
         catch (Exception)
         {
-            ErrorMessage = "Unexpected error while deleting menu.";
+            ErrorMessage = L["Unexpected error while deleting menu."];
         }
     }
 
@@ -164,7 +165,7 @@ public partial class ViewMenusBase : ComponentBase
     {
         string? newDateTimeStr = await JsRuntime.InvokeAsync<string>(
             "prompt",
-            "New ActiveUntil (yyyy-MM-dd HH:mm)",
+            L["New ActiveUntil (yyyy-MM-dd HH:mm)"].Value,
             currentActiveUntil.ToString("yyyy-MM-dd HH:mm"));
 
         if (string.IsNullOrWhiteSpace(newDateTimeStr)) return;
@@ -176,7 +177,7 @@ public partial class ViewMenusBase : ComponentBase
             if (ok)
                 await OnSearchClickedAsync();
             else
-                ErrorMessage = "Failed to update ActiveUntil.";
+                ErrorMessage = L["Failed to update ActiveUntil."];
         }
         catch (ApplicationException ex)
         {
@@ -184,13 +185,13 @@ public partial class ViewMenusBase : ComponentBase
         }
         catch (Exception)
         {
-            ErrorMessage = "Unexpected error while updating ActiveUntil.";
+            ErrorMessage = L["Unexpected error while updating ActiveUntil."];
         }
     }
 
     protected async Task FinalizeMenuAsync(Guid menuId)
     {
-        if (!await JsRuntime.InvokeAsync<bool>("confirm", "Finalize this menu? All pending orders will be marked as completed and ordering will be stopped."))
+        if (!await JsRuntime.InvokeAsync<bool>("confirm", L["Finalize this menu? All pending orders will be marked as completed and ordering will be stopped."].Value))
             return;
 
         try
@@ -199,7 +200,7 @@ public partial class ViewMenusBase : ComponentBase
             if (result is not null)
             {
                 await JsRuntime.InvokeVoidAsync("alert",
-                    $"Menu finalized successfully!\n{result.CompletedOrdersCount} orders completed.\nTotal amount: {result.TotalAmount:C}");
+                    L["Menu finalized successfully!\n{0} orders completed.\nTotal amount: {1:C}", result.CompletedOrdersCount, result.TotalAmount].Value);
                 await OnSearchClickedAsync();
             }
         }
@@ -209,7 +210,7 @@ public partial class ViewMenusBase : ComponentBase
         }
         catch (Exception)
         {
-            ErrorMessage = "Unexpected error while finalizing menu.";
+            ErrorMessage = L["Unexpected error while finalizing menu."];
         }
     }
 }

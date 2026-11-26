@@ -1,0 +1,10 @@
+# Install as /etc/sudoers.d/chemeats-deploy (NO dot in the file name — sudo skips such files),
+# root:root 0440, then validate: sudo visudo -cf /etc/sudoers.d/chemeats-deploy
+# Only these exact commands run without a password; everything else still asks.
+Cmnd_Alias CHEMEATS_DEPLOY = /usr/local/sbin/chemeats-deploy, \
+                             /usr/local/sbin/chemeats-deploy --check, \
+                             /usr/local/sbin/chemeats-deploy --rollback
+Cmnd_Alias CHEMEATS_READ   = /usr/bin/systemctl status chemeats, \
+                             /usr/bin/systemctl is-active chemeats, \
+                             /usr/bin/journalctl -u chemeats -n 100 --no-pager
+chemist ALL=(root) NOPASSWD: CHEMEATS_DEPLOY, CHEMEATS_READ

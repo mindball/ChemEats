@@ -6,14 +6,14 @@
     <Authorized Context="authContext">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="mb-0" style="color: #003d61;"><i class="bi bi-building me-2"></i>Suppliers</h3>
+                <h3 class="mb-0" style="color: #003d61;"><i class="bi bi-building me-2"></i>@L["Suppliers"]</h3>
             </div>
 
             @if (Suppliers.Count == 0)
             {
                 <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
                     <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading suppliers...</span>
+                        <span class="visually-hidden">@L["Loading suppliers..."]</span>
                     </div>
                 </div>
             }
@@ -23,7 +23,7 @@
                     <div class="card-header bg-white">
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="fw-semibold">
-                                <i class="bi bi-list-check me-2"></i>All Suppliers (@Suppliers.Count)
+                                <i class="bi bi-list-check me-2"></i>@L["All Suppliers ({0})", Suppliers.Count]
                             </span>
                         </div>
                     </div>
@@ -33,19 +33,19 @@
                                 <thead class="table-light">
                                     <tr class="text-center">
                                         <th class="text-start ps-3">
-                                            <i class="bi bi-building me-1"></i>Name
+                                            <i class="bi bi-building me-1"></i>@L["Name"]
                                         </th>
                                         <th>
-                                            <i class="bi bi-receipt me-1"></i>VAT Number
+                                            <i class="bi bi-receipt me-1"></i>@L["VAT Number"]
                                         </th>
                                         <th>
-                                            <i class="bi bi-credit-card me-1"></i>Payment Terms
+                                            <i class="bi bi-credit-card me-1"></i>@L["Payment Terms"]
                                         </th>
                                         <th>
-                                            <i class="bi bi-envelope me-1"></i>Email
+                                            <i class="bi bi-envelope me-1"></i>@L["Email"]
                                         </th>
                                         <th style="width: 200px">
-                                            <i class="bi bi-gear me-1"></i>Actions
+                                            <i class="bi bi-gear me-1"></i>@L["Actions"]
                                         </th>
                                     </tr>
                                 </thead>
@@ -63,19 +63,19 @@
                                                 <div class="btn-group btn-group-sm" role="group">
                                                     <button class="btn btn-outline-primary"
                                                             @onclick="() => ViewSupplier(supplier)"
-                                                            title="View details">
+                                                            title="@L["View details"]">
                                                         <i class="bi bi-eye-fill"></i>
                                                     </button>
                                                     <button class="btn btn-outline-warning"
                                                             @onclick="() => UpdateSupplier(supplier)"
-                                                            title="Edit supplier">
+                                                            title="@L["Edit Supplier"]">
                                                         <i class="bi bi-pencil-fill"></i>
                                                     </button>
                                                     <AuthorizeView Roles="Admin">
                                                         <Authorized Context="adminContext">
                                                             <button class="btn btn-outline-danger"
                                                                     @onclick="() => DeleteSupplierAsync(supplier)"
-                                                                    title="Delete supplier">
+                                                                    title="@L["Delete supplier"]">
                                                                 <i class="bi bi-trash-fill"></i>
                                                             </button>
                                                         </Authorized>
@@ -105,17 +105,17 @@
                             <div class="modal-body">
                                 <div class="card mb-3">
                                     <div class="card-header bg-light">
-                                        <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Basic Information</h6>
+                                        <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>@L["Basic Information"]</h6>
                                     </div>
                                     <div class="card-body">
                                         <dl class="row mb-0">
                                             <dt class="col-sm-4">
-                                                <i class="bi bi-receipt me-1"></i>VAT Number
+                                                <i class="bi bi-receipt me-1"></i>@L["VAT Number"]
                                             </dt>
                                             <dd class="col-sm-8">@SelectedSupplier.VatNumber</dd>
 
                                             <dt class="col-sm-4">
-                                                <i class="bi bi-credit-card me-1"></i>Payment Terms
+                                                <i class="bi bi-credit-card me-1"></i>@L["Payment Terms"]
                                             </dt>
                                             <dd class="col-sm-8">
                                                 <span class="badge bg-info text-dark">@SelectedSupplier.PaymentTerms</span>
@@ -126,17 +126,17 @@
 
                                 <div class="card mb-3">
                                     <div class="card-header bg-light">
-                                        <h6 class="mb-0"><i class="bi bi-telephone me-2"></i>Contact Information</h6>
+                                        <h6 class="mb-0"><i class="bi bi-telephone me-2"></i>@L["Contact Information"]</h6>
                                     </div>
                                     <div class="card-body">
                                         <dl class="row mb-0">
                                             <dt class="col-sm-4">
-                                                <i class="bi bi-envelope me-1"></i>Email
+                                                <i class="bi bi-envelope me-1"></i>@L["Email"]
                                             </dt>
                                             <dd class="col-sm-8">@SelectedSupplier.Email</dd>
 
                                             <dt class="col-sm-4">
-                                                <i class="bi bi-phone me-1"></i>Phone
+                                                <i class="bi bi-phone me-1"></i>@L["Phone"]
                                             </dt>
                                             <dd class="col-sm-8">@SelectedSupplier.Phone</dd>
                                         </dl>
@@ -145,27 +145,27 @@
 
                                 <div class="card mb-3">
                                     <div class="card-header bg-light">
-                                        <h6 class="mb-0"><i class="bi bi-geo-alt me-2"></i>Address Information</h6>
+                                        <h6 class="mb-0"><i class="bi bi-geo-alt me-2"></i>@L["Address Information"]</h6>
                                     </div>
                                     <div class="card-body">
                                         <dl class="row mb-0">
                                             <dt class="col-sm-4">
-                                                <i class="bi bi-signpost me-1"></i>Street Address
+                                                <i class="bi bi-signpost me-1"></i>@L["Street Address"]
                                             </dt>
                                             <dd class="col-sm-8">@SelectedSupplier.StreetAddress</dd>
 
                                             <dt class="col-sm-4">
-                                                <i class="bi bi-building me-1"></i>City
+                                                <i class="bi bi-building me-1"></i>@L["City"]
                                             </dt>
                                             <dd class="col-sm-8">@SelectedSupplier.City</dd>
 
                                             <dt class="col-sm-4">
-                                                <i class="bi bi-mailbox me-1"></i>Postal Code
+                                                <i class="bi bi-mailbox me-1"></i>@L["Postal Code"]
                                             </dt>
                                             <dd class="col-sm-8">@SelectedSupplier.PostalCode</dd>
 
                                             <dt class="col-sm-4">
-                                                <i class="bi bi-globe me-1"></i>Country
+                                                <i class="bi bi-globe me-1"></i>@L["Country"]
                                             </dt>
                                             <dd class="col-sm-8">@SelectedSupplier.Country</dd>
                                         </dl>
@@ -174,7 +174,7 @@
 
                                 <div class="card">
                                     <div class="card-header bg-light">
-                                        <h6 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Menus</h6>
+                                        <h6 class="mb-0"><i class="bi bi-calendar-event me-2"></i>@L["Menus"]</h6>
                                     </div>
                                     <div class="card-body">
                                         @if (SelectedSupplier.Menus?.Any() == true)
@@ -188,7 +188,7 @@
                                                                 <i class="bi bi-calendar3 me-2 text-primary"></i>
                                                                 <strong>@menu.Date.ToShortDateString()</strong>
                                                             </div>
-                                                            <span class="badge bg-primary rounded-pill">@menu.Meals.Count meals</span>
+                                                            <span class="badge bg-primary rounded-pill">@L["{0} meals", menu.Meals.Count]</span>
                                                         </div>
                                                     </li>
                                                 }
@@ -197,7 +197,7 @@
                                         else
                                         {
                                             <div class="text-muted text-center py-3">
-                                                <i class="bi bi-inbox me-2"></i>No menus available
+                                                <i class="bi bi-inbox me-2"></i>@L["No menus available"]
                                             </div>
                                         }
                                     </div>
@@ -205,7 +205,7 @@
                             </div>
                             <div class="modal-footer">
                                 <button class="btn btn-secondary" @onclick="CloseViewModal">
-                                    <i class="bi bi-x-circle me-2"></i>Close
+                                    <i class="bi bi-x-circle me-2"></i>@L["Close"]
                                 </button>
                             </div>
                         </div>

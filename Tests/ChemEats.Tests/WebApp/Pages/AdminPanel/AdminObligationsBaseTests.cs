@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using Microsoft.JSInterop;
 using Moq;
 using Shared.Common.Enums;
@@ -270,7 +272,12 @@ public class AdminObligationsBaseTests
 
     private sealed class AdminObligationsBaseTestHarness : AdminObligationsBase
     {
-        public AdminObligationsBaseTestHarness(IObligationDataService obligationDataService, bool confirm = true)
+        public AdminObligationsBaseTestHarness()
+        {
+            L = new PassThroughStringLocalizer<SharedResource>();
+        }
+
+        public AdminObligationsBaseTestHarness(IObligationDataService obligationDataService, bool confirm = true) : this()
         {
             ObligationDataService = obligationDataService;
             Mock<IEmployeeDataService> employeeServiceMock = new();

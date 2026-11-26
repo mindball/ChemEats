@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using Microsoft.JSInterop;
 using Moq;
 using Shared.Common.Enums;
@@ -209,11 +211,16 @@ public class AdminPaymentsBaseTests
 
     private sealed class AdminPaymentsBaseTestHarness : AdminPaymentsBase
     {
+        public AdminPaymentsBaseTestHarness()
+        {
+            L = new PassThroughStringLocalizer<SharedResource>();
+        }
+
         public AdminPaymentsBaseTestHarness(
             IOrderDataService orderDataService,
             IEmployeeDataService employeeDataService,
             ISettingsDataService settingsDataService,
-            IJSRuntime jsRuntime)
+            IJSRuntime jsRuntime) : this()
         {
             OrderDataService = orderDataService;
             EmployeeDataService = employeeDataService;

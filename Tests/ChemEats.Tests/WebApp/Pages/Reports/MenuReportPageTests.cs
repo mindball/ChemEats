@@ -1,3 +1,5 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
@@ -9,7 +11,7 @@ using WebApp.Services.Menus;
 
 namespace ChemEats.Tests.WebApp.Pages.Reports;
 
-public class MenuReportPageTests : TestContext
+public class MenuReportPageTests : LocalizedTestContext
 {
     private readonly Mock<IMenuReportService> _reportServiceMock = new();
 
@@ -162,6 +164,11 @@ public class MenuReportPageTests : TestContext
 
     public sealed class MenuReportTitleProbe : MenuReportBase
     {
+        public MenuReportTitleProbe()
+        {
+            L = new PassThroughStringLocalizer<SharedResource>();
+        }
+
         public string Title => DocumentTitle;
     }
 }

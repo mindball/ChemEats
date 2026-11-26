@@ -1,10 +1,12 @@
+using WebApp.Resources;
+using ChemEats.Tests.TestInfrastructure;
 using Bunit;
 using AngleSharp.Dom;
 using WebApp.Components;
 
 namespace ChemEats.Tests.WebApp.Components;
 
-public class PopupModalTests : TestContext
+public class PopupModalTests : LocalizedTestContext
 {
     [Fact]
     public void PopupModal_ShouldNotRenderModalBody_WhenNotVisible()

@@ -1,3 +1,4 @@
+using WebApp.Resources;
 using Microsoft.JSInterop;
 using Moq;
 using Shared.Common.Enums;
@@ -139,11 +140,16 @@ public class ViewMenusBaseTests
 
     private sealed class ViewMenusBaseTestHarness : ViewMenusBase
     {
+        public ViewMenusBaseTestHarness()
+        {
+            L = new PassThroughStringLocalizer<SharedResource>();
+        }
+
         public ViewMenusBaseTestHarness(
             IMenuDataService menuDataService,
                 ISupplierDataService supplierDataService,
             CustomAuthStateProvider authProvider,
-            IJSRuntime jsRuntime)
+            IJSRuntime jsRuntime) : this()
         {
             MenuDataService = menuDataService;
             NavigationManager = new TestNavigationManager();
