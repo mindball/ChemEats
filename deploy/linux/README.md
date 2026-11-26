@@ -59,3 +59,16 @@ sudo -k; sudo -n /usr/local/sbin/chemeats-deploy --check   # no password prompt;
 Repeat the first `install` line whenever `chemeats-deploy.sh` changes.
 
 Usage: `sudo chemeats-deploy` (deploys `/tmp/chemeats.tgz`), `--check`, `--rollback`. Never overwrites `App_Data/` or `appsettings.Production.json`; keeps the previous version in `/var/www/chemeats.old`.
+
+Behavior:
+- The deploy/rollback runs as a **detached worker**: a dropped ssh connection or Ctrl+C does not interrupt it. Its output is streamed to the caller and written to `/var/log/chemeats/deploy.log`. Do not start a second deploy while one runs (a lock rejects it); check the log or `systemctl is-active chemeats` instead.
+- On failure it recovers by itself: before files changed → starts the current version again; while replacing files → restores `/var/www/chemeats.old`. The backup is built aside and swapped in, so it is never half-written.
+- Files are compared by content (`rsync --checksum`).
+
+## 5. Packing the release on Windows
+
+Windows `tar` cannot set the executable bit, and the deploy script rejects an archive whose `WebApi` is not executable. Pack with:
+
+```powershell
+python deploy/linux/pack-release.py publish-linux chemeats.tgz
+```
