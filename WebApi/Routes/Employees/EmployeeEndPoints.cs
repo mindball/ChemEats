@@ -373,13 +373,16 @@ public static class EmployeeEndPoints
         string temporaryPassword = PasswordChangeRequirement.GenerateTemporaryPassword();
         IdentityResult result = await userRepository.ResetPasswordAsync(user, temporaryPassword, cancellationToken);
         if (result.Succeeded)
-            result = await RequirePasswordChangeAsync(userManager, user);
-        if (result.Succeeded)
         {
-            // A reset also lifts a lockout; use the instance tracked by UserManager to avoid a tracking conflict.
+            // The repository returns an untracked copy, but the reset above already tracks UserManager's instance.
+            // Every further UserManager update must use that instance, or EF throws an identity tracking conflict.
             ApplicationUser? managedUser = await userManager.FindByIdAsync(user.Id);
-            if (managedUser is not null)
-                result = await userManager.SetLockoutEndDateAsync(managedUser, null);
+            if (managedUser is null)
+                return Results.NotFound("User not found.");
+
+            result = await RequirePasswordChangeAsync(userManager, managedUser);
+            if (result.Succeeded)
+                result = await userManager.SetLockoutEndDateAsync(managedUser, null); // a reset also lifts a lockout
         }
 
         if (!result.Succeeded)

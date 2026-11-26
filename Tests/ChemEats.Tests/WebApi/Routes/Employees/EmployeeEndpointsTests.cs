@@ -88,6 +88,39 @@ public class EmployeeEndpointsTests
     }
 
     [Fact]
+    public async Task ResetUserPasswordAsync_WhenRepositoryReturnsUntrackedUser_ShouldUpdateOnlyTheUserManagerInstance()
+    {
+        string userId = Guid.NewGuid().ToString();
+        ApplicationUser readOnlyUser = TestDataFactory.CreateUser(userId, "YH", "Read-only copy");
+        ApplicationUser trackedUser = TestDataFactory.CreateUser(userId, "YH", "Tracked copy");
+        Mock<IUserRepository> userRepositoryMock = new();
+        userRepositoryMock
+            .Setup(repository => repository.GetByIdAsync(Guid.Parse(userId), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(readOnlyUser);
+        userRepositoryMock
+            .Setup(repository => repository.ResetPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(IdentityResult.Success);
+        Mock<UserManager<ApplicationUser>> userManagerMock = CreateUserManagerMockWithClaims();
+        userManagerMock.Setup(manager => manager.FindByIdAsync(userId)).ReturnsAsync(trackedUser);
+        userManagerMock.Setup(manager => manager.SetLockoutEndDateAsync(trackedUser, null)).ReturnsAsync(IdentityResult.Success);
+
+        IResult result = await InvokePrivateResultMethodAsync(
+            "ResetUserPasswordAsync",
+            userId,
+            userRepositoryMock.Object,
+            userManagerMock.Object,
+            CreateProgramLogger(),
+            CancellationToken.None);
+
+        AssertHttpResultType(result, "Ok");
+        userManagerMock.Verify(manager => manager.AddClaimAsync(
+            trackedUser,
+            It.Is<Claim>(claim => claim.Type == PasswordChangeRequirement.ClaimType)), Times.Once);
+        userManagerMock.Verify(manager => manager.AddClaimAsync(readOnlyUser, It.IsAny<Claim>()), Times.Never);
+        userManagerMock.Verify(manager => manager.GetClaimsAsync(readOnlyUser), Times.Never);
+    }
+
+    [Fact]
     public async Task ResetUserPasswordAsync_WhenUserIsMissing_ShouldReturnNotFound()
     {
         Mock<IUserRepository> userRepositoryMock = new();
